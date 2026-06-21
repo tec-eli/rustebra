@@ -42,7 +42,7 @@ explicit future decision, not a default endpoint.
 
 ## v0.2.0 — Matrix decompositions and structural properties
 
-- [ ] Determinant
+- [x] Determinant
 - [ ] Rank
 - [ ] LU decomposition
 - [ ] QR decomposition
