@@ -1,0 +1,13 @@
+/target
+
+# JetBrains IDEs (RustRover, IntelliJ, CLion)
+.idea/
+
+# Editor backups/swap files
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
