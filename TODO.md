@@ -33,10 +33,10 @@ explicit future decision, not a default endpoint.
 - [x] `LICENSE` file present at repo root with the copyright line filled in
 - [ ] Working tree clean (no uncommitted changes) — `cargo publish --dry-run` passes without
   `--allow-dirty`
-- [ ] `cargo fmt --check`, `cargo clippy --all-features -- -D warnings`,
+- [x] `cargo fmt --check`, `cargo clippy --all-features -- -D warnings`,
   `cargo test --no-default-features`, `cargo test --all-features` all clean
 - [x] `CHANGELOG.md` has a `[0.1.0]` section (moved out of `[Unreleased]`)
-- [ ] Tag `v0.1.0`
+- [x] Tag `v0.1.0`
 
 ---
 
