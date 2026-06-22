@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `StaticMatrix<T, R, C>::rank` and `DynamicMatrix<T>::rank`, wiring `algorithm::matrix::rank` to an infallible method (the internal scratch buffer always matches `self`'s shape, so the dimension mismatch is unreachable) that works for non-square shapes too, unlike `determinant`.
 - Unit tests for both.
 - Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations to cover `rank`.
+- `Scalar::sin` and `Scalar::cos`, public elementary functions on `Scalar`, computed via fixed-iteration Taylor series expansion around zero (`sin(x) = x - x^3/3! + x^5/5! - ...`, `cos(x) = 1 - x^2/2! + x^4/4! - ...`), each via a recurrence that avoids recomputing factorials and powers from scratch per term. No range reduction is performed, so precision degrades for inputs far from zero, the same trade-off `Scalar::sqrt` already documents for its own fixed-iteration approach.
+- Unit tests for `Scalar::sin`/`Scalar::cos` on `f32` and `f64` (known angles: `0`, `pi/2`, `pi`).
+- `tests/scalar.rs`, a black-box integration test exercising `Scalar`'s public API (`zero`/`one`/`add`/`sub`/`mul`/`div`/`sqrt`/`sin`/`cos`) on `f32` and `f64` using only `pub` items.
+- `examples/scalar.rs`, a runnable end-to-end demonstration of every `Scalar` operation on `f64`.
 
 ## [0.1.0] - 2026-06-21
 

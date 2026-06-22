@@ -1,4 +1,6 @@
 use super::Scalar;
+use super::cos::taylor_series as cos_taylor_series;
+use super::sin::taylor_series as sin_taylor_series;
 use super::sqrt::newton_raphson;
 
 impl Scalar for f32 {
@@ -28,6 +30,14 @@ impl Scalar for f32 {
 
     fn sqrt(self) -> Self {
         newton_raphson(self, 0.0, 2.0)
+    }
+
+    fn sin(self) -> Self {
+        sin_taylor_series(self, 0.0, 1.0)
+    }
+
+    fn cos(self) -> Self {
+        cos_taylor_series(self, 0.0, 1.0)
     }
 }
 
@@ -67,5 +77,27 @@ mod tests {
     #[test]
     fn sqrt_of_negative_returns_zero() {
         assert_eq!(Scalar::sqrt(-4.0f32), 0.0);
+    }
+
+    #[test]
+    fn sin_of_known_angles() {
+        assert_eq!(Scalar::sin(0.0f32), 0.0);
+
+        let result = Scalar::sin(core::f32::consts::FRAC_PI_2);
+        assert!((result - 1.0).abs() < 1e-6);
+
+        let result = Scalar::sin(core::f32::consts::PI);
+        assert!((result - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn cos_of_known_angles() {
+        assert_eq!(Scalar::cos(0.0f32), 1.0);
+
+        let result = Scalar::cos(core::f32::consts::FRAC_PI_2);
+        assert!((result - 0.0).abs() < 1e-6);
+
+        let result = Scalar::cos(core::f32::consts::PI);
+        assert!((result - (-1.0)).abs() < 1e-6);
     }
 }

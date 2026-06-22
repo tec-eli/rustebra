@@ -1,5 +1,7 @@
+mod cos;
 mod f32;
 mod f64;
+mod sin;
 mod sqrt;
 
 /// A numeric type that algorithms in this crate operate on.
@@ -61,4 +63,44 @@ pub trait Scalar: Copy {
     /// assert_eq!(Scalar::sqrt(0.0f64), 0.0);
     /// ```
     fn sqrt(self) -> Self;
+
+    /// Returns the sine of `self` (in radians), via a fixed-iteration Taylor series
+    /// expansion around zero: `sin(x) = x - x^3/3! + x^5/5! - ...`.
+    ///
+    /// The iteration count is fixed rather than convergence-checked, so behavior is
+    /// predictable in `no_std` contexts (the same amount of work runs regardless of the
+    /// input). This converges to the correctly-rounded result near zero, but loses
+    /// precision as `self` grows away from zero, since this implementation performs no
+    /// range reduction (e.g. reducing `self` modulo `2*pi` first).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::scalar::Scalar;
+    ///
+    /// assert_eq!(Scalar::sin(0.0f64), 0.0);
+    ///
+    /// let result = Scalar::sin(core::f64::consts::FRAC_PI_2);
+    /// assert!((result - 1.0).abs() < 1e-9);
+    /// ```
+    fn sin(self) -> Self;
+
+    /// Returns the cosine of `self` (in radians), via a fixed-iteration Taylor series
+    /// expansion around zero: `cos(x) = 1 - x^2/2! + x^4/4! - ...`.
+    ///
+    /// Same fixed-iteration, no-range-reduction trade-off as [`Scalar::sin`]: predictable,
+    /// bounded work in `no_std` contexts, at the cost of precision for `self` far from
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::scalar::Scalar;
+    ///
+    /// assert_eq!(Scalar::cos(0.0f64), 1.0);
+    ///
+    /// let result = Scalar::cos(core::f64::consts::PI);
+    /// assert!((result - (-1.0)).abs() < 1e-9);
+    /// ```
+    fn cos(self) -> Self;
 }
