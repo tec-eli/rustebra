@@ -4,6 +4,7 @@ mod determinant;
 mod lu;
 mod qr;
 mod rank;
+mod svd;
 
 pub use arithmetic::{add, mul_matrix, mul_scalar, mul_vector, sub, transpose};
 pub use cholesky::{CholeskyError, cholesky, cholesky_decompose};
@@ -11,6 +12,7 @@ pub use determinant::determinant;
 pub use lu::{lu, lu_partial_pivot};
 pub use qr::{qr, qr_gram_schmidt, qr_householder};
 pub use rank::rank;
+pub use svd::{svd, svd_qr_iteration};
 
 /// Error returned by matrix operations in this module when operand dimensions don't agree.
 ///
