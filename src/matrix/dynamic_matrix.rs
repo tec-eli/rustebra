@@ -263,6 +263,25 @@ impl<T: Scalar> DynamicMatrix<T> {
         }
         Self::from_parts(DynamicStorage::new(data), self.cols, self.rows)
     }
+
+    /// Computes the determinant of `self`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(DimensionMismatch)` if `self.rows() != self.cols()`, rather than
+    /// panicking, per ADR 0004.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::DynamicMatrix;
+    ///
+    /// let m = DynamicMatrix::new(2, 2, vec![1.0, 2.0, 3.0, 4.0]).unwrap();
+    /// assert_eq!(m.determinant(), Ok(-2.0));
+    /// ```
+    pub fn determinant(&self) -> Result<T, DimensionMismatch> {
+        algorithm::determinant(&self.storage, self.rows, self.cols)
+    }
 }
 
 impl<T> PartialEq for DynamicMatrix<T>
@@ -403,5 +422,19 @@ mod tests {
             m.transpose(),
             DynamicMatrix::new(3, 2, vec![1.0, 4.0, 2.0, 5.0, 3.0, 6.0]).unwrap()
         );
+    }
+
+    #[test]
+    fn determinant_is_wired_to_the_algorithm_layer() {
+        let m = DynamicMatrix::new(2, 2, vec![1.0, 2.0, 3.0, 4.0]).unwrap();
+
+        assert_eq!(m.determinant(), Ok(-2.0));
+    }
+
+    #[test]
+    fn determinant_of_non_square_matrix_is_an_error_not_a_panic() {
+        let m = DynamicMatrix::new(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).unwrap();
+
+        assert_eq!(m.determinant(), Err(DimensionMismatch));
     }
 }

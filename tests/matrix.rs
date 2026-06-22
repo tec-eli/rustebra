@@ -22,6 +22,7 @@ fn static_matrix_construction_and_operations() {
         StaticMatrix::new([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).transpose(),
         StaticMatrix::new([[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
     );
+    assert_eq!(a.determinant(), -2.0);
 }
 
 #[cfg(feature = "alloc")]
@@ -57,4 +58,5 @@ fn dynamic_matrix_construction_and_operations() {
             .transpose(),
         DynamicMatrix::new(3, 2, vec![1.0, 4.0, 2.0, 5.0, 3.0, 6.0]).unwrap()
     );
+    assert_eq!(a.determinant(), Ok(-2.0));
 }

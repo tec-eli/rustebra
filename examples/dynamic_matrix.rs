@@ -32,4 +32,7 @@ fn main() {
     println!("a * b = {product_m:?}");
 
     println!("a^T = {:?}", a.transpose());
+
+    let det = a.determinant().expect("a is square");
+    println!("det(a) = {det:?}");
 }
