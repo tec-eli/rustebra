@@ -279,7 +279,10 @@ impl<T: Scalar> DynamicMatrix<T> {
     /// let m = DynamicMatrix::new(2, 2, vec![1.0, 2.0, 3.0, 4.0]).unwrap();
     /// assert_eq!(m.determinant(), Ok(-2.0));
     /// ```
-    pub fn determinant(&self) -> Result<T, DimensionMismatch> {
+    pub fn determinant(&self) -> Result<T, DimensionMismatch>
+    where
+        T: PartialEq,
+    {
         algorithm::determinant(&self.storage, self.rows, self.cols)
     }
 

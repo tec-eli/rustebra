@@ -10,7 +10,7 @@ mod svd;
 pub use arithmetic::{add, mul_matrix, mul_scalar, mul_vector, sub, transpose};
 pub use cholesky::{CholeskyError, cholesky, cholesky_decompose};
 pub use condition::{ConditionNumberError, condition_number, condition_number_svd};
-pub use determinant::determinant;
+pub use determinant::{determinant, determinant_cofactor, determinant_lu};
 pub use lu::{lu, lu_partial_pivot};
 pub use qr::{qr, qr_gram_schmidt, qr_householder};
 pub use rank::rank;

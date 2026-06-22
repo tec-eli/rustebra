@@ -230,7 +230,10 @@ impl<T: Scalar, const N: usize> StaticMatrix<T, N, N> {
     /// let m = StaticMatrix::new([[1.0, 2.0], [3.0, 4.0]]);
     /// assert_eq!(m.determinant(), -2.0);
     /// ```
-    pub fn determinant(&self) -> T {
+    pub fn determinant(&self) -> T
+    where
+        T: PartialEq,
+    {
         algorithm::determinant(self, N, N).unwrap_or(T::zero())
     }
 }

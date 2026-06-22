@@ -1,12 +1,15 @@
-use super::DimensionMismatch;
+#[cfg(feature = "alloc")]
+use alloc::vec;
+
+use super::{DimensionMismatch, lu_partial_pivot};
 use crate::scalar::Scalar;
 use crate::storage::Storage;
 
 /// A read-only [`Storage`] view over the `(n-1) x (n-1)` minor of an `n x n`, row-major
 /// matrix `Storage`, obtained by removing row `skip_row` and column `skip_col` — used by
-/// [`determinant`]'s cofactor expansion so each minor is a zero-copy view into `a` rather
-/// than a freshly materialized submatrix (this crate is `no_std`-first, and `n` is only
-/// known at runtime, so there's no fixed-size buffer to materialize one into).
+/// [`determinant_cofactor`]'s cofactor expansion so each minor is a zero-copy view into `a`
+/// rather than a freshly materialized submatrix (this crate is `no_std`-first, and `n` is
+/// only known at runtime, so there's no fixed-size buffer to materialize one into).
 ///
 /// Holds `storage` as `&dyn Storage<Item = T>` rather than a generic parameter: see
 /// [`cofactor_expansion`] for why.
@@ -89,10 +92,107 @@ fn cofactor_expansion<T: Scalar>(a: &dyn Storage<Item = T>, n: usize) -> T {
 /// Only defined for square matrices, since the determinant itself is only defined for
 /// square matrices.
 ///
+/// Cofactor expansion is `O(n!)`, so it's only practical for small `n`; see [`determinant`]
+/// for a dispatcher that picks this or [`determinant_lu`] based on matrix size.
+///
 /// # Errors
 ///
 /// Returns `Err(DimensionMismatch)` if `a` is not square (`rows != cols`), or if `a` doesn't
-/// have exactly `rows * cols` elements, rather than panicking, per ADR 0004.
+/// have exactly `rows * cols` elements, rather than panicking.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::algorithm::matrix::determinant_cofactor;
+/// use rustebra::storage::StaticStorage;
+///
+/// // Row-major 2x2 matrix: [[1, 2], [3, 4]]; det = 1*4 - 2*3 = -2.
+/// let a = StaticStorage::new([1.0, 2.0, 3.0, 4.0]);
+/// assert_eq!(determinant_cofactor(&a, 2, 2), Ok(-2.0));
+/// ```
+pub fn determinant_cofactor<S, T>(a: &S, rows: usize, cols: usize) -> Result<T, DimensionMismatch>
+where
+    S: Storage<Item = T>,
+    T: Scalar,
+{
+    if rows != cols || a.len() != rows * cols {
+        return Err(DimensionMismatch);
+    }
+    Ok(cofactor_expansion(a, rows))
+}
+
+/// Computes the determinant of the `rows x cols` matrix `a` via LU decomposition with
+/// partial pivoting: `det(a) = (-1)^s * u[0][0] * u[1][1] * ... * u[n-1][n-1]`, where `s` is
+/// the number of row swaps partial pivoting performed and `u[i][i]` are the diagonal entries
+/// of the upper-triangular factor `U`.
+///
+/// `O(n^3)`, so it's the better choice for large `n`; see [`determinant`] for a dispatcher
+/// that picks this or [`determinant_cofactor`] based on matrix size.
+///
+/// `scratch` is used to hold the `L` and `U` factors `lu_partial_pivot` computes and must
+/// have exactly `2 * rows * cols` elements (caller-provided, since this crate doesn't
+/// allocate internally).
+///
+/// # Errors
+///
+/// Returns `Err(DimensionMismatch)` if `a` is not square (`rows != cols`), if `a` doesn't have
+/// exactly `rows * cols` elements, or if `scratch` doesn't have exactly `2 * rows * cols`
+/// elements, rather than panicking.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::algorithm::matrix::determinant_lu;
+/// use rustebra::storage::StaticStorage;
+///
+/// // Row-major 2x2 matrix: [[1, 2], [3, 4]]; det = 1*4 - 2*3 = -2.
+/// let a = StaticStorage::new([1.0, 2.0, 3.0, 4.0]);
+/// let mut scratch = [0.0; 8];
+/// assert_eq!(determinant_lu(&a, 2, 2, &mut scratch), Ok(-2.0));
+/// ```
+pub fn determinant_lu<S, T>(
+    a: &S,
+    rows: usize,
+    cols: usize,
+    scratch: &mut [T],
+) -> Result<T, DimensionMismatch>
+where
+    S: Storage<Item = T>,
+    T: Scalar + PartialEq,
+{
+    if rows != cols || a.len() != rows * cols || scratch.len() != 2 * rows * cols {
+        return Err(DimensionMismatch);
+    }
+    let (l_buf, u_buf) = scratch.split_at_mut(rows * cols);
+    let swaps = lu_partial_pivot(a, rows, cols, l_buf, u_buf)?;
+
+    let mut det = T::one();
+    for i in 0..rows {
+        det = det.mul(u_buf[i * cols + i]);
+    }
+    if swaps % 2 == 1 {
+        det = T::zero().sub(det);
+    }
+    Ok(det)
+}
+
+/// Computes the determinant of the `rows x cols` matrix `a`, dispatching to whichever
+/// algorithm is more efficient for the matrix's size: [`determinant_cofactor`] (`O(n!)`) for
+/// `rows <= 4`, since cofactor expansion's overhead is negligible at that size, and
+/// [`determinant_lu`] (`O(n^3)`) for larger matrices, where cofactor expansion's factorial
+/// growth becomes prohibitive.
+///
+/// `determinant_lu` needs an `O(n^2)` scratch buffer this function's signature has no
+/// parameter for; without the `alloc` feature, there's nowhere to source that buffer from,
+/// so this falls back to `determinant_cofactor` regardless of size in that configuration.
+///
+/// Only defined for square matrices, since the determinant itself is only defined for
+/// square matrices.
+///
+/// # Errors
+///
+/// Returns `Err(DimensionMismatch)` if `a` is not square (`rows != cols`), or if `a` doesn't
+/// have exactly `rows * cols` elements, rather than panicking.
 ///
 /// # Examples
 ///
@@ -107,17 +207,19 @@ fn cofactor_expansion<T: Scalar>(a: &dyn Storage<Item = T>, n: usize) -> T {
 pub fn determinant<S, T>(a: &S, rows: usize, cols: usize) -> Result<T, DimensionMismatch>
 where
     S: Storage<Item = T>,
-    T: Scalar,
+    T: Scalar + PartialEq,
 {
-    if rows != cols || a.len() != rows * cols {
-        return Err(DimensionMismatch);
+    #[cfg(feature = "alloc")]
+    if rows > 4 {
+        let mut scratch = vec![T::zero(); 2 * rows * cols];
+        return determinant_lu(a, rows, cols, &mut scratch);
     }
-    Ok(cofactor_expansion(a, rows))
+    determinant_cofactor(a, rows, cols)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{DimensionMismatch, determinant};
+    use super::{DimensionMismatch, determinant, determinant_lu};
     use crate::storage::StaticStorage;
 
     #[test]
@@ -149,5 +251,20 @@ mod tests {
         let a = StaticStorage::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
 
         assert_eq!(determinant(&a, 2, 3), Err(DimensionMismatch));
+    }
+
+    #[test]
+    fn determinant_of_5x5_matrix_matches_determinant_lu_directly() {
+        // Diagonally dominant 5x5 matrix, so it's invertible.
+        let a = StaticStorage::new([
+            5.0_f64, 1.0, 0.0, 0.0, 0.0, 0.0, 5.0, 1.0, 0.0, 0.0, 0.0, 0.0, 5.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 5.0, 1.0, 1.0, 0.0, 0.0, 0.0, 5.0,
+        ]);
+        let mut scratch = [0.0; 50];
+
+        let via_lu = determinant_lu(&a, 5, 5, &mut scratch).unwrap();
+        let via_dispatch = determinant(&a, 5, 5).unwrap();
+
+        assert!((via_dispatch - via_lu).abs() < 1e-9);
     }
 }
