@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations to cover `determinant`.
 - `algorithm::matrix::rank`, computed by reducing the `rows x cols` matrix `a` to row echelon form via Gaussian elimination with partial pivoting, then counting the rows that aren't entirely zero; unlike `determinant`, works for non-square matrices. Since `Storage` is read-only, elimination runs in a caller-provided `scratch` buffer rather than mutating `a` in place; returns `Result<usize, DimensionMismatch>` if `a` or `scratch` doesn't have exactly `rows * cols` elements, rather than panicking.
 - Unit tests for `algorithm::matrix::rank` (a full-rank case, a rank-deficient case with one row a multiple of another, a non-square case, and a mismatched-scratch-length error case).
+- `StaticMatrix<T, R, C>::rank` and `DynamicMatrix<T>::rank`, wiring `algorithm::matrix::rank` to an infallible method (the internal scratch buffer always matches `self`'s shape, so the dimension mismatch is unreachable) that works for non-square shapes too, unlike `determinant`.
+- Unit tests for both.
+- Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations to cover `rank`.
 
 ## [0.1.0] - 2026-06-21
 

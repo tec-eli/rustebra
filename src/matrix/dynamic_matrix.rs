@@ -282,6 +282,27 @@ impl<T: Scalar> DynamicMatrix<T> {
     pub fn determinant(&self) -> Result<T, DimensionMismatch> {
         algorithm::determinant(&self.storage, self.rows, self.cols)
     }
+
+    /// Computes the rank of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::DynamicMatrix;
+    ///
+    /// // Row 1 is twice row 0, so rank is 1.
+    /// let m = DynamicMatrix::new(2, 2, vec![1.0, 2.0, 2.0, 4.0]).unwrap();
+    /// assert_eq!(m.rank(), 1);
+    /// ```
+    pub fn rank(&self) -> usize
+    where
+        T: PartialEq,
+    {
+        let mut scratch = vec![T::zero(); self.rows * self.cols];
+        // `scratch` is constructed with exactly `self.rows * self.cols` elements, matching
+        // `self.storage`, so this can never disagree in length.
+        algorithm::rank(&self.storage, self.rows, self.cols, &mut scratch).unwrap_or(0)
+    }
 }
 
 impl<T> PartialEq for DynamicMatrix<T>
@@ -436,5 +457,12 @@ mod tests {
         let m = DynamicMatrix::new(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).unwrap();
 
         assert_eq!(m.determinant(), Err(DimensionMismatch));
+    }
+
+    #[test]
+    fn rank_is_wired_to_the_algorithm_layer() {
+        let m = DynamicMatrix::new(2, 2, vec![1.0, 2.0, 2.0, 4.0]).unwrap();
+
+        assert_eq!(m.rank(), 1);
     }
 }

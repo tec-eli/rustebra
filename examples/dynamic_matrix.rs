@@ -35,4 +35,6 @@ fn main() {
 
     let det = a.determinant().expect("a is square");
     println!("det(a) = {det:?}");
+
+    println!("rank(a) = {:?}", a.rank());
 }
