@@ -47,7 +47,7 @@ explicit future decision, not a default endpoint.
 - [x] cos
 - [x] Rank
 - [x] LU decomposition
-- [ ] QR decomposition
+- [x] QR decomposition
 - [ ] Cholesky decomposition
 - [ ] Singular Value Decomposition (SVD)
 - [ ] Condition number
