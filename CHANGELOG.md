@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `StaticMatrix<T, N, N>::determinant`, wiring `algorithm::matrix::determinant` to an infallible method (`R == C` is guaranteed by the type, so the dimension mismatch is unreachable), and `DynamicMatrix<T>::determinant`, returning `Result<T, DimensionMismatch>` for real since a `DynamicMatrix`'s shape isn't known at compile time.
 - Unit tests for both, including the non-square error case for `DynamicMatrix`.
 - Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations to cover `determinant`.
+- `algorithm::matrix::rank`, computed by reducing the `rows x cols` matrix `a` to row echelon form via Gaussian elimination with partial pivoting, then counting the rows that aren't entirely zero; unlike `determinant`, works for non-square matrices. Since `Storage` is read-only, elimination runs in a caller-provided `scratch` buffer rather than mutating `a` in place; returns `Result<usize, DimensionMismatch>` if `a` or `scratch` doesn't have exactly `rows * cols` elements, rather than panicking.
+- Unit tests for `algorithm::matrix::rank` (a full-rank case, a rank-deficient case with one row a multiple of another, a non-square case, and a mismatched-scratch-length error case).
 
 ## [0.1.0] - 2026-06-21
 

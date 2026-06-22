@@ -43,7 +43,9 @@ explicit future decision, not a default endpoint.
 ## v0.2.0 — Matrix decompositions and structural properties
 
 - [x] Determinant
-- [ ] Rank
+- [ ] sin
+- [ ] cos
+- [x] Rank
 - [ ] LU decomposition
 - [ ] QR decomposition
 - [ ] Cholesky decomposition
