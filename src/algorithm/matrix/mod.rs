@@ -1,10 +1,12 @@
 mod arithmetic;
+mod cholesky;
 mod determinant;
 mod lu;
 mod qr;
 mod rank;
 
 pub use arithmetic::{add, mul_matrix, mul_scalar, mul_vector, sub, transpose};
+pub use cholesky::{CholeskyError, cholesky, cholesky_decompose};
 pub use determinant::determinant;
 pub use lu::{lu, lu_partial_pivot};
 pub use qr::{qr, qr_gram_schmidt, qr_householder};

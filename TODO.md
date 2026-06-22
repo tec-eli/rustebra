@@ -48,7 +48,7 @@ explicit future decision, not a default endpoint.
 - [x] Rank
 - [x] LU decomposition
 - [x] QR decomposition
-- [ ] Cholesky decomposition
+- [x] Cholesky decomposition
 - [ ] Singular Value Decomposition (SVD)
 - [ ] Condition number
 - [x] no-alloc end-to-end test (custom panicking allocator confirms StaticVector and
