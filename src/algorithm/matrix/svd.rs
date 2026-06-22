@@ -160,7 +160,7 @@ where
 ///    "leave a zero instead of erroring" choice
 ///    [`crate::algorithm::matrix::lu_partial_pivot`] makes for a zero pivot.
 ///
-/// Runs a fixed [`QR_ITERATIONS`] count rather than checking for convergence; see its docs
+/// Runs a fixed `QR_ITERATIONS` count rather than checking for convergence; see its docs
 /// for why. Step 4's sort is a selection sort performed directly on the eigenvalues (the
 /// diagonal of the working matrix) and `out_v`'s columns, rather than via a separate index
 /// buffer, since there's no `usize`-typed scratch space to sort indices into — only `T`-typed

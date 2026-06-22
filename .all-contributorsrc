@@ -1,0 +1,20 @@
+{
+  "projectName": "rustebra",
+  "projectOwner": "tec-eli",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": ["README.md"],
+  "imageSize": 100,
+  "commit": true,
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "contributors": [
+    {
+      "login": "tec-eli",
+      "name": "tec-eli",
+      "avatar_url": "https://github.com/tec-eli.png",
+      "profile": "https://github.com/tec-eli",
+      "contributions": ["code", "doc", "design"]
+    }
+  ]
+}
