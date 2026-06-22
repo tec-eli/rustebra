@@ -46,7 +46,7 @@ explicit future decision, not a default endpoint.
 - [x] sin
 - [x] cos
 - [x] Rank
-- [ ] LU decomposition
+- [x] LU decomposition
 - [ ] QR decomposition
 - [ ] Cholesky decomposition
 - [ ] Singular Value Decomposition (SVD)
