@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Unit tests for `Scalar::sin`/`Scalar::cos` on `f32` and `f64` (known angles: `0`, `pi/2`, `pi`).
 - `tests/scalar.rs`, a black-box integration test exercising `Scalar`'s public API (`zero`/`one`/`add`/`sub`/`mul`/`div`/`sqrt`/`sin`/`cos`) on `f32` and `f64` using only `pub` items.
 - `examples/scalar.rs`, a runnable end-to-end demonstration of every `Scalar` operation on `f64`.
+- `tests/no_alloc.rs`, a `harness = false` integration test that registers a `#[global_allocator]` panicking on any `alloc`/`dealloc` call, then runs `StaticVector`/`StaticMatrix` `add`, `dot`, and `norm` against known values; a standard libtest harness allocates before running any test body, so it would trip the panicking allocator regardless of whether the code under test allocates, hence the custom `main`. Gated to run under `--no-default-features` only, matching the `alloc` feature's absence by default.
 
 ## [0.1.0] - 2026-06-21
 

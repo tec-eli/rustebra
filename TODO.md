@@ -51,6 +51,8 @@ explicit future decision, not a default endpoint.
 - [ ] Cholesky decomposition
 - [ ] Singular Value Decomposition (SVD)
 - [ ] Condition number
+- [x] no-alloc end-to-end test (custom panicking allocator confirms StaticVector and
+  StaticMatrix never touch the heap)
 
 ## v0.3.0 — Sparse matrices
 

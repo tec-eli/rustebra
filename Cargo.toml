@@ -11,6 +11,11 @@ repository = "https://github.com/tec-eli/rustebra"
 [features]
 alloc = []
 
+[[test]]
+name = "no_alloc"
+path = "tests/no_alloc.rs"
+harness = false
+
 [[example]]
 name = "dynamic_vector"
 path = "examples/dynamic_vector.rs"

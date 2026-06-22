@@ -55,6 +55,12 @@ cargo test --features alloc
 - `docs/` — architecture decision records, documenting why the project is built the
   way it is.
 
+To generate and view the API documentation locally:
+
+```sh
+cargo doc --open
+```
+
 ## License
 
 Apache License 2.0.
