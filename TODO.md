@@ -50,7 +50,7 @@ explicit future decision, not a default endpoint.
 - [x] QR decomposition
 - [x] Cholesky decomposition
 - [x] Singular Value Decomposition (SVD)
-- [ ] Condition number
+- [x] Condition number
 - [x] no-alloc end-to-end test (custom panicking allocator confirms StaticVector and
   StaticMatrix never touch the heap)
 
