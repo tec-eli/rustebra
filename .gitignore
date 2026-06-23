@@ -16,3 +16,6 @@ Thumbs.db
 docs/_site/
 docs/.jekyll-cache/
 docs/.jekyll-metadata
+
+# internal
+/scripts
