@@ -1,3 +1,8 @@
+---
+layout: default
+title: "ADR 0002: Single Crate with Incremental Feature Flags"
+---
+
 # ADR 0002: Single Crate with Incremental Feature Flags
 
 ## Status

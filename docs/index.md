@@ -1,8 +1,13 @@
-<div align="center">
-  <img src="docs/assets/banner.png" alt="rustebra" width="100%"/>
+---
+layout: default
+title: rustebra
+---
+
+<div align="center" markdown="1">
+  <img src="assets/banner.png" alt="rustebra" width="100%"/>
 </div>
 
-<div align="center">
+<div align="center" markdown="1">
 
 [![Crates.io](https://img.shields.io/crates/v/rustebra?style=flat-square&color=fc8d62)](https://crates.io/crates/rustebra)
 [![docs.rs](https://img.shields.io/docsrs/rustebra?style=flat-square&label=docs.rs)](https://docs.rs/rustebra)
@@ -11,10 +16,10 @@
 [![no_std](https://img.shields.io/badge/no__std-compatible-success?style=flat-square)](https://docs.rust-embedded.org/book/)
 [![MSRV](https://img.shields.io/badge/MSRV-1.85-orange?style=flat-square)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)
 
-**A hybrid `no_std`/`alloc` linear algebra library for Rust.**  
+**A hybrid `no_std`/`alloc` linear algebra library for Rust.**
 Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
 
-[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/api/rustebra/) · [Architecture Decisions](docs/adr/) · [Contributing](docs/CONTRIBUTING.md)
+[API Reference](api/rustebra/) · [Architecture Decisions](adr/) · [Algorithms](algorithms/) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -23,7 +28,7 @@ Stack-first by default. Scales to sparse matrices and Krylov subspace solvers wh
 ## Status
 
 Early development. The architecture and scope are being defined before implementation; see
-[`docs/adr/`](docs/adr/) for the decisions made so far. No version has been published yet.
+[Architecture Decisions](adr/) for the decisions made so far. No version has been published yet.
 
 ## Why this exists
 
@@ -69,9 +74,9 @@ cargo test --features alloc
 
 ## Documentation
 
-- **[API reference](https://tec-eli.github.io/rustebra/api/rustebra/)** — generated from `cargo doc`, hosted on GitHub Pages.
-- **[Architecture decisions](docs/adr/)** — records of the key design choices made during development.
-- **[GitHub Pages site](https://tec-eli.github.io/rustebra)** — full project documentation.
+- **[API reference](api/rustebra/)** — generated from `cargo doc`.
+- **[Architecture decisions](adr/)** — records of the key design choices made during development.
+- **[Algorithms](algorithms/)** — mathematical reference for every algorithm implemented in this project.
 
 To generate and browse the API docs locally:
 
@@ -81,38 +86,11 @@ cargo doc --open
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) before opening a pull request.
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-## Contributors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%">
-        <a href="https://github.com/tec-eli">
-          <img src="https://github.com/tec-eli.png?size=100" width="100px;" alt="tec-eli"/><br/>
-          <sub><b>tec-eli</b></sub>
-        </a><br/>
-        <a title="Code">💻</a>
-        <a title="Documentation">📖</a>
-        <a title="Design">🎨</a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-*Want to appear here? See [CONTRIBUTING.md](docs/CONTRIBUTING.md).*
+Contributions are welcome. Please read
+[CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
 ---
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE).
+Licensed under the [Apache License 2.0](https://github.com/tec-eli/rustebra/blob/main/LICENSE).

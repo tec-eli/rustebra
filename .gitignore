@@ -11,3 +11,8 @@
 # OS files
 .DS_Store
 Thumbs.db
+
+# Jekyll build output (docs/)
+docs/_site/
+docs/.jekyll-cache/
+docs/.jekyll-metadata

@@ -1,3 +1,8 @@
+---
+layout: default
+title: QR Decomposition
+---
+
 # QR Decomposition
 
 ## What it computes

@@ -1,3 +1,8 @@
+---
+layout: default
+title: Cholesky Decomposition
+---
+
 # Cholesky Decomposition
 
 ## What it computes

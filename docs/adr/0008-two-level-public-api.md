@@ -1,3 +1,8 @@
+---
+layout: default
+title: "ADR 0008: Two-Level Public API for Matrix Operations"
+---
+
 # ADR 0008: Two-Level Public API for Matrix Operations
 
 ## Status

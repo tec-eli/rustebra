@@ -1,3 +1,8 @@
+---
+layout: default
+title: Algorithms
+---
+
 # Algorithms
 
 Mathematical reference for every algorithm implemented in this project. Each document

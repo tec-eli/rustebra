@@ -1,3 +1,8 @@
+---
+layout: default
+title: LU Decomposition
+---
+
 # LU Decomposition
 
 ## What it computes

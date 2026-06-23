@@ -1,3 +1,8 @@
+---
+layout: default
+title: Rank
+---
+
 # Rank
 
 ## What it computes
