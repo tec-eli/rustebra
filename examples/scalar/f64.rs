@@ -1,10 +1,7 @@
-//! Run each `Scalar` operation on `f64`.
-//!
-//! Run with: `cargo run --example scalar`
-
 use rustebra::scalar::Scalar;
 
-fn main() {
+pub(crate) fn run() {
+    println!("\n== f64 ==");
     println!("f64::zero() = {:?}", f64::zero());
     println!("f64::one() = {:?}", f64::one());
     println!("2.0 + 3.0 = {:?}", 2.0f64.add(3.0));

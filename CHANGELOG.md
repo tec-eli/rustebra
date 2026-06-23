@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Added scope of the version 0.2.1
+- Reorganized `examples/` to mirror `tests/`'s `algorithm`/`matrix`/`scalar`/`vector` grouping: each top-level group is one example (`cargo run --example algorithm`, etc.) with a `main.rs`/`mod.rs` holding only `mod` declarations and dispatch, the same role `tests/algorithm/main.rs`/`tests/matrix/main.rs` play for the test binaries; the actual demonstration code lives one file per `src` item, named after it (e.g. `examples/algorithm/matrix/cholesky.rs` for `algorithm::matrix::cholesky`, `examples/scalar/f32.rs` for `Scalar`'s `f32` impl), rather than one flat file per type (`examples/static_matrix.rs`, `examples/algorithm_matrix.rs`). `examples/algorithm/matrix/` now has one file per `algorithm::matrix` source file (`arithmetic`, `determinant`, `rank`, `lu`, `qr`, `cholesky`, `svd`, `condition`), splitting what was previously a single `algorithm_matrix.rs`; `examples/scalar/` gained an `f32.rs` alongside the existing `f64.rs` coverage, matching `tests/scalar/`'s per-type split. `dynamic_matrix`/`dynamic_vector` are no longer separate examples gated by `required-features` in `Cargo.toml` — they're `#[cfg(feature = "alloc")]` submodules of `matrix`/`vector` invoked conditionally from `main.rs`, the same pattern `tests/matrix/main.rs`/`tests/vector/main.rs` already use, so `Cargo.toml` no longer needs explicit `[[example]]` entries at all (auto-discovery picks up every `examples/*/main.rs`).
 
 ## [0.2.0] - 2026-06-23
 

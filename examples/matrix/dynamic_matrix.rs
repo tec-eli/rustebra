@@ -1,11 +1,8 @@
-//! Construct a `DynamicMatrix` and run each matrix operation on it.
-//!
-//! Run with: `cargo run --example dynamic_matrix --features alloc`
-
 use rustebra::matrix::DynamicMatrix;
 use rustebra::vector::DynamicVector;
 
-fn main() {
+pub(crate) fn run() {
+    println!("\n== DynamicMatrix ==");
     let a = DynamicMatrix::new(2, 2, vec![1.0, 2.0, 3.0, 4.0]).expect("2x2 data");
     let b = DynamicMatrix::new(2, 2, vec![5.0, 6.0, 7.0, 8.0]).expect("2x2 data");
     let v = DynamicVector::new(vec![1.0, 1.0]);
