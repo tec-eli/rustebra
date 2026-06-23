@@ -37,3 +37,8 @@ Work from `TODO.md`, one unchecked item at a time. Don't jump ahead to future ph
 - Check the box in `TODO.md` and add an entry to `CHANGELOG.md` under `[Unreleased]`.
 - Do not add any comments referencing ADR files.
 - Never reference, cite, or summarize ADR numbers or ADR content anywhere in source code — not in comments, not in doc-comments, not in commit messages.
+
+## Changelog
+
+- Do NOT add thing that are just necessary actions like running test commands, updating the version, checking if it can be deployed.
+- When doing prepare for release activities just add "Release metadata"

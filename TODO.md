@@ -53,10 +53,12 @@ explicit future decision, not a default endpoint.
 - [x] Condition number
 - [x] no-alloc end-to-end test (custom panicking allocator confirms StaticVector and
   StaticMatrix never touch the heap)
-- [x] `Cargo.toml` version bumped to `0.2.0`
-- [x] `Cargo.toml` metadata complete: `keywords`, `categories`
-  `cargo test --no-default-features`, `cargo test --all-features` all clean
-- [x] `CHANGELOG.md` has a `[0.2.0]` section (moved out of `[Unreleased]`)
+
+## v0.2.1 — Code clean up
+
+- [ ] Refactor examples
+- [ ] Add missing black-box test
+- [ ] Change the color of the page or the dependecy documentation
 
 ## v0.3.0 — Sparse matrices
 
