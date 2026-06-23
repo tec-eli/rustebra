@@ -24,6 +24,8 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv6m-none-eabi
 
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -36,6 +38,9 @@ jobs:
 
       - name: Build (no_std default)
         run: cargo build --verbose
+
+      - name: Build (no_std, bare-metal cross-compile)
+        run: cargo build --no-default-features --target thumbv6m-none-eabi --verbose
 
       - name: Test (no_std default)
         run: cargo test --verbose
