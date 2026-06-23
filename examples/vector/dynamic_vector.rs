@@ -1,10 +1,7 @@
-//! Construct a `DynamicVector` and run each vector operation on it.
-//!
-//! Run with: `cargo run --example dynamic_vector --features alloc`
-
 use rustebra::vector::DynamicVector;
 
-fn main() {
+pub(crate) fn run() {
+    println!("\n== DynamicVector ==");
     let a = DynamicVector::new(vec![1.0, 2.0, 3.0]);
     let b = DynamicVector::new(vec![4.0, 5.0, 6.0]);
 
