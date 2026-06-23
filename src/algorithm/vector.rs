@@ -18,8 +18,7 @@ pub struct LengthMismatch;
 ///
 /// # Errors
 ///
-/// Returns `Err(LengthMismatch)` if `a`, `b`, and `out` don't all have the same length,
-/// rather than panicking, per ADR 0004.
+/// Returns `Err(LengthMismatch)` if `a`, `b`, and `out` don't all have the same length.
 ///
 /// # Examples
 ///
@@ -44,8 +43,6 @@ where
         return Err(LengthMismatch);
     }
     for (i, slot) in out.iter_mut().enumerate() {
-        // `i < len == a.len() == b.len()`, so both `get` calls below are always `Some`;
-        // handled explicitly rather than panicking, per ADR 0004.
         let (Some(&x), Some(&y)) = (a.get(i), b.get(i)) else {
             return Err(LengthMismatch);
         };
@@ -61,8 +58,7 @@ where
 ///
 /// # Errors
 ///
-/// Returns `Err(LengthMismatch)` if `a`, `b`, and `out` don't all have the same length,
-/// rather than panicking, per ADR 0004.
+/// Returns `Err(LengthMismatch)` if `a`, `b`, and `out` don't all have the same length.
 ///
 /// # Examples
 ///
@@ -87,8 +83,6 @@ where
         return Err(LengthMismatch);
     }
     for (i, slot) in out.iter_mut().enumerate() {
-        // `i < len == a.len() == b.len()`, so both `get` calls below are always `Some`;
-        // handled explicitly rather than panicking, per ADR 0004.
         let (Some(&x), Some(&y)) = (a.get(i), b.get(i)) else {
             return Err(LengthMismatch);
         };
@@ -105,8 +99,7 @@ where
 ///
 /// # Errors
 ///
-/// Returns `Err(LengthMismatch)` if `out` doesn't have the same length as `a`, rather than
-/// panicking, per ADR 0004.
+/// Returns `Err(LengthMismatch)` if `out` doesn't have the same length as `a`.
 ///
 /// # Examples
 ///
@@ -129,8 +122,6 @@ where
         return Err(LengthMismatch);
     }
     for (i, slot) in out.iter_mut().enumerate() {
-        // `i < len == a.len()`, so `get` below is always `Some`; handled explicitly rather
-        // than panicking, per ADR 0004.
         let Some(&x) = a.get(i) else {
             return Err(LengthMismatch);
         };
@@ -149,8 +140,7 @@ where
 ///
 /// # Errors
 ///
-/// Returns `Err(LengthMismatch)` if `a` and `b` don't have the same length, rather than
-/// panicking, per ADR 0004.
+/// Returns `Err(LengthMismatch)` if `a` and `b` don't have the same length.
 ///
 /// # Examples
 ///
@@ -174,8 +164,6 @@ where
     }
     let mut sum = T::zero();
     for i in 0..len {
-        // `i < len == a.len() == b.len()`, so both `get` calls below are always `Some`;
-        // handled explicitly rather than panicking, per ADR 0004.
         let (Some(&x), Some(&y)) = (a.get(i), b.get(i)) else {
             return Err(LengthMismatch);
         };

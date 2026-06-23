@@ -190,6 +190,52 @@ impl<T: Scalar, const R: usize, const C: usize> StaticMatrix<T, R, C> {
         }
         StaticMatrix::new(data)
     }
+
+    /// Computes the rank of `self`.
+    ///
+    /// `self` and the scratch buffer used internally both have exactly `R * C` elements, so
+    /// the dimension mismatch [`crate::algorithm::matrix::rank`] can report is unreachable
+    /// here.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::StaticMatrix;
+    ///
+    /// // Row 1 is twice row 0, so rank is 1.
+    /// let m = StaticMatrix::new([[1.0, 2.0], [2.0, 4.0]]);
+    /// assert_eq!(m.rank(), 1);
+    /// ```
+    pub fn rank(&self) -> usize
+    where
+        T: PartialEq,
+    {
+        let mut scratch = [[T::zero(); C]; R];
+        algorithm::rank(self, R, C, scratch.as_flattened_mut()).unwrap_or(0)
+    }
+}
+
+impl<T: Scalar, const N: usize> StaticMatrix<T, N, N> {
+    /// Computes the determinant of `self`.
+    ///
+    /// `self` is a `StaticMatrix<T, N, N>`, so it's guaranteed by the type system to be
+    /// square; the dimension mismatch [`crate::algorithm::matrix::determinant`] can report
+    /// is unreachable here.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::StaticMatrix;
+    ///
+    /// let m = StaticMatrix::new([[1.0, 2.0], [3.0, 4.0]]);
+    /// assert_eq!(m.determinant(), -2.0);
+    /// ```
+    pub fn determinant(&self) -> T
+    where
+        T: PartialEq,
+    {
+        algorithm::determinant(self, N, N).unwrap_or(T::zero())
+    }
 }
 
 #[cfg(test)]
@@ -256,5 +302,19 @@ mod tests {
             m.transpose(),
             StaticMatrix::new([[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
         );
+    }
+
+    #[test]
+    fn determinant_is_wired_to_the_algorithm_layer() {
+        let m = StaticMatrix::new([[1.0, 2.0], [3.0, 4.0]]);
+
+        assert_eq!(m.determinant(), -2.0);
+    }
+
+    #[test]
+    fn rank_is_wired_to_the_algorithm_layer() {
+        let m = StaticMatrix::new([[1.0, 2.0], [2.0, 4.0]]);
+
+        assert_eq!(m.rank(), 1);
     }
 }

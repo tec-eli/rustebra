@@ -1,3 +1,8 @@
+---
+layout: default
+title: Mathematical Landscape
+---
+
 # Mathematical Landscape
 
 A map of mathematical domains relevant to this project, grouped by how the concepts relate

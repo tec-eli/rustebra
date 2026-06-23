@@ -42,13 +42,17 @@ explicit future decision, not a default endpoint.
 
 ## v0.2.0 — Matrix decompositions and structural properties
 
-- [ ] Determinant
-- [ ] Rank
-- [ ] LU decomposition
-- [ ] QR decomposition
-- [ ] Cholesky decomposition
-- [ ] Singular Value Decomposition (SVD)
-- [ ] Condition number
+- [x] Determinant
+- [x] sin
+- [x] cos
+- [x] Rank
+- [x] LU decomposition
+- [x] QR decomposition
+- [x] Cholesky decomposition
+- [x] Singular Value Decomposition (SVD)
+- [x] Condition number
+- [x] no-alloc end-to-end test (custom panicking allocator confirms StaticVector and
+  StaticMatrix never touch the heap)
 
 ## v0.3.0 — Sparse matrices
 

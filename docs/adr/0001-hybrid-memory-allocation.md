@@ -1,3 +1,8 @@
+---
+layout: default
+title: "ADR 0001: Hybrid Memory Allocation Strategy via Feature Flags"
+---
+
 # ADR 0001: Hybrid Memory Allocation Strategy via Feature Flags
 
 ## Status

@@ -1,0 +1,26 @@
+title: rustebra
+description: "A hybrid no_std/alloc linear algebra library for Rust."
+url: "https://tec-eli.github.io"
+baseurl: "/rustebra"
+
+theme: jekyll-theme-cayman
+
+plugins:
+  - jekyll-relative-links
+
+# Show nav links in the header
+header_pages:
+  - index.md
+  - adr/index.md
+
+# Exclude non-page files
+exclude:
+  - "*.sh"
+  - Gemfile
+  - Gemfile.lock
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  syntax_highlighter: rouge

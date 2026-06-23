@@ -18,4 +18,6 @@ fn main() {
     println!("a * v = {:?}", a.mul_vector(&v));
     println!("a * b = {:?}", a.mul_matrix(&b));
     println!("a^T = {:?}", a.transpose());
+    println!("det(a) = {:?}", a.determinant());
+    println!("rank(a) = {:?}", a.rank());
 }
