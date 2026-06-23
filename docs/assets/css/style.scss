@@ -1,0 +1,19 @@
+---
+---
+
+@charset "utf-8";
+
+// rustebra brand palette (matches assets/banner.png): black, gray, orange.
+$section-headings-color: #b8441e;
+$body-text-color: #3a3d42;
+$body-link-color: #b8441e;
+$blockquote-text-color: #6b6f76;
+
+$code-bg-color: #f4f4f5;
+$code-text-color: #3a3d42;
+
+$border-color: #d8d9db;
+$table-border-color: #e3e4e6;
+$hr-border-color: #e8e9ea;
+
+@import "{{ site.theme }}";
