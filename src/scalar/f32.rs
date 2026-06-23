@@ -1,6 +1,5 @@
 use super::Scalar;
-use super::cos::taylor_series as cos_taylor_series;
-use super::sin::taylor_series as sin_taylor_series;
+use super::series::taylor_series;
 use super::sqrt::newton_raphson;
 
 impl Scalar for f32 {
@@ -33,11 +32,24 @@ impl Scalar for f32 {
     }
 
     fn sin(self) -> Self {
-        sin_taylor_series(self, 0.0, 1.0)
+        let zero = Self::zero();
+        let one = Self::one();
+
+        let neg_x2 = zero.sub(self.mul(self));
+        let two = one.add(one);
+        let three = two.add(one);
+
+        taylor_series(self, neg_x2, two, three, two, two)
     }
 
     fn cos(self) -> Self {
-        cos_taylor_series(self, 0.0, 1.0)
+        let zero = Self::zero();
+        let one = Self::one();
+
+        let neg_x2 = zero.sub(self.mul(self));
+        let two = one.add(one);
+
+        taylor_series(one, neg_x2, one, two, two, two)
     }
 }
 

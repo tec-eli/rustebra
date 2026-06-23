@@ -1,6 +1,7 @@
 mod cos;
 mod f32;
 mod f64;
+mod series;
 mod sin;
 mod sqrt;
 
