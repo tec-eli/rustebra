@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-23
+
 ### Added
 - `algorithm::matrix::determinant`, computed via recursive cofactor expansion along the first row; only defined for square matrices, returning `Result<T, DimensionMismatch>` instead of panicking on non-square input, per ADR 0004. Each minor is a zero-copy `Storage` view (a private `Minor` type) rather than a materialized submatrix, since submatrix sizes are only known at runtime in this `no_std`-first crate; `Minor` holds its source as `&dyn Storage<Item = T>` rather than a generic parameter, since a generic parameter would make every recursion level its own type (`Minor<Minor<Minor<...>>>`) with no compile-time bound on recursion depth — the one exception in this module to preferring generics over `dyn Trait`.
 - Unit tests for `algorithm::matrix::determinant` (known 2x2 and 3x3 values, a singular matrix with a zero row, and non-square input as an error case).
@@ -50,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `.github/PULL_REQUEST_TEMPLATE.md` and `.all-contributorsrc`, standard GitHub project scaffolding.
 
 ### Changed
+- `Cargo.toml`: bumped `version` to `0.2.0`; added `keywords` (`linear-algebra`, `matrix`, `vector`, `no-std`, `numerical`) and `categories` (`algorithms`, `mathematics`, `no-std`).
 - `algorithm::matrix::determinant` now dispatches by size instead of always using cofactor expansion: `determinant_cofactor` for `rows <= 4`, where cofactor expansion's overhead is negligible, and `determinant_lu` for larger matrices, where `O(n!)` becomes prohibitive. Widens `determinant`'s bound from `T: Scalar` to `T: Scalar + PartialEq`, since the LU path needs it; `StaticMatrix::determinant`/`DynamicMatrix::determinant` pick up the same bound as a per-method `where` clause rather than on their enclosing `impl` blocks, the same way `rank` already does. The LU path is only reachable behind the `alloc` feature, since `determinant`'s signature has no parameter for the `O(n^2)` scratch buffer it needs; without `alloc`, `determinant` always falls back to `determinant_cofactor`.
 - Added a unit test confirming `determinant`'s output for a 5x5 matrix matches `determinant_lu` called directly.
 - Reorganized `tests/` to mirror `src/`'s folder structure, one file per item under test, named after it (e.g. `tests/algorithm/matrix/cholesky.rs` for `algorithm::matrix::cholesky`, `tests/matrix/static_matrix.rs` for `StaticMatrix`), rather than one flat file per top-level area (`tests/decompositions.rs`, `tests/matrix.rs`, `tests/scalar.rs`, `tests/vector.rs`). Each directory's entry point (`main.rs`, or `mod.rs` one level down) now holds only `mod` declarations, the same role `src/algorithm/mod.rs` plays for the library itself — test logic always lives in a file named after what it tests, never in the entry point. `tests/algorithm/matrix/mod.rs` keeps the assertion helpers (`assert_all_close`, `assert_upper_triangular`, etc.) the split-out `lu`/`qr`/`cholesky`/`svd`/`condition` files all share. The `decompositions` test binary is renamed `algorithm` as a result (it now lives at `tests/algorithm/main.rs`); the others keep their names.
