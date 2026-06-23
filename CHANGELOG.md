@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-23
+
 ### Added
 - `algorithm::matrix::determinant`, computed via recursive cofactor expansion along the first row; only defined for square matrices, returning `Result<T, DimensionMismatch>` instead of panicking on non-square input, per ADR 0004. Each minor is a zero-copy `Storage` view (a private `Minor` type) rather than a materialized submatrix, since submatrix sizes are only known at runtime in this `no_std`-first crate; `Minor` holds its source as `&dyn Storage<Item = T>` rather than a generic parameter, since a generic parameter would make every recursion level its own type (`Minor<Minor<Minor<...>>>`) with no compile-time bound on recursion depth — the one exception in this module to preferring generics over `dyn Trait`.
 - Unit tests for `algorithm::matrix::determinant` (known 2x2 and 3x3 values, a singular matrix with a zero row, and non-square input as an error case).
