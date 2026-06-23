@@ -78,9 +78,6 @@ jobs:
           mkdir -p docs/api
           cp -r target/doc/* docs/api/
 
-      - name: Add banner image to docs/
-        run: cp rustebra_banner.png docs/rustebra_banner.png
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

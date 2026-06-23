@@ -1,3 +1,8 @@
+---
+layout: default
+title: Cofactor Expansion
+---
+
 # Cofactor Expansion
 
 ## What it computes

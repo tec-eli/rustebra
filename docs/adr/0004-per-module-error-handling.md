@@ -1,3 +1,8 @@
+---
+layout: default
+title: "ADR 0004: Per-Module Error Handling with Result"
+---
+
 # ADR 0004: Per-Module Error Handling with Result
 
 ## Status

@@ -1,3 +1,8 @@
+---
+layout: default
+title: Condition Number
+---
+
 # Condition Number
 
 ## What it computes

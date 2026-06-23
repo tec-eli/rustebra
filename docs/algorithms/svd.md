@@ -1,3 +1,8 @@
+---
+layout: default
+title: Singular Value Decomposition (SVD)
+---
+
 # Singular Value Decomposition (SVD)
 
 ## What it computes
