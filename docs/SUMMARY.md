@@ -1,0 +1,21 @@
+# Summary
+
+[Home](README.md)
+
+- [Algorithms](algorithms/index.md)
+  - [Cholesky Decomposition](algorithms/cholesky.md)
+  - [Cofactor Expansion](algorithms/cofactor-expansion.md)
+  - [Condition Number](algorithms/condition-number.md)
+  - [LU Decomposition](algorithms/lu.md)
+  - [QR Decomposition](algorithms/qr.md)
+  - [Rank](algorithms/rank.md)
+  - [Singular Value Decomposition (SVD)](algorithms/svd.md)
+- [Architecture Decisions](adr/index.md)
+  - [ADR 0001: Hybrid Memory Allocation Strategy via Feature Flags](adr/0001-hybrid-memory-allocation.md)
+  - [ADR 0002: Single Crate with Incremental Feature Flags](adr/0002-single-crate-with-feature-flags.md)
+  - [ADR 0003: Minimal Shared Storage Trait Between Static and Dynamic Types](adr/0003-separated-static-dynamic-traits.md)
+  - [ADR 0004: Per-Module Error Handling with Result](adr/0004-per-module-error-handling.md)
+  - [ADR 0005: Generic Scalar Type](adr/0005-generic-scalar-type.md)
+  - [ADR 0006: Trait-Based Generic Layered Architecture](adr/0006-trait-based-generic-architecture.md)
+  - [ADR 0007: Public Elementary Scalar Functions, Scoped to Internal Needs](adr/0007-public-elementary-scalar-functions.md)
+  - [ADR 0008: Two-Level Public API for Matrix Operations](adr/0008-two-level-public-api.md)

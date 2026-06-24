@@ -1,0 +1,254 @@
+/* rustebra docs theme: top navigation only, no left sidebar.
+   Palette: white / black / gray / vivid orange -- no other hues.
+   Light/Dark/Auto is handled by our own switcher (theme/js/topnav.js); mdbook's
+   built-in 5-theme picker is hidden. */
+
+:root {
+  --rb-white: #ffffff;
+  --rb-black: #14161b;
+  --rb-gray: #6b6f76;
+  --rb-gray-light: #e3e4e6;
+  --rb-gray-lighter: #f4f4f5;
+  --rb-gray-dark: #3a3d42;
+  --rb-orange: #e8590c;
+  --rb-orange-dark: #c2480a;
+  --rb-orange-light: #ff8a4d;
+  --rb-topnav-height: 3.5rem;
+}
+
+/* ---- Light / Dark palettes, switched via a class on <html> ---- */
+html.rb-light {
+  --bg: var(--rb-white);
+  --fg: var(--rb-black);
+  --bg-secondary: var(--rb-gray-lighter);
+  --border: var(--rb-gray-light);
+  --link: var(--rb-orange);
+  --link-hover: var(--rb-orange-dark);
+  --inline-code-color: var(--rb-orange-dark);
+}
+
+html.rb-dark {
+  --bg: var(--rb-black);
+  --fg: var(--rb-gray-lighter);
+  --bg-secondary: #1f2228;
+  --border: var(--rb-gray-dark);
+  --link: var(--rb-orange-light);
+  --link-hover: var(--rb-orange);
+  --inline-code-color: var(--rb-orange-light);
+}
+
+/* mdbook theme variables, mapped onto the same two palettes */
+html.rb-light,
+html.rb-dark {
+  --theme-popup-bg: var(--bg-secondary);
+  --theme-popup-border: var(--border);
+  --theme-hover: var(--border);
+  --quote-bg: var(--bg-secondary);
+  --quote-border: var(--rb-orange);
+  --table-border-color: var(--border);
+  --table-header-bg: var(--bg-secondary);
+  --table-alternate-bg: var(--bg-secondary);
+  --searchbar-bg: var(--bg);
+  --searchbar-fg: var(--fg);
+  --searchbar-border-color: var(--border);
+  --searchbar-shadow-color: var(--border);
+  --search-mark-bg: var(--rb-orange);
+  --icons: var(--fg);
+  --icons-hover: var(--rb-orange);
+  --links: var(--link);
+  --scrollbar: var(--rb-gray);
+}
+
+/* No left sidebar: navigation is top-only */
+#sidebar,
+.sidebar-resize-handle,
+#sidebar-toggle-anchor {
+  display: none !important;
+}
+
+#page-wrapper,
+.page-wrapper {
+  margin-left: 0 !important;
+  left: 0 !important;
+}
+
+.content {
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+/* Replace mdbook's own theme picker with our Light/Dark/Auto switch */
+#theme-toggle,
+#theme-list {
+  display: none !important;
+}
+
+#menu-bar {
+  position: sticky;
+  top: var(--rb-topnav-height);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+}
+
+html {
+  scroll-padding-top: calc(var(--rb-topnav-height) + 3rem);
+}
+
+body {
+  padding-top: var(--rb-topnav-height);
+  color: var(--fg);
+  background: var(--bg);
+}
+
+pre, code {
+  background: var(--bg-secondary);
+}
+
+/* Top navigation bar (injected by theme/js/topnav.js) -- black/gray band,
+   orange accents only. */
+.rb-topnav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--rb-topnav-height);
+  z-index: 1000;
+  background-image: linear-gradient(120deg, var(--rb-black), var(--rb-gray-dark));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.rb-topnav-inner {
+  max-width: 72rem;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rb-brand {
+  color: var(--rb-white);
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.rb-topnav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.rb-topnav-links a {
+  color: var(--rb-white);
+  text-decoration: none;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.rb-topnav-links a:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-color: var(--rb-orange);
+}
+
+.rb-topnav-links a.rb-cta {
+  background: var(--rb-orange);
+  color: var(--rb-white);
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.3rem;
+  opacity: 1;
+  font-weight: 600;
+}
+
+.rb-topnav-links a.rb-cta:hover {
+  background: var(--rb-orange-dark);
+  text-decoration: none;
+}
+
+/* Light / Dark / Auto switch */
+.rb-theme-switch {
+  display: flex;
+  border: 1px solid var(--rb-gray);
+  border-radius: 0.3rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.rb-theme-switch button {
+  background: transparent;
+  color: var(--rb-white);
+  border: none;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.rb-theme-switch button:hover {
+  opacity: 1;
+}
+
+.rb-theme-switch button.rb-active {
+  background: var(--rb-orange);
+  color: var(--rb-white);
+  opacity: 1;
+}
+
+/* Inline CTA link used on the home page */
+.rb-cta-inline {
+  display: inline-block;
+  background: var(--rb-orange);
+  color: var(--rb-white) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 0.3rem;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+.rb-cta-inline:hover {
+  background: var(--rb-orange-dark);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--fg);
+}
+
+a {
+  color: var(--link);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+blockquote {
+  border-left: 4px solid var(--rb-orange);
+  background: var(--bg-secondary);
+}
+
+@media (max-width: 700px) {
+  .rb-topnav {
+    height: auto;
+  }
+  .rb-topnav-inner {
+    flex-direction: column;
+    height: auto;
+    padding: 0.5rem 1rem;
+  }
+  .rb-topnav-links {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.5rem;
+  }
+  body {
+    padding-top: 8rem;
+  }
+  #menu-bar {
+    top: 8rem;
+  }
+}
