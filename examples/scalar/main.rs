@@ -1,7 +1,5 @@
 //! Run each `Scalar` operation on `f32` and `f64`: basic arithmetic identities per type
-//! (`f32`, `f64`), then `sqrt` across both types. `sin`/`cos` have no dedicated file here,
-//! since their implementation (`trigonometry.rs`) is private, with no `src` file of its own
-//! for an example to mirror.
+//! (`f32`, `f64`), then `sqrt` across both types.
 //!
 //! Run with: `cargo run --example scalar`
 
