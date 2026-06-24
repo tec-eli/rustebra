@@ -46,11 +46,6 @@
 
   document.body.insertBefore(nav, document.body.firstChild);
 
-  var sidebarAnchor = document.getElementById("mdbook-sidebar-toggle-anchor");
-  if (sidebarAnchor) sidebarAnchor.checked = false;
-  document.documentElement.classList.remove("sidebar-visible");
-  try { localStorage.removeItem("mdbook-sidebar"); } catch (e) { }
-
   var buttons = nav.querySelectorAll(".rb-theme-switch button");
   for (var i = 0; i < buttons.length; i++) {
     buttons[i].addEventListener("click", function () {

@@ -13,7 +13,6 @@ default-theme = "light"
 preferred-dark-theme = "light"
 no-section-label = true
 git-repository-url = "https://github.com/tec-eli/rustebra"
-edit-url-template = "https://github.com/tec-eli/rustebra/edit/main/docs/{path}"
 additional-css = ["theme/css/custom.css"]
 additional-js = ["theme/js/topnav.js"]
 
