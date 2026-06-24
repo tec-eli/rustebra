@@ -1,7 +1,6 @@
 use super::Scalar;
-use super::cos::taylor_series as cos_taylor_series;
-use super::sin::taylor_series as sin_taylor_series;
-use super::sqrt::newton_raphson;
+use super::newton_raphson::newton_raphson;
+use super::trigonometry::{cos, sin};
 
 impl Scalar for f64 {
     fn zero() -> Self {
@@ -33,11 +32,11 @@ impl Scalar for f64 {
     }
 
     fn sin(self) -> Self {
-        sin_taylor_series(self, 0.0, 1.0)
+        sin(self, Self::zero(), Self::one())
     }
 
     fn cos(self) -> Self {
-        cos_taylor_series(self, 0.0, 1.0)
+        cos(self, Self::zero(), Self::one())
     }
 }
 
