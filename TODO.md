@@ -57,7 +57,7 @@ explicit future decision, not a default endpoint.
 ## v0.2.1 — Code clean up
 
 - [x] Refactor examples
-- [ ] Add missing black-box test
+- [x] Add missing black-box test
 - [ ] Change the color of the page or the dependecy documentation
 - [x] Refactor Taylor series to avoid code duplication
 
