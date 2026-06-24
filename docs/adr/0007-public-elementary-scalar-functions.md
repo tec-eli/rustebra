@@ -1,7 +1,3 @@
----
-layout: default
-title: "ADR 0007: Public Elementary Scalar Functions, Scoped to Internal Needs"
----
 
 # ADR 0007: Public Elementary Scalar Functions, Scoped to Internal Needs
 

@@ -1,7 +1,3 @@
----
-layout: default
-title: "ADR 0006: Trait-Based Generic Layered Architecture"
----
 
 # ADR 0006: Trait-Based Generic Layered Architecture
 

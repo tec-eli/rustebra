@@ -1,0 +1,10 @@
+<script>
+(function () {
+  try {
+    var stored = localStorage.getItem("rb-theme") || "auto";
+    var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var resolved = stored === "auto" ? (dark ? "dark" : "light") : stored;
+    document.documentElement.classList.add("rb-" + resolved);
+  } catch (e) {}
+})();
+</script>

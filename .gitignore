@@ -19,3 +19,5 @@ docs/.jekyll-metadata
 
 # internal
 /scripts
+# mdbook build output
+/book

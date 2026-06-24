@@ -1,7 +1,3 @@
----
-layout: default
-title: "ADR 0003: Minimal Shared Storage Trait Between Static and Dynamic Types"
----
 
 # ADR 0003: Minimal Shared Storage Trait Between Static and Dynamic Types
 
