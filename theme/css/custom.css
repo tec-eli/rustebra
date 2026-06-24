@@ -1,4 +1,4 @@
-/* rustebra docs theme: top navigation only, no left sidebar.
+/* rustebra docs theme: top navigation plus mdbook's collapsible sidebar.
    Palette: white / black / gray / vivid orange -- no other hues.
    Light/Dark/Auto is handled by our own switcher (theme/js/topnav.js); mdbook's
    built-in 5-theme picker is hidden. */
@@ -25,6 +25,12 @@ html.rb-light {
   --link: var(--rb-orange);
   --link-hover: var(--rb-orange-dark);
   --inline-code-color: var(--rb-orange-dark);
+  --sidebar-bg: var(--rb-gray-lighter);
+  --sidebar-fg: var(--rb-black);
+  --sidebar-non-existant: var(--rb-gray);
+  --sidebar-active: var(--rb-orange);
+  --sidebar-spacer: var(--rb-gray-light);
+  --sidebar-header-border-color: var(--rb-orange);
 }
 
 html.rb-dark {
@@ -35,6 +41,12 @@ html.rb-dark {
   --link: var(--rb-orange-light);
   --link-hover: var(--rb-orange);
   --inline-code-color: var(--rb-orange-light);
+  --sidebar-bg: #1f2228;
+  --sidebar-fg: var(--rb-gray-lighter);
+  --sidebar-non-existant: var(--rb-gray);
+  --sidebar-active: var(--rb-orange-light);
+  --sidebar-spacer: var(--rb-gray-dark);
+  --sidebar-header-border-color: var(--rb-orange-light);
 }
 
 /* mdbook theme variables, mapped onto the same two palettes */
@@ -59,31 +71,18 @@ html.rb-dark {
   --scrollbar: var(--rb-gray);
 }
 
-/* No left sidebar: navigation is top-only */
-#sidebar,
-.sidebar-resize-handle,
-#sidebar-toggle-anchor {
-  display: none !important;
-}
-
-#page-wrapper,
-.page-wrapper {
-  margin-left: 0 !important;
-  left: 0 !important;
-}
-
 .content {
   max-width: 56rem;
   margin: 0 auto;
 }
 
 /* Replace mdbook's own theme picker with our Light/Dark/Auto switch */
-#theme-toggle,
-#theme-list {
+#mdbook-theme-toggle,
+#mdbook-theme-list {
   display: none !important;
 }
 
-#menu-bar {
+#mdbook-menu-bar {
   position: sticky;
   top: var(--rb-topnav-height);
   background: var(--bg);

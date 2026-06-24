@@ -46,6 +46,14 @@
 
   document.body.insertBefore(nav, document.body.firstChild);
 
+  var sidebarPref = null;
+  try { sidebarPref = localStorage.getItem("mdbook-sidebar"); } catch (e) { }
+  if (sidebarPref !== "visible") {
+    var sidebarAnchor = document.getElementById("mdbook-sidebar-toggle-anchor");
+    if (sidebarAnchor) sidebarAnchor.checked = false;
+    document.documentElement.classList.remove("sidebar-visible");
+  }
+
   var buttons = nav.querySelectorAll(".rb-theme-switch button");
   for (var i = 0; i < buttons.length; i++) {
     buttons[i].addEventListener("click", function () {
