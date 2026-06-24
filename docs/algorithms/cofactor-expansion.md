@@ -1,7 +1,3 @@
----
-layout: default
-title: Cofactor Expansion
----
 
 # Cofactor Expansion
 

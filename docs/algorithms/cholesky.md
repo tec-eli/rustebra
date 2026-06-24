@@ -1,7 +1,3 @@
----
-layout: default
-title: Cholesky Decomposition
----
 
 # Cholesky Decomposition
 

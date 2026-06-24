@@ -1,7 +1,3 @@
----
-layout: default
-title: QR Decomposition
----
 
 # QR Decomposition
 
