@@ -26,3 +26,25 @@ where
     }
     x
 }
+
+#[cfg(test)]
+mod tests {
+    use super::newton_raphson;
+
+    #[test]
+    fn converges_on_perfect_square() {
+        assert_eq!(newton_raphson(4.0_f64, 0.0, 2.0), 2.0);
+    }
+
+    #[test]
+    fn converges_on_irrational_root() {
+        let result = newton_raphson(2.0_f64, 0.0, 2.0);
+        assert!((result - core::f64::consts::SQRT_2).abs() < 1e-9);
+    }
+
+    #[test]
+    fn non_positive_input_returns_zero_without_iterating() {
+        assert_eq!(newton_raphson(0.0_f64, 0.0, 2.0), 0.0);
+        assert_eq!(newton_raphson(-4.0_f64, 0.0, 2.0), 0.0);
+    }
+}

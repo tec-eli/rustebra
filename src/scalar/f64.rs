@@ -1,5 +1,5 @@
 use super::Scalar;
-use super::sqrt::newton_raphson;
+use super::newton_raphson::newton_raphson;
 use super::trigonometry::{cos, sin};
 
 impl Scalar for f64 {

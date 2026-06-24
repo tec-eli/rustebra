@@ -1,6 +1,6 @@
 mod f32;
 mod f64;
-mod sqrt;
+mod newton_raphson;
 mod taylor;
 mod trigonometry;
 

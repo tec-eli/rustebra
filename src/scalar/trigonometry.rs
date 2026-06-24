@@ -8,7 +8,8 @@ use super::taylor::taylor_series;
 /// `zero` and `one` are passed in by the caller, since this is generic over any type with
 /// the right arithmetic operations rather than over [`super::Scalar`] itself (`Scalar::sin`
 /// is implemented in terms of this function, so the function itself can't depend on
-/// `Scalar`), the same reason [`super::sqrt::newton_raphson`] takes `zero`/`two` explicitly.
+/// `Scalar`), the same reason [`super::newton_raphson::newton_raphson`] takes `zero`/`two`
+/// explicitly.
 pub(super) fn sin<T>(value: T, zero: T, one: T) -> T
 where
     T: Copy + Add<Output = T> + Sub<Output = T> + Mul<Output = T> + Div<Output = T>,
