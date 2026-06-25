@@ -7,17 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-25
+
 ### Added
 
 - `examples/algorithm/vector.rs`, touring `algorithm::vector`'s functions (`add`, `sub`, `scale`, `dot`, `norm`) directly via `Storage`, the same style `examples/algorithm/matrix/*.rs` already use; wired into `examples/algorithm/main.rs` alongside `matrix`.
 - `examples/storage/` (`main.rs`, `static.rs`, `dynamic.rs`), the same `main.rs`-dispatches-`mod`s structure as `examples/matrix/`/`examples/vector/`: `static.rs` constructs a `StaticStorage` and inspects it through `Storage`; `dynamic.rs`, gated behind `#[cfg(feature = "alloc")]`, does the same for `DynamicStorage`.
 - `examples/scalar/sqrt.rs`, one file per elementary `Scalar` function, calling it on both `f32` and `f64`; `examples/scalar/f32.rs`/`f64.rs` are trimmed to just the basic arithmetic identities (`zero`/`one`/`add`/`sub`/`mul`/`div`) to avoid demonstrating `sqrt` twice.
+- A GitHub Actions workflow that publishes to crates.io on `v*` tag push, after checking the tag matches `Cargo.toml`'s version.
 
 ### Changed
 
 - `Scalar::sin`/`Scalar::cos`'s near-identical bodies in `f32.rs` and `f64.rs` (computing `-x^2`, `2`, `3` and calling `taylor_series` inline) are now a single pair of generic functions in `trigonometry.rs` (`sin`/`cos`, taking `zero`/`one` as parameters rather than depending on `Scalar`, the same reason `sqrt.rs`'s `newton_raphson` already takes `zero`/`two` explicitly); `f32.rs`/`f64.rs` each reduce to a one-line call, matching how `sqrt` already delegates to `newton_raphson`.
 - Added scope of the version 0.2.1
 - Reorganized `examples/` to mirror `tests/`'s `algorithm`/`matrix`/`scalar`/`vector` grouping: each top-level group is one example (`cargo run --example algorithm`, etc.) with a `main.rs`/`mod.rs` holding only `mod` declarations and dispatch, the same role `tests/algorithm/main.rs`/`tests/matrix/main.rs` play for the test binaries; the actual demonstration code lives one file per `src` item, named after it (e.g. `examples/algorithm/matrix/cholesky.rs` for `algorithm::matrix::cholesky`, `examples/scalar/f32.rs` for `Scalar`'s `f32` impl), rather than one flat file per type (`examples/static_matrix.rs`, `examples/algorithm_matrix.rs`). `examples/algorithm/matrix/` now has one file per `algorithm::matrix` source file (`arithmetic`, `determinant`, `rank`, `lu`, `qr`, `cholesky`, `svd`, `condition`), splitting what was previously a single `algorithm_matrix.rs`; `examples/scalar/` gained an `f32.rs` alongside the existing `f64.rs` coverage, matching `tests/scalar/`'s per-type split. `dynamic_matrix`/`dynamic_vector` are no longer separate examples gated by `required-features` in `Cargo.toml` — they're `#[cfg(feature = "alloc")]` submodules of `matrix`/`vector` invoked conditionally from `main.rs`, the same pattern `tests/matrix/main.rs`/`tests/vector/main.rs` already use, so `Cargo.toml` no longer needs explicit `[[example]]` entries at all (auto-discovery picks up every `examples/*/main.rs`).
+- Migrated the docs site from Jekyll to mdbook, with a custom theme.
 
 ## [0.2.0] - 2026-06-23
 
