@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - `examples/algorithm/vector.rs`, touring `algorithm::vector`'s functions (`add`, `sub`, `scale`, `dot`, `norm`) directly via `Storage`, the same style `examples/algorithm/matrix/*.rs` already use; wired into `examples/algorithm/main.rs` alongside `matrix`.
 - `examples/storage/` (`main.rs`, `static.rs`, `dynamic.rs`), the same `main.rs`-dispatches-`mod`s structure as `examples/matrix/`/`examples/vector/`: `static.rs` constructs a `StaticStorage` and inspects it through `Storage`; `dynamic.rs`, gated behind `#[cfg(feature = "alloc")]`, does the same for `DynamicStorage`.
-- `examples/scalar/sqrt.rs`, `sin.rs`, and `cos.rs`, one file per elementary `Scalar` function, each calling it on both `f32` and `f64`; `examples/scalar/f32.rs`/`f64.rs` are trimmed to just the basic arithmetic identities (`zero`/`one`/`add`/`sub`/`mul`/`div`) to avoid demonstrating `sqrt`/`sin`/`cos` twice.
+- `examples/scalar/sqrt.rs`, one file per elementary `Scalar` function, calling it on both `f32` and `f64`; `examples/scalar/f32.rs`/`f64.rs` are trimmed to just the basic arithmetic identities (`zero`/`one`/`add`/`sub`/`mul`/`div`) to avoid demonstrating `sqrt` twice.
 
 ### Changed
 

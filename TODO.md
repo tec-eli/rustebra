@@ -58,7 +58,7 @@ explicit future decision, not a default endpoint.
 
 - [x] Refactor examples
 - [x] Add missing black-box test
-- [ ] Change the color of the page or the dependecy documentation
+- [x] Improve the Github page
 - [x] Refactor Taylor series to avoid code duplication
 
 ## v0.3.0 — Sparse matrices
