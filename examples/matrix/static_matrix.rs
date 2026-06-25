@@ -1,11 +1,8 @@
-//! Construct a `StaticMatrix` and run each matrix operation on it.
-//!
-//! Run with: `cargo run --example static_matrix`
-
 use rustebra::matrix::StaticMatrix;
 use rustebra::vector::StaticVector;
 
-fn main() {
+pub(crate) fn run() {
+    println!("== StaticMatrix ==");
     let a = StaticMatrix::new([[1.0, 2.0], [3.0, 4.0]]);
     let b = StaticMatrix::new([[5.0, 6.0], [7.0, 8.0]]);
     let v = StaticVector::new([1.0, 1.0]);

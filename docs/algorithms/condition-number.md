@@ -1,7 +1,3 @@
----
-layout: default
-title: Condition Number
----
 
 # Condition Number
 

@@ -1,7 +1,3 @@
----
-layout: default
-title: Architecture Decision Records
----
 
 # Architecture Decision Records
 

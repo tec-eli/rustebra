@@ -1,6 +1,6 @@
 [package]
 name = "rustebra"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 license = "Apache-2.0"
 description = "A hybrid no_std/alloc linear algebra crate for Rust, scaling from embedded targets to dynamic Krylov subspace solvers."
@@ -12,13 +12,3 @@ categories = ["algorithms", "mathematics", "no-std"]
 
 [features]
 alloc = []
-
-[[example]]
-name = "dynamic_vector"
-path = "examples/dynamic_vector.rs"
-required-features = ["alloc"]
-
-[[example]]
-name = "dynamic_matrix"
-path = "examples/dynamic_matrix.rs"
-required-features = ["alloc"]

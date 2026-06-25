@@ -1,0 +1,23 @@
+[book]
+title = "rustebra"
+description = "A hybrid no_std/alloc linear algebra library for Rust."
+authors = ["rustebra contributors"]
+language = "en"
+src = "docs"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "light"
+no-section-label = true
+git-repository-url = "https://github.com/tec-eli/rustebra"
+additional-css = ["theme/css/custom.css"]
+additional-js = ["theme/js/topnav.js"]
+
+[output.html.fold]
+enable = false
+
+[output.html.search]
+enable = true

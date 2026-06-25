@@ -1,10 +1,7 @@
-//! Construct a `StaticVector` and run each vector operation on it.
-//!
-//! Run with: `cargo run --example static_vector`
-
 use rustebra::vector::StaticVector;
 
-fn main() {
+pub(crate) fn run() {
+    println!("== StaticVector ==");
     let a = StaticVector::new([1.0, 2.0, 3.0]);
     let b = StaticVector::new([4.0, 5.0, 6.0]);
 

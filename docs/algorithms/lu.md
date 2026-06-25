@@ -1,7 +1,3 @@
----
-layout: default
-title: LU Decomposition
----
 
 # LU Decomposition
 

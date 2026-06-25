@@ -1,7 +1,3 @@
----
-layout: default
-title: "ADR 0005: Generic Scalar Type"
----
 
 # ADR 0005: Generic Scalar Type
 

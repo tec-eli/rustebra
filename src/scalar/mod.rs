@@ -1,8 +1,8 @@
-mod cos;
 mod f32;
 mod f64;
-mod sin;
-mod sqrt;
+mod newton_raphson;
+mod taylor;
+mod trigonometry;
 
 /// A numeric type that algorithms in this crate operate on.
 ///
