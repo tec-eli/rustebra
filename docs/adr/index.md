@@ -14,6 +14,10 @@ Each record explains the context, the decision, and the rationale.
 | [0006](0006-trait-based-generic-architecture.md) | Trait-Based Generic Layered Architecture | Accepted |
 | [0007](0007-public-elementary-scalar-functions.md) | Public Elementary Scalar Functions, Scoped to Internal Needs | Accepted |
 | [0008](0008-two-level-public-api.md) | Two-Level Public API for Matrix Operations | Accepted |
+| [0009](0009-numerical-tolerance-for-approximate-zero.md) | Numerical Tolerance for Approximate-Zero Comparisons | Accepted |
+| [0010](0010-sparse-matrix-public-api.md) | Sparse Matrix Public API Shape | Accepted |
+| [0011](0011-sorted-csr-matrix.md) | SortedCsrMatrix — Type-Level Column-Sort Invariant | Accepted |
+| [0012](0012-sparse-entry-pruning.md) | Sparse Entry Pruning and Explicit Zero Semantics | Accepted |
 
 ---
 

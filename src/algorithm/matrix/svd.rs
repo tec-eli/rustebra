@@ -1,5 +1,5 @@
-use super::{DimensionMismatch, mul_matrix, mul_vector, qr_householder};
-use crate::scalar::Scalar;
+use super::{DimensionMismatch, mul_matrix, mul_vector, n_as_scalar, qr_householder};
+use crate::scalar::{FloatTolerance, Scalar};
 use crate::storage::Storage;
 
 /// Number of QR iterations [`svd_qr_iteration`] runs to eigendecompose `aᵗ * a`. Fixed
@@ -10,7 +10,7 @@ use crate::storage::Storage;
 /// Must be even: [`svd_qr_iteration`] accumulates eigenvectors by ping-ponging between
 /// `out_v` and a scratch buffer, one swap per iteration, and relies on an even iteration
 /// count to land the final result back in `out_v` itself rather than the scratch buffer.
-const QR_ITERATIONS: usize = 100;
+pub(in crate::algorithm::matrix) const QR_ITERATIONS: usize = 100;
 
 /// A read-only [`Storage`] view over a flat slice, so a caller-provided scratch buffer
 /// (plain `&mut [T]`, not yet any [`Storage`] implementor) can be passed as the `a`/`b`
@@ -61,8 +61,16 @@ impl<T> Storage for StridedColumn<'_, T> {
 /// length-`cols` vector of non-negative singular values sorted descending, and `v` is a
 /// `cols x cols` orthogonal matrix.
 ///
-/// This is the high-level entry point: it always delegates to [`svd_qr_iteration`], the only
-/// SVD algorithm this crate currently implements.
+/// This is the general-user entry point: it delegates to [`svd_qr_iteration`] with an
+/// automatically-computed tolerance, so callers don't need to pick one themselves. The
+/// default is `n * QR_ITERATIONS * epsilon()`, where `n` is `cols` — [`svd_qr_iteration`]
+/// already compares a singular value against `tolerance * sigma_max`, so the default only
+/// needs to supply that dimensionless factor, not a separate scale. The extra
+/// `QR_ITERATIONS` accounts for this implementation's own fixed-iteration eigendecomposition
+/// of `aᵗ * a` accumulating rounding error roughly proportional to how many QR sweeps it
+/// runs; without it, the default sits below what this algorithm can actually resolve, and so
+/// would never classify *any* singular value as negligible in practice — see the
+/// QR_ITERATIONS docs.
 ///
 /// Unlike [`crate::algorithm::matrix::determinant`] or
 /// [`crate::algorithm::matrix::lu_partial_pivot`], `a` doesn't need to be square — the
@@ -132,9 +140,15 @@ pub fn svd<S, T>(
 ) -> Result<(), DimensionMismatch>
 where
     S: Storage<Item = T>,
-    T: Scalar + PartialOrd,
+    T: Scalar + FloatTolerance + PartialOrd,
 {
-    svd_qr_iteration(a, rows, cols, out_u, out_sigma, out_v, scratch)
+    // `* QR_ITERATIONS`: this implementation computes singular values by eigendecomposing
+    // `aᵗ * a` over a fixed number of QR sweeps, each contributing its own rounding error;
+    // the achievable precision floor empirically sits well above a plain `n * epsilon()`
+    // once that accumulation is accounted for, so the default needs the extra factor to
+    // ever actually classify a singular value as negligible on this algorithm's own output.
+    let tolerance = n_as_scalar::<T>(cols * QR_ITERATIONS).mul(T::epsilon());
+    svd_qr_iteration(a, rows, cols, out_u, out_sigma, out_v, scratch, tolerance)
 }
 
 /// Computes the singular value decomposition of the `rows x cols` matrix `a` by
@@ -153,12 +167,17 @@ where
 ///    already returns `0` for non-positive input, so this needs no extra clamping).
 /// 4. Sort the eigenvalues descending, permuting `out_v`'s columns (and thus `out_u`'s,
 ///    computed next) to match.
-/// 5. For each non-zero singular value `i`, the left singular vector is
-///    `out_u[:, i] = (a * out_v[:, i]) / sigma_i`. A zero singular value leaves `out_u[:, i]`
-///    at `0` instead of dividing by it — `a * v_i` is itself the zero vector whenever
-///    `sigma_i` is `0`, so there's no well-defined direction to divide out anyway; the same
+/// 5. For each singular value `i` that exceeds `tolerance * sigma_max` (`sigma_max` being the
+///    largest singular value, found in step 4's sort), the left singular vector is
+///    `out_u[:, i] = (a * out_v[:, i]) / sigma_i`. A singular value at or below that
+///    threshold leaves `out_u[:, i]` at `0` instead of dividing by it: as that value shrinks
+///    toward (and at) `0`, `a * v_i` shrinks toward the zero vector too, so there's
+///    decreasingly (and at `0`, no longer) a well-defined direction to divide out — the same
 ///    "leave a zero instead of erroring" choice
-///    [`crate::algorithm::matrix::lu_partial_pivot`] makes for a zero pivot.
+///    [`crate::algorithm::matrix::lu_partial_pivot`] makes for a zero pivot, generalized from
+///    an exact-zero test to a tolerance because deciding a singular value is negligible is an
+///    approximate judgment, not an algebraic fact about `a` (see [`svd`] for an
+///    automatically-computed `tolerance` default).
 ///
 /// Runs a fixed `QR_ITERATIONS` count rather than checking for convergence; see its docs
 /// for why. Step 4's sort is a selection sort performed directly on the eigenvalues (the
@@ -193,9 +212,10 @@ where
 /// let mut sigma = [0.0; 2];
 /// let mut v = [0.0; 4];
 /// let mut scratch = [0.0; 5 * 2 * 2 + 2 + 2];
-/// svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch).unwrap();
+/// svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch, 1e-9).unwrap();
 /// assert!(sigma[0] >= sigma[1]);
 /// ```
+#[allow(clippy::too_many_arguments)]
 pub fn svd_qr_iteration<S, T>(
     a: &S,
     rows: usize,
@@ -204,6 +224,7 @@ pub fn svd_qr_iteration<S, T>(
     out_sigma: &mut [T],
     out_v: &mut [T],
     scratch: &mut [T],
+    tolerance: T,
 ) -> Result<(), DimensionMismatch>
 where
     S: Storage<Item = T>,
@@ -311,12 +332,16 @@ where
         }
     }
 
+    // The sort above leaves the largest eigenvalue at index 0; guarded for `n == 0`, where
+    // there's no diagonal entry to read at all.
+    let sigma_max = if n == 0 { zero } else { m_cur[0].sqrt() };
+
     for i in 0..n {
         let lambda = m_cur[i * n + i];
         let sigma_i = lambda.sqrt();
         out_sigma[i] = sigma_i;
 
-        if sigma_i == zero {
+        if sigma_i <= tolerance.mul(sigma_max) {
             for r in 0..m {
                 out_u[r * n + i] = zero;
             }
@@ -372,7 +397,7 @@ mod tests {
         let mut scratch = [0.0; 5 * 2 * 2 + 2 + 2];
 
         assert_eq!(
-            svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch),
+            svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch, 1e-9),
             Ok(())
         );
         assert!(sigma[0] >= sigma[1]);
@@ -395,7 +420,7 @@ mod tests {
         let mut scratch = [0.0; 5 * 2 * 2 + 2 + 3];
 
         assert_eq!(
-            svd_qr_iteration(&a, 3, 2, &mut u, &mut sigma, &mut v, &mut scratch),
+            svd_qr_iteration(&a, 3, 2, &mut u, &mut sigma, &mut v, &mut scratch, 1e-9),
             Ok(())
         );
         assert!(sigma[0] >= sigma[1]);
@@ -425,7 +450,7 @@ mod tests {
         let mut scratch = [0.0; 5 * 3 * 3 + 3 + 3];
 
         assert_eq!(
-            svd_qr_iteration(&a, 3, 3, &mut u, &mut sigma, &mut v, &mut scratch),
+            svd_qr_iteration(&a, 3, 3, &mut u, &mut sigma, &mut v, &mut scratch, 1e-9),
             Ok(())
         );
 
@@ -448,7 +473,7 @@ mod tests {
         let mut scratch = [0.0; 5 * 2 * 2 + 2 + 3];
 
         assert_eq!(
-            svd_qr_iteration(&a, 3, 2, &mut u, &mut sigma, &mut v, &mut scratch),
+            svd_qr_iteration(&a, 3, 2, &mut u, &mut sigma, &mut v, &mut scratch, 1e-9),
             Ok(())
         );
 
@@ -465,7 +490,7 @@ mod tests {
         let mut scratch = [0.0; 5 * 2 * 2 + 2 + 2];
 
         assert_eq!(
-            svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch),
+            svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch, 1e-9),
             Err(DimensionMismatch)
         );
     }
@@ -479,7 +504,7 @@ mod tests {
         let mut scratch = [0.0; 4];
 
         assert_eq!(
-            svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch),
+            svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma, &mut v, &mut scratch, 1e-9),
             Err(DimensionMismatch)
         );
     }
@@ -517,7 +542,8 @@ mod tests {
                 &mut u_explicit,
                 &mut sigma_explicit,
                 &mut v_explicit,
-                &mut scratch_explicit
+                &mut scratch_explicit,
+                1e-9
             ),
             Ok(())
         );

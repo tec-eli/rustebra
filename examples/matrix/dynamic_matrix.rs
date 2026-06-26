@@ -34,4 +34,18 @@ pub(crate) fn run() {
     println!("det(a) = {det:?}");
 
     println!("rank(a) = {:?}", a.rank());
+
+    let (l, u, swap_count) = a.lu().expect("a is square");
+    println!("lu(a) = (l = {l:?}, u = {u:?}, swap_count = {swap_count})");
+
+    let (q, r) = a.qr().expect("a has at least as many rows as columns");
+    println!("qr(a) = (q = {q:?}, r = {r:?})");
+
+    let spd = DynamicMatrix::new(2, 2, vec![4.0, 2.0, 2.0, 2.0]).expect("2x2 data");
+    println!("cholesky(spd) = {:?}", spd.cholesky());
+
+    let (svd_u, sigma, v) = a.svd().expect("a is well-formed");
+    println!("svd(a) = (u = {svd_u:?}, sigma = {sigma:?}, v = {v:?})");
+
+    println!("condition_number(a) = {:?}", a.condition_number());
 }

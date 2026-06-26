@@ -1,3 +1,4 @@
+use super::FloatTolerance;
 use super::Scalar;
 use super::newton_raphson::newton_raphson;
 use super::trigonometry::{cos, sin};
@@ -40,9 +41,15 @@ impl Scalar for f64 {
     }
 }
 
+impl FloatTolerance for f64 {
+    fn epsilon() -> Self {
+        f64::EPSILON
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::Scalar;
+    use super::{FloatTolerance, Scalar};
 
     #[test]
     fn identities() {
@@ -98,5 +105,10 @@ mod tests {
 
         let result = Scalar::cos(core::f64::consts::PI);
         assert!((result - (-1.0)).abs() < 1e-9);
+    }
+
+    #[test]
+    fn epsilon_matches_core() {
+        assert_eq!(f64::epsilon(), f64::EPSILON);
     }
 }

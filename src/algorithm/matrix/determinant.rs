@@ -53,6 +53,9 @@ impl<T> Storage for Minor<'_, T> {
 /// recursive call at the same concrete type, which is why this is one of the exceptions to
 /// preferring generics over `dyn Trait` in this crate.
 fn cofactor_expansion<T: Scalar>(a: &dyn Storage<Item = T>, n: usize) -> T {
+    if n == 0 {
+        return T::one();
+    }
     if n == 1 {
         return match a.get(0) {
             Some(&x) => x,
@@ -158,7 +161,7 @@ pub fn determinant_lu<S, T>(
 ) -> Result<T, DimensionMismatch>
 where
     S: Storage<Item = T>,
-    T: Scalar + PartialEq,
+    T: Scalar + PartialOrd,
 {
     if rows != cols || a.len() != rows * cols || scratch.len() != 2 * rows * cols {
         return Err(DimensionMismatch);
@@ -176,6 +179,29 @@ where
     Ok(det)
 }
 
+/// Error returned by [`determinant`].
+///
+/// The explicit algorithm functions [`determinant_cofactor`] and [`determinant_lu`] return
+/// [`DimensionMismatch`] directly; `determinant` wraps that and adds one extra variant for
+/// the `no_std` (no-`alloc`) size constraint.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DeterminantError {
+    /// `a` is not square (`rows != cols`), or it doesn't have exactly `rows * cols` elements.
+    DimensionMismatch,
+    /// The `alloc` feature is disabled and `rows > 4`: without a heap-allocated scratch
+    /// buffer, [`determinant`] cannot dispatch to the `O(n^3)` LU path, and running the
+    /// `O(n!)` cofactor algorithm on a matrix this size would be impractical.  Use
+    /// [`determinant_lu`] with a caller-provided scratch buffer, or enable the `alloc`
+    /// feature.
+    MatrixTooLargeWithoutAlloc,
+}
+
+impl From<DimensionMismatch> for DeterminantError {
+    fn from(_: DimensionMismatch) -> Self {
+        DeterminantError::DimensionMismatch
+    }
+}
+
 /// Computes the determinant of the `rows x cols` matrix `a`, dispatching to whichever
 /// algorithm is more efficient for the matrix's size: [`determinant_cofactor`] (`O(n!)`) for
 /// `rows <= 4`, since cofactor expansion's overhead is negligible at that size, and
@@ -183,16 +209,20 @@ where
 /// growth becomes prohibitive.
 ///
 /// `determinant_lu` needs an `O(n^2)` scratch buffer this function's signature has no
-/// parameter for; without the `alloc` feature, there's nowhere to source that buffer from,
-/// so this falls back to `determinant_cofactor` regardless of size in that configuration.
+/// parameter for; without the `alloc` feature there is nowhere to source that buffer from.
+/// Rather than silently falling back to the `O(n!)` algorithm for arbitrarily large matrices,
+/// this function returns `Err(DeterminantError::MatrixTooLargeWithoutAlloc)` when `alloc` is
+/// disabled and `rows > 4`.  For `rows <= 4` the cofactor path is used regardless of `alloc`.
 ///
 /// Only defined for square matrices, since the determinant itself is only defined for
 /// square matrices.
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` if `a` is not square (`rows != cols`), or if `a` doesn't
-/// have exactly `rows * cols` elements, rather than panicking.
+/// Returns `Err(DeterminantError::DimensionMismatch)` if `a` is not square (`rows != cols`),
+/// or if `a` doesn't have exactly `rows * cols` elements, rather than panicking. Returns
+/// `Err(DeterminantError::MatrixTooLargeWithoutAlloc)` if the `alloc` feature is disabled
+/// and `rows > 4`.
 ///
 /// # Examples
 ///
@@ -204,22 +234,27 @@ where
 /// let a = StaticStorage::new([1.0, 2.0, 3.0, 4.0]);
 /// assert_eq!(determinant(&a, 2, 2), Ok(-2.0));
 /// ```
-pub fn determinant<S, T>(a: &S, rows: usize, cols: usize) -> Result<T, DimensionMismatch>
+pub fn determinant<S, T>(a: &S, rows: usize, cols: usize) -> Result<T, DeterminantError>
 where
     S: Storage<Item = T>,
-    T: Scalar + PartialEq,
+    T: Scalar + PartialOrd,
 {
     #[cfg(feature = "alloc")]
     if rows > 4 {
         let mut scratch = vec![T::zero(); 2 * rows * cols];
-        return determinant_lu(a, rows, cols, &mut scratch);
+        return determinant_lu(a, rows, cols, &mut scratch).map_err(DeterminantError::from);
     }
-    determinant_cofactor(a, rows, cols)
+    #[cfg(not(feature = "alloc"))]
+    if rows > 4 {
+        return Err(DeterminantError::MatrixTooLargeWithoutAlloc);
+    }
+    determinant_cofactor(a, rows, cols).map_err(DeterminantError::from)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{DimensionMismatch, determinant, determinant_lu};
+    use super::{DeterminantError, determinant};
+    use crate::algorithm::matrix::determinant_lu;
     use crate::storage::StaticStorage;
 
     #[test]
@@ -250,9 +285,13 @@ mod tests {
     fn determinant_of_non_square_matrix_is_an_error_not_a_panic() {
         let a = StaticStorage::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
 
-        assert_eq!(determinant(&a, 2, 3), Err(DimensionMismatch));
+        assert_eq!(
+            determinant(&a, 2, 3),
+            Err(DeterminantError::DimensionMismatch)
+        );
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn determinant_of_5x5_matrix_matches_determinant_lu_directly() {
         // Diagonally dominant 5x5 matrix, so it's invertible.
@@ -266,5 +305,45 @@ mod tests {
         let via_dispatch = determinant(&a, 5, 5).unwrap();
 
         assert!((via_dispatch - via_lu).abs() < 1e-9);
+    }
+
+    #[cfg(not(feature = "alloc"))]
+    #[test]
+    fn determinant_of_5x5_without_alloc_is_an_error_not_factorial_work() {
+        let a = StaticStorage::new([
+            5.0_f64, 1.0, 0.0, 0.0, 0.0, 0.0, 5.0, 1.0, 0.0, 0.0, 0.0, 0.0, 5.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 5.0, 1.0, 1.0, 0.0, 0.0, 0.0, 5.0,
+        ]);
+        assert_eq!(
+            determinant(&a, 5, 5),
+            Err(DeterminantError::MatrixTooLargeWithoutAlloc)
+        );
+    }
+
+    #[test]
+    fn determinant_of_4x4_without_alloc_is_still_supported_via_cofactor() {
+        // 4×4 is within the cofactor threshold; must succeed in all feature configurations.
+        let a = StaticStorage::new([
+            1.0_f64, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 4.0,
+        ]);
+        // det of a diagonal matrix is the product of its diagonal entries: 1*2*3*4 = 24.
+        assert_eq!(determinant(&a, 4, 4), Ok(24.0));
+    }
+
+    #[test]
+    fn determinant_of_0x0_empty_matrix_is_one_the_empty_product() {
+        // The determinant of an empty (0×0) matrix is 1, the multiplicative identity (empty product).
+        let a = StaticStorage::new([] as [f64; 0]);
+        assert_eq!(determinant(&a, 0, 0), Ok(1.0));
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn determinant_lu_of_0x0_empty_matrix_is_one() {
+        use super::determinant_lu;
+        // Verify the LU path also returns 1 for a 0×0 matrix.
+        let a = StaticStorage::new([] as [f64; 0]);
+        let mut scratch = [];
+        assert_eq!(determinant_lu(&a, 0, 0, &mut scratch), Ok(1.0));
     }
 }

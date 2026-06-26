@@ -17,4 +17,23 @@ pub(crate) fn run() {
     println!("a^T = {:?}", a.transpose());
     println!("det(a) = {:?}", a.determinant());
     println!("rank(a) = {:?}", a.rank());
+
+    let (l, u, swap_count) = a.lu();
+    println!("lu(a) = (l = {l:?}, u = {u:?}, swap_count = {swap_count})");
+
+    let (q, r) = a.qr().expect("a has at least as many rows as columns");
+    println!("qr(a) = (q = {q:?}, r = {r:?})");
+
+    let spd = StaticMatrix::new([[4.0, 2.0], [2.0, 2.0]]);
+    println!("cholesky(spd) = {:?}", spd.cholesky());
+
+    let mut svd_scratch = [0.0; 5 * 2 * 2 + 2 + 2];
+    let (svd_u, sigma, v) = a.svd(&mut svd_scratch).expect("scratch is correctly sized");
+    println!("svd(a) = (u = {svd_u:?}, sigma = {sigma:?}, v = {v:?})");
+
+    let mut condition_scratch = [0.0; 7 * 2 * 2 + 3 * 2];
+    println!(
+        "condition_number(a) = {:?}",
+        a.condition_number(&mut condition_scratch)
+    );
 }

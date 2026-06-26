@@ -7,74 +7,370 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `determinant` (and `DynamicMatrix::determinant` / `StaticMatrix::determinant`) now return
+  `Err(DeterminantError::MatrixTooLargeWithoutAlloc)` when the `alloc` feature is disabled
+  and `rows > 4`. Previously, the `O(n!)` cofactor algorithm was silently used for any size
+  matrix, with no signal to the caller that the call had become factorial-time.
+  `DeterminantError` is a new enum with `DimensionMismatch` and `MatrixTooLargeWithoutAlloc`
+  variants; `determinant`, `DynamicMatrix::determinant`, and `StaticMatrix::determinant` all
+  now return `Result<T, DeterminantError>` instead of `Result<T, DimensionMismatch>` or `T`.
+
+- `cholesky_decompose` (and `cholesky`) now return `Err(CholeskyError::NotSymmetric)` when
+  any off-diagonal pair `a[i][j]` and `a[j][i]` differs by more than `tolerance` in absolute
+  value. Previously, a non-symmetric matrix was silently accepted and the decomposition
+  proceeded using only the lower triangle, producing an incorrect `L` with no error signal.
+
+### Added
+
+- `matvec_csr` and `matvec_csc` in the `sparse` module: free functions (gated behind `alloc`)
+  that multiply a `CsrMatrix<T>` or `CscMatrix<T>` by a dense `&[T]` slice, returning
+  `Result<Vec<T>, DimensionMismatch>`. `matvec_csr` traverses row by row using the `row_ptr`
+  array; `matvec_csc` traverses column by column using the `col_ptr` array. Both return
+  `Err(DimensionMismatch)` when the vector length does not equal `m.cols()`.
+
+- `scale_csr` and `scale_csc` in the `sparse` module: free functions (gated behind `alloc`)
+  that multiply every stored value of a `CsrMatrix<T>` or `CscMatrix<T>` by a scalar,
+  returning a new matrix with the same shape and sparsity pattern. The index and pointer
+  arrays are left unchanged; only the values array is transformed.
+
+- `add_csr` and `add_csc` in the `sparse` module: free functions (gated behind `alloc`)
+  that compute the element-wise sum of two sparse matrices in CSR or CSC format respectively,
+  returning `Result<CsrMatrix<T>, DimensionMismatch>` or `Result<CscMatrix<T>, DimensionMismatch>`
+  when the operands have different shapes. Within each row (CSR) or column (CSC), the merge
+  sorts and sums coincident entries so the output has at most one entry per position.
+
+- `coo_to_csr`, `csr_to_coo`, `csr_to_csc`, and `csc_to_csr` in the `sparse` module: free functions
+  (gated behind `alloc`) that convert between `CooMatrix<T>`, `CsrMatrix<T>`, and `CscMatrix<T>`.
+  `coo_to_csr` sorts all triplets by `(row, col)` and sums any duplicate positions, returning a
+  `SortedCsrMatrix<T>` with at most one entry per unique `(row, col)` and ascending column indices
+  within each row. `csr_to_coo` expands the row-pointer array into explicit per-entry row indices,
+  preserving the original column and value order. `csr_to_csc` and `csc_to_csr` transpose the
+  sparse structure, converting between row-major and column-major layouts while sorting entries
+  into the appropriate order.
+
+- `CsrMatrix<T>` in the `sparse` module: a heap-allocated sparse matrix in compressed sparse
+  row (CSR) format, gated behind the `alloc` feature. Stores non-zeros as three parallel
+  arrays — `row_ptr` (length `rows + 1`), `col_indices`, and `values`. Construction validates
+  that `col_indices` and `values` have equal length, that `row_ptr` has exactly `rows + 1`
+  entries, starts at zero, is non-decreasing, and ends at `nnz`, and that every column index
+  is in-bounds, returning `CsrError` rather than panicking. Exposes `rows`, `cols`, `nnz`,
+  `row_ptr`, `col_indices`, `values`, and `row_range` accessors.
+
+- `CscMatrix<T>` in the `sparse` module: a heap-allocated sparse matrix in compressed sparse
+  column (CSC) format, gated behind the `alloc` feature. Stores non-zeros as three parallel
+  arrays — `col_ptr` (length `cols + 1`), `row_indices`, and `values`. Construction validates
+  that `row_indices` and `values` have equal length, that `col_ptr` has exactly `cols + 1`
+  entries, starts at zero, is non-decreasing, and ends at `nnz`, and that every row index
+  is in-bounds, returning `CscError` rather than panicking. Exposes `rows`, `cols`, `nnz`,
+  `col_ptr`, `row_indices`, `values`, and `col_range` accessors.
+
+- `CooMatrix<T>` in the new `sparse` module: a heap-allocated sparse matrix in coordinate
+  (COO) format, gated behind the `alloc` feature. Stores `(row, col, value)` triplets in
+  arbitrary order; duplicate positions are accepted and treated as logically summed by
+  downstream operations. Construction validates that all three component vectors have the
+  same length and that every index is in-bounds, returning `CooError` rather than panicking.
+  Exposes `rows`, `cols`, `nnz`, `row_indices`, `col_indices`, and `values` accessors.
+
+- `matmat_csr` and `matmat_csc` in the `sparse` module: free functions (gated behind `alloc`)
+  that multiply a sparse `CsrMatrix<T>` or `CscMatrix<T>` by a dense row-major matrix stored as
+  a flat slice, returning `Result<Vec<T>, DimensionMismatch>` with the output as a flat row-major
+  vector. The sparse matrix is `m × k` and the dense matrix is `k × x_cols`; the output is
+  `m × x_cols`.
+
+- `spmm_csr` in the `sparse` module: a free function (gated behind `alloc`) that multiplies
+  two `CsrMatrix<T>` sparse matrices using a dense row accumulator (Gustavson algorithm),
+  returning `Result<SortedCsrMatrix<T>, DimensionMismatch>`. Column indices within each output
+  row are in ascending order, which is why the result is a `SortedCsrMatrix<T>`.
+
+- `SortedCsrMatrix<T>` in the `sparse` module (gated behind `alloc`): a newtype wrapping
+  `CsrMatrix<T>` that carries a compile-time guarantee that column indices within every row
+  are in ascending order. Returned by `coo_to_csr` and `spmm_csr`, which produce sorted output
+  by construction. `SortedCsrMatrix::from_csr` accepts any `CsrMatrix<T>` and sorts it in
+  `O(nnz log nnz)`. Implements `Deref<Target = CsrMatrix<T>>` for transparent read access,
+  `From<SortedCsrMatrix<T>> for CsrMatrix<T>` for ergonomic conversion, and cross-type
+  `PartialEq` with `CsrMatrix<T>`.
+
+- `SparseLinearOp<T>` in the `sparse` module (gated behind `alloc`): a trait providing a
+  format-agnostic matrix-vector interface for use by Krylov solvers. Requires three methods:
+  `rows() -> usize`, `cols() -> usize`, and `apply(&self, x: &[T]) -> Result<Vec<T>, DimensionMismatch>`.
+  Implemented by `CsrMatrix<T>`, `CscMatrix<T>`, and `SortedCsrMatrix<T>`. Solver code can be
+  generic over `impl SparseLinearOp<T>` with no heap allocation for the indirection.
+
+- `prune_csr` in the `sparse` module (gated behind `alloc`): a free function that removes entries
+  with absolute value at or below a caller-supplied tolerance from a `CsrMatrix<T>`, returning a
+  new `CsrMatrix<T>` with the reduced entry set. Requires `T: Scalar + PartialOrd`; the tolerance
+  is always caller-supplied (no auto-computed default).
+
+- `DimensionMismatch` in the `sparse` module: a single, shared unit-struct error type for all
+  sparse operations that can fail due to incompatible shapes. Replaces the per-module
+  `ShapeMismatch` type that previously existed only in `sparse::matvec`. All sparse operations
+  (`add_csr`, `add_csc`, `matvec_csr`, `matvec_csc`, `matmat_csr`, `matmat_csc`, `spmm_csr`,
+  `SparseLinearOp::apply`) now return `Err(DimensionMismatch)` on shape failure.
+
+- `lu`, `qr`, `cholesky`, `svd`, and `condition_number` methods on `StaticMatrix`/`DynamicMatrix`, wiring the existing
+  `algorithm::matrix` decompositions up the same way `determinant`/`rank` already are, so callers don't need to work
+  with `Storage`/`Scalar` generics or hand-size scratch buffers to use them. Only the general-user, auto-selecting
+  entry point of each gets a method (matching `rank`'s/`determinant`'s existing precedent) — `lu_partial_pivot`,
+  `qr_householder`/`qr_gram_schmidt`, `cholesky_decompose`, `svd_qr_iteration`, and `condition_number_svd` remain
+  free-function-only for callers who need explicit control. `qr` returns a `Result` even on `StaticMatrix` (unlike
+  `lu`/`cholesky`), since its `rows >= cols` precondition spans two different const generics that stable Rust has no
+  way to bound against each other at the type level. `svd`/`condition_number` on `StaticMatrix` take their internal
+  scratch workspace as a caller-supplied `&mut [T]` parameter rather than building it internally, for the same
+  const-generic reason — `5*C*C + C + R` (`svd`) and `7*N*N + 3*N` (`condition_number`) aren't expressible as a
+  fixed-size array length on stable Rust, since that requires combining (or even just squaring) const generic
+  parameters, which only bare standalone parameters support; this keeps both usable without the `alloc` feature, at the
+  cost of the caller needing to size the buffer by the documented formula instead of a zero-argument call.
+  `DynamicMatrix`'s versions take no such parameter, since `Vec` sizing is ordinary runtime arithmetic with no such
+  restriction.
+- Extended `examples/matrix/static_matrix.rs`/`dynamic_matrix.rs` and `tests/matrix/static_matrix.rs`/
+  `dynamic_matrix.rs` to demonstrate and exercise the new `lu`/`qr`/`cholesky`/`svd`/`condition_number` methods,
+  matching the coverage every other matrix method already has.
+- `FloatTolerance`, a trait separate from `Scalar` exposing machine epsilon, implemented for `f32`/`f64`. Backs
+  automatically-computed default tolerances for non-expert callers, without forcing a numeric-conversion or epsilon
+  concept onto every future `Scalar` implementor.
+- `algorithm::matrix::rank_with_tolerance`, the explicit-tolerance counterpart to `rank`: the caller chooses the
+  threshold below which a pivot candidate is treated as negligible, rather than getting an automatically-computed
+  default.
+- Edge-case tests demonstrating real floating-point rounding noise (not just exact-zero inputs) at the tolerance
+  boundary for `rank`, `cholesky`, `svd`, and `condition_number`, including an extremely ill-conditioned matrix that
+  exercises the precision floor of the fixed-iteration SVD algorithm.
+
+### Changed
+
+- `lu_partial_pivot` (and `rank`/`rank_with_tolerance`, which shares its elimination strategy) now selects the
+  largest-magnitude candidate at or below the pivot row/column, instead of merely the first nonzero one — the standard
+  partial-pivoting guarantee for bounding rounding-error growth, which the previous "first nonzero" selection didn't
+  actually provide despite being named and documented as partial pivoting.
+- `cholesky_decompose`, `svd_qr_iteration`, and `condition_number_svd` now take an explicit `tolerance` parameter for
+  deciding when a value is negligibly close to zero (a positive-semi-definiteness residue, a negligible singular
+  value), replacing exact float equality, which silently mis-classified any input whose arithmetic didn't land on an
+  exact representable `0.0`. `cholesky`, `svd`, and `condition_number` remain the high-level entry points, now
+  computing a sensible default tolerance automatically (via `FloatTolerance`) rather than taking the parameter
+  directly. `lu_partial_pivot`/`qr_householder`/`qr_gram_schmidt` keep exact-zero checks deliberately: those decide an
+  algebraic fact about the input (is this pivot/column exactly singular), not a negligibility judgment, so a tolerance
+  there would mask rather than fix the real defect (see the partial-pivoting fix above).
+
 ## [0.2.1] - 2026-06-25
 
 ### Added
 
-- `examples/algorithm/vector.rs`, touring `algorithm::vector`'s functions (`add`, `sub`, `scale`, `dot`, `norm`) directly via `Storage`, the same style `examples/algorithm/matrix/*.rs` already use; wired into `examples/algorithm/main.rs` alongside `matrix`.
-- `examples/storage/` (`main.rs`, `static.rs`, `dynamic.rs`), the same `main.rs`-dispatches-`mod`s structure as `examples/matrix/`/`examples/vector/`: `static.rs` constructs a `StaticStorage` and inspects it through `Storage`; `dynamic.rs`, gated behind `#[cfg(feature = "alloc")]`, does the same for `DynamicStorage`.
-- `examples/scalar/sqrt.rs`, one file per elementary `Scalar` function, calling it on both `f32` and `f64`; `examples/scalar/f32.rs`/`f64.rs` are trimmed to just the basic arithmetic identities (`zero`/`one`/`add`/`sub`/`mul`/`div`) to avoid demonstrating `sqrt` twice.
-- A GitHub Actions workflow that publishes to crates.io on `v*` tag push, after checking the tag matches `Cargo.toml`'s version.
+- `examples/algorithm/vector.rs`, touring `algorithm::vector`'s functions (`add`, `sub`, `scale`, `dot`, `norm`)
+  directly via `Storage`, the same style `examples/algorithm/matrix/*.rs` already use; wired into
+  `examples/algorithm/main.rs` alongside `matrix`.
+- `examples/storage/` (`main.rs`, `static.rs`, `dynamic.rs`), the same `main.rs`-dispatches-`mod`s structure as
+  `examples/matrix/`/`examples/vector/`: `static.rs` constructs a `StaticStorage` and inspects it through `Storage`;
+  `dynamic.rs`, gated behind `#[cfg(feature = "alloc")]`, does the same for `DynamicStorage`.
+- `examples/scalar/sqrt.rs`, one file per elementary `Scalar` function, calling it on both `f32` and `f64`;
+  `examples/scalar/f32.rs`/`f64.rs` are trimmed to just the basic arithmetic identities
+  (`zero`/`one`/`add`/`sub`/`mul`/`div`) to avoid demonstrating `sqrt` twice.
+- A GitHub Actions workflow that publishes to crates.io on `v*` tag push, after checking the tag matches `Cargo.toml`'s
+  version.
 
 ### Changed
 
-- `Scalar::sin`/`Scalar::cos`'s near-identical bodies in `f32.rs` and `f64.rs` (computing `-x^2`, `2`, `3` and calling `taylor_series` inline) are now a single pair of generic functions in `trigonometry.rs` (`sin`/`cos`, taking `zero`/`one` as parameters rather than depending on `Scalar`, the same reason `sqrt.rs`'s `newton_raphson` already takes `zero`/`two` explicitly); `f32.rs`/`f64.rs` each reduce to a one-line call, matching how `sqrt` already delegates to `newton_raphson`.
+- `Scalar::sin`/`Scalar::cos`'s near-identical bodies in `f32.rs` and `f64.rs` (computing `-x^2`, `2`, `3` and calling
+  `taylor_series` inline) are now a single pair of generic functions in `trigonometry.rs` (`sin`/`cos`, taking
+  `zero`/`one` as parameters rather than depending on `Scalar`, the same reason `sqrt.rs`'s `newton_raphson` already
+  takes `zero`/`two` explicitly); `f32.rs`/`f64.rs` each reduce to a one-line call, matching how `sqrt` already
+  delegates to `newton_raphson`.
 - Added scope of the version 0.2.1
-- Reorganized `examples/` to mirror `tests/`'s `algorithm`/`matrix`/`scalar`/`vector` grouping: each top-level group is one example (`cargo run --example algorithm`, etc.) with a `main.rs`/`mod.rs` holding only `mod` declarations and dispatch, the same role `tests/algorithm/main.rs`/`tests/matrix/main.rs` play for the test binaries; the actual demonstration code lives one file per `src` item, named after it (e.g. `examples/algorithm/matrix/cholesky.rs` for `algorithm::matrix::cholesky`, `examples/scalar/f32.rs` for `Scalar`'s `f32` impl), rather than one flat file per type (`examples/static_matrix.rs`, `examples/algorithm_matrix.rs`). `examples/algorithm/matrix/` now has one file per `algorithm::matrix` source file (`arithmetic`, `determinant`, `rank`, `lu`, `qr`, `cholesky`, `svd`, `condition`), splitting what was previously a single `algorithm_matrix.rs`; `examples/scalar/` gained an `f32.rs` alongside the existing `f64.rs` coverage, matching `tests/scalar/`'s per-type split. `dynamic_matrix`/`dynamic_vector` are no longer separate examples gated by `required-features` in `Cargo.toml` — they're `#[cfg(feature = "alloc")]` submodules of `matrix`/`vector` invoked conditionally from `main.rs`, the same pattern `tests/matrix/main.rs`/`tests/vector/main.rs` already use, so `Cargo.toml` no longer needs explicit `[[example]]` entries at all (auto-discovery picks up every `examples/*/main.rs`).
+- Reorganized `examples/` to mirror `tests/`'s `algorithm`/`matrix`/`scalar`/`vector` grouping: each top-level group is
+  one example (`cargo run --example algorithm`, etc.) with a `main.rs`/`mod.rs` holding only `mod` declarations and
+  dispatch, the same role `tests/algorithm/main.rs`/`tests/matrix/main.rs` play for the test binaries; the actual
+  demonstration code lives one file per `src` item, named after it (e.g. `examples/algorithm/matrix/cholesky.rs` for
+  `algorithm::matrix::cholesky`, `examples/scalar/f32.rs` for `Scalar`'s `f32` impl), rather than one flat file per
+  type (`examples/static_matrix.rs`, `examples/algorithm_matrix.rs`). `examples/algorithm/matrix/` now has one file per
+  `algorithm::matrix` source file (`arithmetic`, `determinant`, `rank`, `lu`, `qr`, `cholesky`, `svd`, `condition`),
+  splitting what was previously a single `algorithm_matrix.rs`; `examples/scalar/` gained an `f32.rs` alongside the
+  existing `f64.rs` coverage, matching `tests/scalar/`'s per-type split. `dynamic_matrix`/`dynamic_vector` are no
+  longer separate examples gated by `required-features` in `Cargo.toml` — they're `#[cfg(feature = "alloc")]`
+  submodules of `matrix`/`vector` invoked conditionally from `main.rs`, the same pattern
+  `tests/matrix/main.rs`/`tests/vector/main.rs` already use, so `Cargo.toml` no longer needs explicit `[[example]]`
+  entries at all (auto-discovery picks up every `examples/*/main.rs`).
 - Migrated the docs site from Jekyll to mdbook, with a custom theme.
 
 ## [0.2.0] - 2026-06-23
 
 ### Added
-- `algorithm::matrix::determinant`, computed via recursive cofactor expansion along the first row; only defined for square matrices, returning `Result<T, DimensionMismatch>` instead of panicking on non-square input, per ADR 0004. Each minor is a zero-copy `Storage` view (a private `Minor` type) rather than a materialized submatrix, since submatrix sizes are only known at runtime in this `no_std`-first crate; `Minor` holds its source as `&dyn Storage<Item = T>` rather than a generic parameter, since a generic parameter would make every recursion level its own type (`Minor<Minor<Minor<...>>>`) with no compile-time bound on recursion depth — the one exception in this module to preferring generics over `dyn Trait`.
-- Unit tests for `algorithm::matrix::determinant` (known 2x2 and 3x3 values, a singular matrix with a zero row, and non-square input as an error case).
-- `StaticMatrix<T, N, N>::determinant`, wiring `algorithm::matrix::determinant` to an infallible method (`R == C` is guaranteed by the type, so the dimension mismatch is unreachable), and `DynamicMatrix<T>::determinant`, returning `Result<T, DimensionMismatch>` for real since a `DynamicMatrix`'s shape isn't known at compile time.
+- `algorithm::matrix::determinant`, computed via recursive cofactor expansion along the first row; only defined for
+  square matrices, returning `Result<T, DimensionMismatch>` instead of panicking on non-square input, per ADR 0004.
+  Each minor is a zero-copy `Storage` view (a private `Minor` type) rather than a materialized submatrix, since
+  submatrix sizes are only known at runtime in this `no_std`-first crate; `Minor` holds its source as
+  `&dyn Storage<Item = T>` rather than a generic parameter, since a generic parameter would make every recursion level
+  its own type (`Minor<Minor<Minor<...>>>`) with no compile-time bound on recursion depth — the one exception in this
+  module to preferring generics over `dyn Trait`.
+- Unit tests for `algorithm::matrix::determinant` (known 2x2 and 3x3 values, a singular matrix with a zero row, and
+  non-square input as an error case).
+- `StaticMatrix<T, N, N>::determinant`, wiring `algorithm::matrix::determinant` to an infallible method (`R == C` is
+  guaranteed by the type, so the dimension mismatch is unreachable), and `DynamicMatrix<T>::determinant`, returning
+  `Result<T, DimensionMismatch>` for real since a `DynamicMatrix`'s shape isn't known at compile time.
 - Unit tests for both, including the non-square error case for `DynamicMatrix`.
-- Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations to cover `determinant`.
-- `algorithm::matrix::rank`, computed by reducing the `rows x cols` matrix `a` to row echelon form via Gaussian elimination with partial pivoting, then counting the rows that aren't entirely zero; unlike `determinant`, works for non-square matrices. Since `Storage` is read-only, elimination runs in a caller-provided `scratch` buffer rather than mutating `a` in place; returns `Result<usize, DimensionMismatch>` if `a` or `scratch` doesn't have exactly `rows * cols` elements, rather than panicking.
-- Unit tests for `algorithm::matrix::rank` (a full-rank case, a rank-deficient case with one row a multiple of another, a non-square case, and a mismatched-scratch-length error case).
-- `StaticMatrix<T, R, C>::rank` and `DynamicMatrix<T>::rank`, wiring `algorithm::matrix::rank` to an infallible method (the internal scratch buffer always matches `self`'s shape, so the dimension mismatch is unreachable) that works for non-square shapes too, unlike `determinant`.
+- Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations
+  to cover `determinant`.
+- `algorithm::matrix::rank`, computed by reducing the `rows x cols` matrix `a` to row echelon form via Gaussian
+  elimination with partial pivoting, then counting the rows that aren't entirely zero; unlike `determinant`, works for
+  non-square matrices. Since `Storage` is read-only, elimination runs in a caller-provided `scratch` buffer rather than
+  mutating `a` in place; returns `Result<usize, DimensionMismatch>` if `a` or `scratch` doesn't have exactly
+  `rows * cols` elements, rather than panicking.
+- Unit tests for `algorithm::matrix::rank` (a full-rank case, a rank-deficient case with one row a multiple of another,
+  a non-square case, and a mismatched-scratch-length error case).
+- `StaticMatrix<T, R, C>::rank` and `DynamicMatrix<T>::rank`, wiring `algorithm::matrix::rank` to an infallible method
+  (the internal scratch buffer always matches `self`'s shape, so the dimension mismatch is unreachable) that works for
+  non-square shapes too, unlike `determinant`.
 - Unit tests for both.
-- Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations to cover `rank`.
-- `Scalar::sin` and `Scalar::cos`, public elementary functions on `Scalar`, computed via fixed-iteration Taylor series expansion around zero (`sin(x) = x - x^3/3! + x^5/5! - ...`, `cos(x) = 1 - x^2/2! + x^4/4! - ...`), each via a recurrence that avoids recomputing factorials and powers from scratch per term. No range reduction is performed, so precision degrades for inputs far from zero, the same trade-off `Scalar::sqrt` already documents for its own fixed-iteration approach.
+- Extended `tests/matrix.rs` and the `examples/static_matrix.rs`/`examples/dynamic_matrix.rs` end-to-end demonstrations
+  to cover `rank`.
+- `Scalar::sin` and `Scalar::cos`, public elementary functions on `Scalar`, computed via fixed-iteration Taylor series
+  expansion around zero (`sin(x) = x - x^3/3! + x^5/5! - ...`, `cos(x) = 1 - x^2/2! + x^4/4! - ...`), each via a
+  recurrence that avoids recomputing factorials and powers from scratch per term. No range reduction is performed, so
+  precision degrades for inputs far from zero, the same trade-off `Scalar::sqrt` already documents for its own
+  fixed-iteration approach.
 - Unit tests for `Scalar::sin`/`Scalar::cos` on `f32` and `f64` (known angles: `0`, `pi/2`, `pi`).
-- `tests/scalar.rs`, a black-box integration test exercising `Scalar`'s public API (`zero`/`one`/`add`/`sub`/`mul`/`div`/`sqrt`/`sin`/`cos`) on `f32` and `f64` using only `pub` items.
+- `tests/scalar.rs`, a black-box integration test exercising `Scalar`'s public API
+  (`zero`/`one`/`add`/`sub`/`mul`/`div`/`sqrt`/`sin`/`cos`) on `f32` and `f64` using only `pub` items.
 - `examples/scalar.rs`, a runnable end-to-end demonstration of every `Scalar` operation on `f64`.
-- `tests/no_alloc.rs`, a `harness = false` integration test that registers a `#[global_allocator]` panicking on any `alloc`/`dealloc` call, then runs `StaticVector`/`StaticMatrix` `add`, `dot`, and `norm` against known values; a standard libtest harness allocates before running any test body, so it would trip the panicking allocator regardless of whether the code under test allocates, hence the custom `main`. Gated to run under `--no-default-features` only, matching the `alloc` feature's absence by default.
-- `algorithm::matrix::lu_partial_pivot`, LU decomposition via Gaussian elimination with partial pivoting: at each step, the first row at or below the pivot with a nonzero entry in the pivot column is swapped into place (the same pivoting strategy `algorithm::matrix::rank` already uses), letting decomposition succeed on inputs plain Gaussian elimination would fail on (a zero already on the diagonal). Returns the row swap count rather than materializing a permutation matrix, since `l * u == p * a` only needs `p`'s sign (via swap parity) for the determinant and solve functions expected to consume this later. A column with no nonzero entry at or below the pivot (singular along that column) is left with a zero pivot in `u` rather than erroring, since that's a property of the input, not a malformed call. Only defined for square matrices, returning `Result<usize, DimensionMismatch>` instead of panicking on non-square input or mismatched output-buffer lengths, per ADR 0004.
+- `tests/no_alloc.rs`, a `harness = false` integration test that registers a `#[global_allocator]` panicking on any
+  `alloc`/`dealloc` call, then runs `StaticVector`/`StaticMatrix` `add`, `dot`, and `norm` against known values; a
+  standard libtest harness allocates before running any test body, so it would trip the panicking allocator regardless
+  of whether the code under test allocates, hence the custom `main`. Gated to run under `--no-default-features` only,
+  matching the `alloc` feature's absence by default.
+- `algorithm::matrix::lu_partial_pivot`, LU decomposition via Gaussian elimination with partial pivoting: at each step,
+  the first row at or below the pivot with a nonzero entry in the pivot column is swapped into place (the same pivoting
+  strategy `algorithm::matrix::rank` already uses), letting decomposition succeed on inputs plain Gaussian elimination
+  would fail on (a zero already on the diagonal). Returns the row swap count rather than materializing a permutation
+  matrix, since `l * u == p * a` only needs `p`'s sign (via swap parity) for the determinant and solve functions
+  expected to consume this later. A column with no nonzero entry at or below the pivot (singular along that column) is
+  left with a zero pivot in `u` rather than erroring, since that's a property of the input, not a malformed call. Only
+  defined for square matrices, returning `Result<usize, DimensionMismatch>` instead of panicking on non-square input or
+  mismatched output-buffer lengths, per ADR 0004.
 - `algorithm::matrix::lu`, the high-level entry point that delegates to `lu_partial_pivot`.
-- Unit tests for `algorithm::matrix::lu`/`lu_partial_pivot` (a known case requiring no pivoting, a case with a zero already on the diagonal that only succeeds because of pivoting, a singular matrix with an entire zero column, and the non-square/mismatched-buffer-length error cases), each verifying `l * u == p * a`.
-- `algorithm::matrix::qr_householder`, QR decomposition via Householder reflections: for each column, builds a reflector `h = i - 2 * v * vᵗ / (vᵗ * v)` (`v = x + sign(x₁) * ‖x‖ * e₁`, sign chosen to match `x₁` to avoid catastrophic cancellation) that zeroes out the entries below the diagonal, applying it directly to `r`'s columns and `q`'s rows via the reflection formula rather than materializing each `h` as its own matrix. Only defined for `rows >= cols` (`q` is always square, so `r` couldn't otherwise stay upper triangular), returning `Result<(), DimensionMismatch>` instead of panicking on that or on mismatched buffer/scratch lengths.
-- `algorithm::matrix::qr_gram_schmidt`, QR decomposition via modified Gram-Schmidt orthogonalization: each column is projected against every previously orthogonalized column in turn (subtracting from the running vector rather than the original column, which is what keeps rounding error from compounding as badly as classical Gram-Schmidt) and normalized into `q`. Produces a `rows x cols` `q` rather than `qr_householder`'s `rows x rows`, since Gram-Schmidt only ever produces as many orthonormal columns as `a` has. A column linearly dependent on the earlier ones leaves a zero column in `q` instead of dividing by a zero norm, the same choice `lu_partial_pivot` makes for a zero pivot.
-- `algorithm::matrix::qr`, the high-level entry point that delegates to `qr_householder`, since Householder reflections are more numerically stable than Gram-Schmidt for general use.
-- Unit tests for `algorithm::matrix::qr_householder`/`qr_gram_schmidt` (orthogonality of `q` and reconstruction of `a` from `q * r`, each for a square and a non-square case, plus the `rows < cols` and mismatched-scratch-length error cases), and for `algorithm::matrix::qr` confirming it matches `qr_householder`'s output.
-- `algorithm::matrix::cholesky_decompose`, Cholesky decomposition of a symmetric positive-definite matrix into `l * lᵗ`: for each column `j`, `l[j][j] = sqrt(a[j][j] - sum_{k<j} l[j][k]^2)` and `l[i][j] = (a[i][j] - sum_{k<j} l[i][k] * l[j][k]) / l[j][j]` for `i > j`. Introduces `CholeskyError`, since this algorithm has a failure mode beyond a dimension mismatch: a negative value under the square root means `a` isn't positive-definite, reported as `Err(CholeskyError::NotPositiveDefinite)` rather than computing a nonsensical result. A value of exactly zero under the square root (positive *semi*-definite) leaves that column of `l` at zero instead of dividing by it, the same "leave a zero instead of erroring" choice `lu_partial_pivot` makes for a zero pivot.
-- `algorithm::matrix::cholesky`, the high-level entry point that delegates to `cholesky_decompose`, the only Cholesky algorithm currently implemented.
-- Unit tests for `algorithm::matrix::cholesky`/`cholesky_decompose` (reconstruction of `a` from `l * lᵗ` for a 2x2 and a 3x3 positive-definite matrix, a non-positive-definite case returning `NotPositiveDefinite`, the non-square/mismatched-buffer-length cases returning `DimensionMismatch`, and a case confirming `cholesky` matches `cholesky_decompose`'s output).
-- Reorganized `algorithm::matrix` from a single file into a folder split by algorithm (`arithmetic`, `determinant`, `rank`, `lu`, `qr`, `cholesky`), each with its own colocated unit tests; `mod.rs` re-exports every item so existing call sites are unaffected.
-- `algorithm::matrix::svd_qr_iteration`, singular value decomposition of any `rows x cols` matrix `a` by eigendecomposing the symmetric positive-semi-definite `aᵗ * a` via unshifted QR iteration (fixed at 100 iterations rather than convergence-checked, the same predictable-work trade-off `Scalar::sqrt`/`sin`/`cos` make for their own fixed-iteration approaches), accumulating the eigenvector matrix into `v` and reading the eigenvalues off the resulting diagonal. Singular values are `sqrt` of the eigenvalues, sorted descending via a selection sort performed directly on the diagonal and `v`'s columns (no separate index buffer, since only `T`-typed scratch is available). Each left singular vector is `a * v[:, i] / sigma_i`, left at zero instead of dividing by a zero singular value, the same choice `lu_partial_pivot` makes for a zero pivot. Takes a single caller-provided `scratch` buffer sized `5 * cols * cols + cols + rows`, partitioned internally into the working matrices the iteration needs, rather than growing the signature by one parameter per matrix.
-- `algorithm::matrix::svd`, the high-level entry point that delegates to `svd_qr_iteration`, the only SVD algorithm currently implemented.
-- Unit tests for `algorithm::matrix::svd`/`svd_qr_iteration` (reconstruction of `a` from `u * diag(sigma) * vᵗ` for a square and a non-square case, descending-sorted non-negative singular values for a diagonal matrix with out-of-order entries, singular-value count matching the known rank of a rank-deficient matrix, the mismatched-buffer-length error cases, and a case confirming `svd` matches `svd_qr_iteration`'s output).
-- `algorithm::matrix::condition_number_svd`, the condition number `kappa(a) = sigma_max / sigma_min` of a square matrix, computed by reusing `algorithm::matrix::svd` and reading off the first and last entries of its already-descending-sorted `sigma` output. Introduces `ConditionNumberError`, since this has a failure mode beyond a dimension mismatch: a singular matrix (`sigma_min == 0`) has no well-defined condition number, reported as `Err(ConditionNumberError::Singular)` rather than dividing by that zero. Takes a single caller-provided `scratch` buffer sized `7 * rows * rows + 3 * rows`, partitioned internally into `svd`'s `u`/`sigma`/`v` outputs plus `svd`'s own scratch requirement, the same single-buffer approach `svd_qr_iteration` uses for its own working matrices.
-- `tests/decompositions.rs`, black-box tests for `lu`, `qr`, `cholesky`, `svd`, and `condition_number` exercising only `pub` items on inputs distinct from the ones already covered by their colocated unit tests. Each test checks a mathematical property the result is required to satisfy (triangularity, orthogonality, reconstruction) or cross-validates against an independently-computed quantity from elsewhere in the public API (e.g. `determinant`'s cofactor expansion against an LU- or QR-based determinant, `svd`'s nonzero singular value count against `rank`, condition number under transpose), rather than asserting specific algorithm output.
-- `examples/algorithm_matrix.rs`, a runnable end-to-end tour of every `algorithm::matrix` function operating directly on `Storage` and caller-provided buffers, since LU, QR, Cholesky, SVD, and condition number aren't wired to `StaticMatrix`/`DynamicMatrix` methods yet. Each operation with both a high-level entry point and one or more explicit algorithms runs both, naming the explicit function alongside the dispatcher.
-- `algorithm::matrix::condition_number`, the high-level entry point that delegates to `condition_number_svd`, the only way this crate currently computes a condition number.
-- Unit tests for `algorithm::matrix::condition_number`/`condition_number_svd` (the identity matrix giving `kappa = 1`, a diagonal matrix with a known ratio giving an exact `kappa`, a singular matrix returning `Singular`, the non-square/mismatched-scratch-length cases returning `DimensionMismatch`, and a case confirming `condition_number` matches `condition_number_svd`'s output).
-- `algorithm::matrix::determinant_cofactor`, the existing recursive cofactor expansion, split out of `determinant` under its own name now that `determinant` dispatches between two algorithms.
-- `algorithm::matrix::determinant_lu`, computing the determinant from an LU decomposition instead: `det(a) = (-1)^s * u[0][0] * ... * u[n-1][n-1]`, where `s` is the row swap count `lu_partial_pivot` performed. `O(n^3)` rather than cofactor expansion's `O(n!)`, at the cost of a caller-provided `scratch` buffer sized `2 * rows * cols` to hold the `l`/`u` factors.
-- `.github/workflows/ci.yml`: a `test` job running `cargo build`/`cargo test` under both `--no-default-features` and `--features alloc`, plus `cargo clippy -- -D warnings` and `cargo fmt --check`; and a `docs` job (gated to pushes on `main`, depending on `test`) that runs `cargo doc --no-deps --features alloc` and deploys the generated API docs alongside a Jekyll-built site to GitHub Pages.
-- A `Build (no_std, bare-metal cross-compile)` step in the `test` job: `cargo build --no-default-features --target thumbv6m-none-eabi`, cross-compiling the crate without the `alloc` feature for a Cortex-M0/M0+ target that has no operating system, no `std`, and no heap. Proves `no_std` compatibility at the compiler level — catches accidental dependence on `std`-only items that would otherwise compile silently on a hosted (`x86_64`) target — rather than relying on a runtime check. Requires the `thumbv6m-none-eabi` target component, installed via `dtolnay/rust-toolchain`'s `targets` input.
-- A GitHub Pages site under `docs/`, built with Jekyll via the `pages-themes/cayman` remote theme (`docs/config.yml`): an ADR index page (`docs/adr/index.md`), a project banner (`docs/assets/banner.png`), and a customized `README.md`; published by the `docs` job above.
+- Unit tests for `algorithm::matrix::lu`/`lu_partial_pivot` (a known case requiring no pivoting, a case with a zero
+  already on the diagonal that only succeeds because of pivoting, a singular matrix with an entire zero column, and the
+  non-square/mismatched-buffer-length error cases), each verifying `l * u == p * a`.
+- `algorithm::matrix::qr_householder`, QR decomposition via Householder reflections: for each column, builds a
+  reflector `h = i - 2 * v * vᵗ / (vᵗ * v)` (`v = x + sign(x₁) * ‖x‖ * e₁`, sign chosen to match `x₁` to avoid
+  catastrophic cancellation) that zeroes out the entries below the diagonal, applying it directly to `r`'s columns and
+  `q`'s rows via the reflection formula rather than materializing each `h` as its own matrix. Only defined for
+  `rows >= cols` (`q` is always square, so `r` couldn't otherwise stay upper triangular), returning
+  `Result<(), DimensionMismatch>` instead of panicking on that or on mismatched buffer/scratch lengths.
+- `algorithm::matrix::qr_gram_schmidt`, QR decomposition via modified Gram-Schmidt orthogonalization: each column is
+  projected against every previously orthogonalized column in turn (subtracting from the running vector rather than the
+  original column, which is what keeps rounding error from compounding as badly as classical Gram-Schmidt) and
+  normalized into `q`. Produces a `rows x cols` `q` rather than `qr_householder`'s `rows x rows`, since Gram-Schmidt
+  only ever produces as many orthonormal columns as `a` has. A column linearly dependent on the earlier ones leaves a
+  zero column in `q` instead of dividing by a zero norm, the same choice `lu_partial_pivot` makes for a zero pivot.
+- `algorithm::matrix::qr`, the high-level entry point that delegates to `qr_householder`, since Householder reflections
+  are more numerically stable than Gram-Schmidt for general use.
+- Unit tests for `algorithm::matrix::qr_householder`/`qr_gram_schmidt` (orthogonality of `q` and reconstruction of `a`
+  from `q * r`, each for a square and a non-square case, plus the `rows < cols` and mismatched-scratch-length error
+  cases), and for `algorithm::matrix::qr` confirming it matches `qr_householder`'s output.
+- `algorithm::matrix::cholesky_decompose`, Cholesky decomposition of a symmetric positive-definite matrix into
+  `l * lᵗ`: for each column `j`, `l[j][j] = sqrt(a[j][j] - sum_{k<j} l[j][k]^2)` and
+  `l[i][j] = (a[i][j] - sum_{k<j} l[i][k] * l[j][k]) / l[j][j]` for `i > j`. Introduces `CholeskyError`, since this
+  algorithm has a failure mode beyond a dimension mismatch: a negative value under the square root means `a` isn't
+  positive-definite, reported as `Err(CholeskyError::NotPositiveDefinite)` rather than computing a nonsensical result.
+  A value of exactly zero under the square root (positive *semi*-definite) leaves that column of `l` at zero instead of
+  dividing by it, the same "leave a zero instead of erroring" choice `lu_partial_pivot` makes for a zero pivot.
+- `algorithm::matrix::cholesky`, the high-level entry point that delegates to `cholesky_decompose`, the only Cholesky
+  algorithm currently implemented.
+- Unit tests for `algorithm::matrix::cholesky`/`cholesky_decompose` (reconstruction of `a` from `l * lᵗ` for a 2x2 and
+  a 3x3 positive-definite matrix, a non-positive-definite case returning `NotPositiveDefinite`, the
+  non-square/mismatched-buffer-length cases returning `DimensionMismatch`, and a case confirming `cholesky` matches
+  `cholesky_decompose`'s output).
+- Reorganized `algorithm::matrix` from a single file into a folder split by algorithm (`arithmetic`, `determinant`,
+  `rank`, `lu`, `qr`, `cholesky`), each with its own colocated unit tests; `mod.rs` re-exports every item so existing
+  call sites are unaffected.
+- `algorithm::matrix::svd_qr_iteration`, singular value decomposition of any `rows x cols` matrix `a` by
+  eigendecomposing the symmetric positive-semi-definite `aᵗ * a` via unshifted QR iteration (fixed at 100 iterations
+  rather than convergence-checked, the same predictable-work trade-off `Scalar::sqrt`/`sin`/`cos` make for their own
+  fixed-iteration approaches), accumulating the eigenvector matrix into `v` and reading the eigenvalues off the
+  resulting diagonal. Singular values are `sqrt` of the eigenvalues, sorted descending via a selection sort performed
+  directly on the diagonal and `v`'s columns (no separate index buffer, since only `T`-typed scratch is available).
+  Each left singular vector is `a * v[:, i] / sigma_i`, left at zero instead of dividing by a zero singular value, the
+  same choice `lu_partial_pivot` makes for a zero pivot. Takes a single caller-provided `scratch` buffer sized
+  `5 * cols * cols + cols + rows`, partitioned internally into the working matrices the iteration needs, rather than
+  growing the signature by one parameter per matrix.
+- `algorithm::matrix::svd`, the high-level entry point that delegates to `svd_qr_iteration`, the only SVD algorithm
+  currently implemented.
+- Unit tests for `algorithm::matrix::svd`/`svd_qr_iteration` (reconstruction of `a` from `u * diag(sigma) * vᵗ` for a
+  square and a non-square case, descending-sorted non-negative singular values for a diagonal matrix with out-of-order
+  entries, singular-value count matching the known rank of a rank-deficient matrix, the mismatched-buffer-length error
+  cases, and a case confirming `svd` matches `svd_qr_iteration`'s output).
+- `algorithm::matrix::condition_number_svd`, the condition number `kappa(a) = sigma_max / sigma_min` of a square
+  matrix, computed by reusing `algorithm::matrix::svd` and reading off the first and last entries of its
+  already-descending-sorted `sigma` output. Introduces `ConditionNumberError`, since this has a failure mode beyond a
+  dimension mismatch: a singular matrix (`sigma_min == 0`) has no well-defined condition number, reported as
+  `Err(ConditionNumberError::Singular)` rather than dividing by that zero. Takes a single caller-provided `scratch`
+  buffer sized `7 * rows * rows + 3 * rows`, partitioned internally into `svd`'s `u`/`sigma`/`v` outputs plus `svd`'s
+  own scratch requirement, the same single-buffer approach `svd_qr_iteration` uses for its own working matrices.
+- `tests/decompositions.rs`, black-box tests for `lu`, `qr`, `cholesky`, `svd`, and `condition_number` exercising only
+  `pub` items on inputs distinct from the ones already covered by their colocated unit tests. Each test checks a
+  mathematical property the result is required to satisfy (triangularity, orthogonality, reconstruction) or
+  cross-validates against an independently-computed quantity from elsewhere in the public API (e.g. `determinant`'s
+  cofactor expansion against an LU- or QR-based determinant, `svd`'s nonzero singular value count against `rank`,
+  condition number under transpose), rather than asserting specific algorithm output.
+- `examples/algorithm_matrix.rs`, a runnable end-to-end tour of every `algorithm::matrix` function operating directly
+  on `Storage` and caller-provided buffers, since LU, QR, Cholesky, SVD, and condition number aren't wired to
+  `StaticMatrix`/`DynamicMatrix` methods yet. Each operation with both a high-level entry point and one or more
+  explicit algorithms runs both, naming the explicit function alongside the dispatcher.
+- `algorithm::matrix::condition_number`, the high-level entry point that delegates to `condition_number_svd`, the only
+  way this crate currently computes a condition number.
+- Unit tests for `algorithm::matrix::condition_number`/`condition_number_svd` (the identity matrix giving `kappa = 1`,
+  a diagonal matrix with a known ratio giving an exact `kappa`, a singular matrix returning `Singular`, the
+  non-square/mismatched-scratch-length cases returning `DimensionMismatch`, and a case confirming `condition_number`
+  matches `condition_number_svd`'s output).
+- `algorithm::matrix::determinant_cofactor`, the existing recursive cofactor expansion, split out of `determinant`
+  under its own name now that `determinant` dispatches between two algorithms.
+- `algorithm::matrix::determinant_lu`, computing the determinant from an LU decomposition instead:
+  `det(a) = (-1)^s * u[0][0] * ... * u[n-1][n-1]`, where `s` is the row swap count `lu_partial_pivot` performed.
+  `O(n^3)` rather than cofactor expansion's `O(n!)`, at the cost of a caller-provided `scratch` buffer sized
+  `2 * rows * cols` to hold the `l`/`u` factors.
+- `.github/workflows/ci.yml`: a `test` job running `cargo build`/`cargo test` under both `--no-default-features` and
+  `--features alloc`, plus `cargo clippy -- -D warnings` and `cargo fmt --check`; and a `docs` job (gated to pushes on
+  `main`, depending on `test`) that runs `cargo doc --no-deps --features alloc` and deploys the generated API docs
+  alongside a Jekyll-built site to GitHub Pages.
+- A `Build (no_std, bare-metal cross-compile)` step in the `test` job:
+  `cargo build --no-default-features --target thumbv6m-none-eabi`, cross-compiling the crate without the `alloc`
+  feature for a Cortex-M0/M0+ target that has no operating system, no `std`, and no heap. Proves `no_std` compatibility
+  at the compiler level — catches accidental dependence on `std`-only items that would otherwise compile silently on a
+  hosted (`x86_64`) target — rather than relying on a runtime check. Requires the `thumbv6m-none-eabi` target
+  component, installed via `dtolnay/rust-toolchain`'s `targets` input.
+- A GitHub Pages site under `docs/`, built with Jekyll via the `pages-themes/cayman` remote theme (`docs/config.yml`):
+  an ADR index page (`docs/adr/index.md`), a project banner (`docs/assets/banner.png`), and a customized `README.md`;
+  published by the `docs` job above.
 - `.github/PULL_REQUEST_TEMPLATE.md` and `.all-contributorsrc`, standard GitHub project scaffolding.
 
 ### Changed
-- `Cargo.toml`: bumped `version` to `0.2.0`; added `keywords` (`linear-algebra`, `matrix`, `vector`, `no-std`, `numerical`) and `categories` (`algorithms`, `mathematics`, `no-std`).
-- `algorithm::matrix::determinant` now dispatches by size instead of always using cofactor expansion: `determinant_cofactor` for `rows <= 4`, where cofactor expansion's overhead is negligible, and `determinant_lu` for larger matrices, where `O(n!)` becomes prohibitive. Widens `determinant`'s bound from `T: Scalar` to `T: Scalar + PartialEq`, since the LU path needs it; `StaticMatrix::determinant`/`DynamicMatrix::determinant` pick up the same bound as a per-method `where` clause rather than on their enclosing `impl` blocks, the same way `rank` already does. The LU path is only reachable behind the `alloc` feature, since `determinant`'s signature has no parameter for the `O(n^2)` scratch buffer it needs; without `alloc`, `determinant` always falls back to `determinant_cofactor`.
+- `Cargo.toml`: bumped `version` to `0.2.0`; added `keywords` (`linear-algebra`, `matrix`, `vector`, `no-std`,
+  `numerical`) and `categories` (`algorithms`, `mathematics`, `no-std`).
+- `algorithm::matrix::determinant` now dispatches by size instead of always using cofactor expansion:
+  `determinant_cofactor` for `rows <= 4`, where cofactor expansion's overhead is negligible, and `determinant_lu` for
+  larger matrices, where `O(n!)` becomes prohibitive. Widens `determinant`'s bound from `T: Scalar` to
+  `T: Scalar + PartialEq`, since the LU path needs it; `StaticMatrix::determinant`/`DynamicMatrix::determinant` pick up
+  the same bound as a per-method `where` clause rather than on their enclosing `impl` blocks, the same way `rank`
+  already does. The LU path is only reachable behind the `alloc` feature, since `determinant`'s signature has no
+  parameter for the `O(n^2)` scratch buffer it needs; without `alloc`, `determinant` always falls back to
+  `determinant_cofactor`.
 - Added a unit test confirming `determinant`'s output for a 5x5 matrix matches `determinant_lu` called directly.
-- Reorganized `tests/` to mirror `src/`'s folder structure, one file per item under test, named after it (e.g. `tests/algorithm/matrix/cholesky.rs` for `algorithm::matrix::cholesky`, `tests/matrix/static_matrix.rs` for `StaticMatrix`), rather than one flat file per top-level area (`tests/decompositions.rs`, `tests/matrix.rs`, `tests/scalar.rs`, `tests/vector.rs`). Each directory's entry point (`main.rs`, or `mod.rs` one level down) now holds only `mod` declarations, the same role `src/algorithm/mod.rs` plays for the library itself — test logic always lives in a file named after what it tests, never in the entry point. `tests/algorithm/matrix/mod.rs` keeps the assertion helpers (`assert_all_close`, `assert_upper_triangular`, etc.) the split-out `lu`/`qr`/`cholesky`/`svd`/`condition` files all share. The `decompositions` test binary is renamed `algorithm` as a result (it now lives at `tests/algorithm/main.rs`); the others keep their names.
+- Reorganized `tests/` to mirror `src/`'s folder structure, one file per item under test, named after it (e.g.
+  `tests/algorithm/matrix/cholesky.rs` for `algorithm::matrix::cholesky`, `tests/matrix/static_matrix.rs` for
+  `StaticMatrix`), rather than one flat file per top-level area (`tests/decompositions.rs`, `tests/matrix.rs`,
+  `tests/scalar.rs`, `tests/vector.rs`). Each directory's entry point (`main.rs`, or `mod.rs` one level down) now holds
+  only `mod` declarations, the same role `src/algorithm/mod.rs` plays for the library itself — test logic always lives
+  in a file named after what it tests, never in the entry point. `tests/algorithm/matrix/mod.rs` keeps the assertion
+  helpers (`assert_all_close`, `assert_upper_triangular`, etc.) the split-out `lu`/`qr`/`cholesky`/`svd`/`condition`
+  files all share. The `decompositions` test binary is renamed `algorithm` as a result (it now lives at
+  `tests/algorithm/main.rs`); the others keep their names.
 
 ### Removed
-- `tests/no_alloc.rs` and its `[[test]]` entry in `Cargo.toml`. Its approach — a `#[global_allocator]` that panics on any `alloc`/`dealloc` call, then running `StaticVector`/`StaticMatrix` operations against it — turned out to be an unreliable correctness signal: any panic in that binary, genuine allocation or plain value mismatch alike, needs to heap-allocate to box its own unwind payload, which re-enters the panicking allocator and aborts the process before the real failure ever prints. The `thumbv6m-none-eabi` cross-compile step above already proves no `alloc`-feature code is reachable without the feature enabled, the property this test existed to check, without that failure mode.
+- `tests/no_alloc.rs` and its `[[test]]` entry in `Cargo.toml`. Its approach — a `#[global_allocator]` that panics on
+  any `alloc`/`dealloc` call, then running `StaticVector`/`StaticMatrix` operations against it — turned out to be an
+  unreliable correctness signal: any panic in that binary, genuine allocation or plain value mismatch alike, needs to
+  heap-allocate to box its own unwind payload, which re-enters the panicking allocator and aborts the process before
+  the real failure ever prints. The `thumbv6m-none-eabi` cross-compile step above already proves no `alloc`-feature
+  code is reachable without the feature enabled, the property this test existed to check, without that failure mode.
 
 ## [0.1.0] - 2026-06-21
 
@@ -85,42 +381,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Unit tests for the `f32` and `f64` `Scalar` implementations.
 - `Storage` trait (element access, length) defining the storage layer.
 - `StaticStorage<T, const N: usize>`, a stack-allocated `Storage` backed by a const-generic array.
-- `alloc` feature flag (per ADR 0001), and `DynamicStorage<T>`, a heap-allocated `Storage` backed by `Vec<T>`, gated behind it.
+- `alloc` feature flag (per ADR 0001), and `DynamicStorage<T>`, a heap-allocated `Storage` backed by `Vec<T>`, gated
+  behind it.
 - Unit tests for the `StaticStorage` and `DynamicStorage` implementations.
 - Verified the crate builds, lints, and tests clean with `--no-default-features` (no `alloc`).
-- `Scalar::sqrt`, computed via fixed-iteration Newton-Raphson (Babylonian) iteration, since `no_std` has no `f32`/`f64` `sqrt`; returns `0` for `self <= 0` (no real square root, and no `NaN` sentinel since `Scalar` must stay infallible for future non-float implementors).
-- Unit tests for `Scalar::sqrt` on `f32` and `f64` (exact perfect squares, tolerance-bounded irrational results, negative-input behavior).
-- `algorithm::vector::add`, the first algorithm-layer function: element-wise vector addition generic over `Storage` + `Scalar`, writing into a caller-provided output slice (since `Storage` has no way to construct a new instance) and returning `Result<(), LengthMismatch>` instead of panicking on mismatched lengths, per ADR 0004.
-- Unit tests for `algorithm::vector::add` (matching-length addition, mismatched operand lengths, mismatched output length).
-- `algorithm::vector::sub`, element-wise vector subtraction, following the same `Storage` + `Scalar` generic, output-slice, `Result<(), LengthMismatch>` pattern as `add`.
-- Unit tests for `algorithm::vector::sub` (matching-length subtraction, mismatched operand lengths, mismatched output length).
-- `algorithm::vector::scale`, element-wise scalar multiplication; still returns `Result<(), LengthMismatch>` since the output buffer's length can disagree with the input's even with only one `Storage` operand.
+- `Scalar::sqrt`, computed via fixed-iteration Newton-Raphson (Babylonian) iteration, since `no_std` has no `f32`/`f64`
+  `sqrt`; returns `0` for `self <= 0` (no real square root, and no `NaN` sentinel since `Scalar` must stay infallible
+  for future non-float implementors).
+- Unit tests for `Scalar::sqrt` on `f32` and `f64` (exact perfect squares, tolerance-bounded irrational results,
+  negative-input behavior).
+- `algorithm::vector::add`, the first algorithm-layer function: element-wise vector addition generic over `Storage` +
+  `Scalar`, writing into a caller-provided output slice (since `Storage` has no way to construct a new instance) and
+  returning `Result<(), LengthMismatch>` instead of panicking on mismatched lengths, per ADR 0004.
+- Unit tests for `algorithm::vector::add` (matching-length addition, mismatched operand lengths, mismatched output
+  length).
+- `algorithm::vector::sub`, element-wise vector subtraction, following the same `Storage` + `Scalar` generic,
+  output-slice, `Result<(), LengthMismatch>` pattern as `add`.
+- Unit tests for `algorithm::vector::sub` (matching-length subtraction, mismatched operand lengths, mismatched output
+  length).
+- `algorithm::vector::scale`, element-wise scalar multiplication; still returns `Result<(), LengthMismatch>` since the
+  output buffer's length can disagree with the input's even with only one `Storage` operand.
 - Unit tests for `algorithm::vector::scale` (known factor, scaling by zero, mismatched output length).
-- `algorithm::vector::dot`, the inner product, returning `Result<T, LengthMismatch>` instead of panicking on mismatched lengths; documented as the building block for the upcoming `norm` (`‖v‖ = sqrt(dot(v, v))`).
+- `algorithm::vector::dot`, the inner product, returning `Result<T, LengthMismatch>` instead of panicking on mismatched
+  lengths; documented as the building block for the upcoming `norm` (`‖v‖ = sqrt(dot(v, v))`).
 - Unit tests for `algorithm::vector::dot` (known vectors, mismatched lengths).
-- `algorithm::vector::norm`, the Euclidean (L2) norm, implemented as `dot(a, a).sqrt()`; infallible (returns `T` directly), since comparing `a` against itself can never produce a length mismatch.
+- `algorithm::vector::norm`, the Euclidean (L2) norm, implemented as `dot(a, a).sqrt()`; infallible (returns `T`
+  directly), since comparing `a` against itself can never produce a length mismatch.
 - Unit tests for `algorithm::vector::norm` (exact known case, tolerance-bounded irrational case).
-- `StaticVector<T, const N: usize>`, the first public API layer type: wires `StaticStorage` together with `algorithm::vector`'s `add`/`sub`/`scale`/`dot`/`norm` into ergonomic methods (`v1.add(&v2)`, etc.), constructed from a fixed-size array via `StaticVector::new`.
-- `PartialEq` and `Debug` implementations for `StaticVector`, to support equality assertions and printing in tests without exposing raw element access.
-- Unit tests for `StaticVector` construction and each operation (`add`, `sub`, `scale`, `dot`, `norm`), confirming the wiring to the algorithm layer.
-- `DynamicVector<T>`, the heap-allocated counterpart to `StaticVector`, gated behind the `alloc` feature: wires `DynamicStorage` together with `algorithm::vector`'s functions the same way, but since two `DynamicVector`s aren't guaranteed by the type system to share a length, `add`/`sub`/`dot` return `Result<_, LengthMismatch>` for real (not just defensively) rather than panicking, per ADR 0004.
+- `StaticVector<T, const N: usize>`, the first public API layer type: wires `StaticStorage` together with
+  `algorithm::vector`'s `add`/`sub`/`scale`/`dot`/`norm` into ergonomic methods (`v1.add(&v2)`, etc.), constructed from
+  a fixed-size array via `StaticVector::new`.
+- `PartialEq` and `Debug` implementations for `StaticVector`, to support equality assertions and printing in tests
+  without exposing raw element access.
+- Unit tests for `StaticVector` construction and each operation (`add`, `sub`, `scale`, `dot`, `norm`), confirming the
+  wiring to the algorithm layer.
+- `DynamicVector<T>`, the heap-allocated counterpart to `StaticVector`, gated behind the `alloc` feature: wires
+  `DynamicStorage` together with `algorithm::vector`'s functions the same way, but since two `DynamicVector`s aren't
+  guaranteed by the type system to share a length, `add`/`sub`/`dot` return `Result<_, LengthMismatch>` for real (not
+  just defensively) rather than panicking, per ADR 0004.
 - `PartialEq` and `Debug` implementations for `DynamicVector`, accounting for operands of different lengths.
-- Unit tests for `DynamicVector` construction and each operation, including mismatched-length cases for `add`, `sub`, and `dot`.
-- `examples/static_vector.rs` and `examples/dynamic_vector.rs`, runnable end-to-end demonstrations of `StaticVector` and `DynamicVector` (the latter gated via `required-features = ["alloc"]` in `Cargo.toml`, so `cargo build`/`run --examples` skip it cleanly without the feature).
-- `tests/vector.rs`, a black-box integration test exercising the public `StaticVector`/`DynamicVector` API end-to-end (construction plus `add`/`sub`/`scale`/`dot`/`norm`) using only `pub` items, with the `DynamicVector` case gated behind `alloc`.
-- `algorithm::matrix::add`, the first matrix-layer function: element-wise matrix addition generic over `Storage` + `Scalar`. Matrices are stored row-major in a flat `Storage` (which has no concept of rows/columns itself, per ADR 0003), so `rows`/`cols` are passed explicitly alongside each operand; returns `Result<(), DimensionMismatch>` instead of panicking on a row, column, or flat-length disagreement, per ADR 0004.
-- Unit tests for `algorithm::matrix::add` (matching dimensions, mismatched rows, mismatched columns, mismatched output length).
-- `algorithm::matrix::sub`, element-wise matrix subtraction, following the same row-major, explicit-shape, `Result<(), DimensionMismatch>` pattern as `add`.
+- Unit tests for `DynamicVector` construction and each operation, including mismatched-length cases for `add`, `sub`,
+  and `dot`.
+- `examples/static_vector.rs` and `examples/dynamic_vector.rs`, runnable end-to-end demonstrations of `StaticVector`
+  and `DynamicVector` (the latter gated via `required-features = ["alloc"]` in `Cargo.toml`, so
+  `cargo build`/`run --examples` skip it cleanly without the feature).
+- `tests/vector.rs`, a black-box integration test exercising the public `StaticVector`/`DynamicVector` API end-to-end
+  (construction plus `add`/`sub`/`scale`/`dot`/`norm`) using only `pub` items, with the `DynamicVector` case gated
+  behind `alloc`.
+- `algorithm::matrix::add`, the first matrix-layer function: element-wise matrix addition generic over `Storage` +
+  `Scalar`. Matrices are stored row-major in a flat `Storage` (which has no concept of rows/columns itself, per ADR
+  0003), so `rows`/`cols` are passed explicitly alongside each operand; returns `Result<(), DimensionMismatch>` instead
+  of panicking on a row, column, or flat-length disagreement, per ADR 0004.
+- Unit tests for `algorithm::matrix::add` (matching dimensions, mismatched rows, mismatched columns, mismatched output
+  length).
+- `algorithm::matrix::sub`, element-wise matrix subtraction, following the same row-major, explicit-shape,
+  `Result<(), DimensionMismatch>` pattern as `add`.
 - `algorithm::matrix::mul_scalar`, element-wise scalar multiplication of a matrix.
-- `algorithm::matrix::mul_vector`, the matrix-vector product: each output element is `dot(row_i, v)`, reusing `algorithm::vector::dot` via a private zero-copy `Row` `Storage` view instead of re-deriving the summation.
-- `algorithm::matrix::mul_matrix`, the matrix-matrix product: each output element is `dot(row_i of a, col_j of b)`, reusing `algorithm::vector::dot` via the `Row` view and a new private `Column` `Storage` view; validates `a`'s column count against `b`'s row count (the multiplication's inner dimension).
-- `algorithm::matrix::transpose`, pure reindexing with no `Scalar` arithmetic, so it only requires `T: Copy` rather than `T: Scalar`.
-- Unit tests for `sub`, `mul_scalar`, `mul_vector`, `mul_matrix`, and `transpose` (known-value cases plus dimension-mismatch error cases).
-- `Storage` implementations for `StaticVector` and `DynamicVector` (delegating to their internal storage), so they can be passed directly to generic `Storage`-based functions — needed for `StaticMatrix`/`DynamicMatrix` to multiply against them.
-- `StaticMatrix<T, const R: usize, const C: usize>`, the first public-API matrix type: stored as `[[T; C]; R]` (since `R * C` can't be a single const-generic array length on stable Rust, unlike `StaticVector`, it implements `Storage` directly over that field rather than wrapping `StaticStorage`). Wires `add`/`sub`/`mul_scalar`/`mul_vector`/`mul_matrix`/`transpose` to `algorithm::matrix`; `mul_matrix<const C2: usize>` changes shape (`R x C` times `C x C2` gives `R x C2`), with the inner-dimension check statically guaranteed (and thus unreachable) by the type system, same as the other same-shape operations.
+- `algorithm::matrix::mul_vector`, the matrix-vector product: each output element is `dot(row_i, v)`, reusing
+  `algorithm::vector::dot` via a private zero-copy `Row` `Storage` view instead of re-deriving the summation.
+- `algorithm::matrix::mul_matrix`, the matrix-matrix product: each output element is `dot(row_i of a, col_j of b)`,
+  reusing `algorithm::vector::dot` via the `Row` view and a new private `Column` `Storage` view; validates `a`'s column
+  count against `b`'s row count (the multiplication's inner dimension).
+- `algorithm::matrix::transpose`, pure reindexing with no `Scalar` arithmetic, so it only requires `T: Copy` rather
+  than `T: Scalar`.
+- Unit tests for `sub`, `mul_scalar`, `mul_vector`, `mul_matrix`, and `transpose` (known-value cases plus
+  dimension-mismatch error cases).
+- `Storage` implementations for `StaticVector` and `DynamicVector` (delegating to their internal storage), so they can
+  be passed directly to generic `Storage`-based functions — needed for `StaticMatrix`/`DynamicMatrix` to multiply
+  against them.
+- `StaticMatrix<T, const R: usize, const C: usize>`, the first public-API matrix type: stored as `[[T; C]; R]` (since
+  `R * C` can't be a single const-generic array length on stable Rust, unlike `StaticVector`, it implements `Storage`
+  directly over that field rather than wrapping `StaticStorage`). Wires
+  `add`/`sub`/`mul_scalar`/`mul_vector`/`mul_matrix`/`transpose` to `algorithm::matrix`; `mul_matrix<const C2: usize>`
+  changes shape (`R x C` times `C x C2` gives `R x C2`), with the inner-dimension check statically guaranteed (and thus
+  unreachable) by the type system, same as the other same-shape operations.
 - Unit tests for `StaticMatrix` construction and each operation, confirming the wiring to the algorithm layer.
-- `DynamicMatrix<T>`, the heap-allocated counterpart to `StaticMatrix`, gated behind the `alloc` feature: shape (`rows`/`cols`) lives in its fields rather than its type, so `add`/`sub`/`mul_vector`/`mul_matrix` return `Result<_, DimensionMismatch>` for real (not just defensively) rather than panicking, per ADR 0004; `mul_scalar`/`transpose` stay infallible, sized from `self` alone. Constructed via `DynamicMatrix::new(rows, cols, Vec<T>)`, itself fallible since the flat data's length can disagree with the claimed shape.
+- `DynamicMatrix<T>`, the heap-allocated counterpart to `StaticMatrix`, gated behind the `alloc` feature: shape
+  (`rows`/`cols`) lives in its fields rather than its type, so `add`/`sub`/`mul_vector`/`mul_matrix` return
+  `Result<_, DimensionMismatch>` for real (not just defensively) rather than panicking, per ADR 0004;
+  `mul_scalar`/`transpose` stay infallible, sized from `self` alone. Constructed via
+  `DynamicMatrix::new(rows, cols, Vec<T>)`, itself fallible since the flat data's length can disagree with the claimed
+  shape.
 - `PartialEq` and `Debug` implementations for `DynamicMatrix`, accounting for operands of different shapes.
-- Unit tests for `DynamicMatrix` construction and each operation, including mismatched-shape/inner-dimension error cases for `add`, `sub`, `mul_vector`, and `mul_matrix`.
-- `examples/static_matrix.rs` and `examples/dynamic_matrix.rs`, runnable end-to-end demonstrations of `StaticMatrix` and `DynamicMatrix` (the latter gated via `required-features = ["alloc"]` in `Cargo.toml`, matching the vector examples' pattern).
-- `tests/matrix.rs`, a black-box integration test exercising the public `StaticMatrix`/`DynamicMatrix` API end-to-end (construction plus `add`/`sub`/`mul_scalar`/`mul_vector`/`mul_matrix`/`transpose`) using only `pub` items, with the `DynamicMatrix` case gated behind `alloc`.
+- Unit tests for `DynamicMatrix` construction and each operation, including mismatched-shape/inner-dimension error
+  cases for `add`, `sub`, `mul_vector`, and `mul_matrix`.
+- `examples/static_matrix.rs` and `examples/dynamic_matrix.rs`, runnable end-to-end demonstrations of `StaticMatrix`
+  and `DynamicMatrix` (the latter gated via `required-features = ["alloc"]` in `Cargo.toml`, matching the vector
+  examples' pattern).
+- `tests/matrix.rs`, a black-box integration test exercising the public `StaticMatrix`/`DynamicMatrix` API end-to-end
+  (construction plus `add`/`sub`/`mul_scalar`/`mul_vector`/`mul_matrix`/`transpose`) using only `pub` items, with the
+  `DynamicMatrix` case gated behind `alloc`.

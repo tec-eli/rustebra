@@ -21,3 +21,11 @@ docs/.jekyll-metadata
 /scripts
 # mdbook build output
 /book
+
+# CLAUDE
+
+.claude/*
+
+# INTERNAL
+
+.temp/
