@@ -64,6 +64,11 @@ a whole.
 
 ---
 
+## BACKLOG
+
+- [ ] SIMD acceleration
+---
+
 ## DELIVERED
 
 ### v0.2.1 — Code clean up

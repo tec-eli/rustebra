@@ -11,8 +11,10 @@
 [![no_std](https://img.shields.io/badge/no__std-compatible-success?style=flat-square)](https://docs.rust-embedded.org/book/)
 [![MSRV](https://img.shields.io/badge/MSRV-1.85-orange?style=flat-square)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)
 
-**A hybrid `no_std`/`alloc` linear algebra library for Rust.**  
-Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
+# rustebra
+
+**Linear algebra for embedded systems, microcontrollers, and real-time applications.**  
+A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
 
 [Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/api/rustebra/) · [Architecture Decisions](docs/adr/) · [Contributing](docs/CONTRIBUTING.md)
 
@@ -27,10 +29,11 @@ Early development. The architecture and scope are being defined before implement
 
 ## Why this exists
 
-Rust currently lacks a linear algebra library that is simultaneously serious about `no_std`
+Embedded systems, microcontrollers, and real-time applications need linear algebra without
+assuming a heap. Rust currently lacks a library that is simultaneously serious about `no_std`
 support and complete enough to cover sparse matrices and iterative solvers. Existing options
-tend to assume a heap is always available, or only provide a partial set of operations for
-constrained environments. This project aims to close that gap.
+either assume a heap is always available or only provide a partial set of operations for
+constrained environments. rustebra aims to close that gap.
 
 ## Design principles
 
@@ -44,6 +47,21 @@ constrained environments. This project aims to close that gap.
   systems.
 - **Explicit error handling.** Recoverable failures are reported through `Result`, not
   panics, since an uncontrolled abort is often unacceptable in embedded contexts.
+
+## When to use rustebra
+
+- Embedded systems (ARM Cortex-M, RISC-V) where allocation is unavailable
+- Real-time systems that need predictable stack-only memory
+- Microcontrollers with tight RAM (STM32, nRF, etc.)
+- Edge devices (Raspberry Pi Zero)
+- Any system needing linear algebra without dynamic allocators
+
+## When NOT to use rustebra
+
+- Desktop/server apps with heap → use ndarray
+- Graphics/game engines → use nalgebra
+- Systems where allocation is not a constraint
+- Need LAPACK-level routines → ndarray
 
 ## Usage
 
