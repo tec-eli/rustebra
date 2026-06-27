@@ -67,6 +67,7 @@ a whole.
 ## BACKLOG
 
 - [ ] SIMD acceleration
+
 ---
 
 ## DELIVERED
