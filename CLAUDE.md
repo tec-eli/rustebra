@@ -1,7 +1,6 @@
 # CLAUDE.md
 
-Read `docs/adr/` before writing any code. Read `roadmap/BOARD.md` and work one unchecked
-item at a time.
+Read `docs/adr/` before writing any code. 
 
 ## Non-negotiable rules
 
@@ -19,5 +18,5 @@ item at a time.
 
 ## After every task
 
-- Add a user-facing brief entry to `CHANGELOG.md` under `[Unreleased]` if needed (functionality, not files).
 - Do not log mechanical actions.
+- Do not commit anything unless asked to do so.

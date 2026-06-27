@@ -1,4 +1,5 @@
 /target
+/firmware/target
 
 # JetBrains IDEs (RustRover, IntelliJ, CLion)
 .idea/

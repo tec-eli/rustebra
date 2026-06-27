@@ -12,3 +12,6 @@ categories = ["algorithms", "mathematics", "no-std"]
 
 [features]
 alloc = []
+
+[profile.release]
+panic = "abort"

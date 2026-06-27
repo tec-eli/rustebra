@@ -7,23 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Fixed
-
-- `determinant` (and `DynamicMatrix::determinant` / `StaticMatrix::determinant`) now return
-  `Err(DeterminantError::MatrixTooLargeWithoutAlloc)` when the `alloc` feature is disabled
-  and `rows > 4`. Previously, the `O(n!)` cofactor algorithm was silently used for any size
-  matrix, with no signal to the caller that the call had become factorial-time.
-  `DeterminantError` is a new enum with `DimensionMismatch` and `MatrixTooLargeWithoutAlloc`
-  variants; `determinant`, `DynamicMatrix::determinant`, and `StaticMatrix::determinant` all
-  now return `Result<T, DeterminantError>` instead of `Result<T, DimensionMismatch>` or `T`.
-
-- `cholesky_decompose` (and `cholesky`) now return `Err(CholeskyError::NotSymmetric)` when
-  any off-diagonal pair `a[i][j]` and `a[j][i]` differs by more than `tolerance` in absolute
-  value. Previously, a non-symmetric matrix was silently accepted and the decomposition
-  proceeded using only the lower triangle, producing an incorrect `L` with no error signal.
-
 ### Added
 
+- **Hardware examples workspace** (`firmware/`): A separate Cargo workspace for device-specific
+  examples. First entry: `firmware/cortex-m3-lm3s6965evb/` demonstrates rustebra on ARM Cortex-M3
+  via QEMU, with zero heap allocation, semihosting for debug I/O, and low-pass filtering on
+  simulated sensor data.
 - `matvec_csr` and `matvec_csc` in the `sparse` module: free functions (gated behind `alloc`)
   that multiply a `CsrMatrix<T>` or `CscMatrix<T>` by a dense `&[T]` slice, returning
   `Result<Vec<T>, DimensionMismatch>`. `matvec_csr` traverses row by row using the `row_ptr`
@@ -137,6 +126,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   boundary for `rank`, `cholesky`, `svd`, and `condition_number`, including an extremely ill-conditioned matrix that
   exercises the precision floor of the fixed-iteration SVD algorithm.
 
+### Fixed
+
+- `determinant` (and `DynamicMatrix::determinant` / `StaticMatrix::determinant`) now return
+  `Err(DeterminantError::MatrixTooLargeWithoutAlloc)` when the `alloc` feature is disabled
+  and `rows > 4`. Previously, the `O(n!)` cofactor algorithm was silently used for any size
+  matrix, with no signal to the caller that the call had become factorial-time.
+  `DeterminantError` is a new enum with `DimensionMismatch` and `MatrixTooLargeWithoutAlloc`
+  variants; `determinant`, `DynamicMatrix::determinant`, and `StaticMatrix::determinant` all
+  now return `Result<T, DeterminantError>` instead of `Result<T, DimensionMismatch>` or `T`.
+
+- `cholesky_decompose` (and `cholesky`) now return `Err(CholeskyError::NotSymmetric)` when
+  any off-diagonal pair `a[i][j]` and `a[j][i]` differs by more than `tolerance` in absolute
+  value. Previously, a non-symmetric matrix was silently accepted and the decomposition
+  proceeded using only the lower triangle, producing an incorrect `L` with no error signal.
+- 
 ### Changed
 
 - `lu_partial_pivot` (and `rank`/`rank_with_tolerance`, which shares its elimination strategy) now selects the

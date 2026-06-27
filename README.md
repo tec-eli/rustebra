@@ -120,6 +120,46 @@ cargo build --features alloc
 cargo test --features alloc
 ```
 
+## Running Examples
+
+### Host Examples
+
+Run any of the host examples with:
+
+```sh
+cargo run --example vector
+cargo run --example matrix
+cargo run --example storage
+cargo run --example scalar
+cargo run --example algorithm
+```
+
+### Firmware Examples
+
+For bare-metal embedded targets, see the `firmware/` workspace. This keeps device-specific dependencies isolated from the main library.
+
+**ARM Cortex-M3** (via QEMU):
+
+```sh
+cd firmware
+cargo build -p cortex-m3-lm3s6965evb --target thumbv7m-none-eabi --release
+```
+
+The binary will be at `target/thumbv7m-none-eabi/release/cortex-m3-lm3s6965evb`.
+
+To run in QEMU, you need `qemu-system-arm` installed and in your PATH:
+
+```sh
+qemu-system-arm -cpu cortex-m3 -machine lm3s6965evb -nographic \
+  -semihosting -kernel target/thumbv7m-none-eabi/release/cortex-m3-lm3s6965evb
+```
+
+The firmware workspace includes:
+- Linker scripts for memory layout
+- Panic handlers for no_std environments
+- Semihosting I/O for debugging
+- Stack-only operation (no heap allocation)
+
 ## Documentation
 
 - **[API reference](https://tec-eli.github.io/rustebra/api/rustebra/)** — generated from `cargo doc`, hosted on GitHub Pages.
