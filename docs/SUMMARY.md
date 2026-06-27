@@ -19,3 +19,7 @@
   - [ADR 0006: Trait-Based Generic Layered Architecture](adr/0006-trait-based-generic-architecture.md)
   - [ADR 0007: Public Elementary Scalar Functions, Scoped to Internal Needs](adr/0007-public-elementary-scalar-functions.md)
   - [ADR 0008: Two-Level Public API for Matrix Operations](adr/0008-two-level-public-api.md)
+  - [ADR 0009: Numerical Tolerance for Approximate-Zero Comparisons](adr/0009-numerical-tolerance-for-approximate-zero.md)
+  - [ADR 0010: Sparse Matrix Public API Shape](adr/0010-sparse-matrix-public-api.md)
+  - [ADR 0011: SortedCsrMatrix — Type-Level Column-Sort Invariant](adr/0011-sorted-csr-matrix.md)
+  - [ADR 0012: Sparse Entry Pruning and Explicit Zero Semantics](adr/0012-sparse-entry-pruning.md)

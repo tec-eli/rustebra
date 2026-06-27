@@ -16,7 +16,7 @@
 **Linear algebra for embedded systems, microcontrollers, and real-time applications.**  
 A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
 
-[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/api/rustebra/) · [Architecture Decisions](docs/adr/) · [Contributing](docs/CONTRIBUTING.md)
+[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/api/rustebra/) · [Architecture Decisions](docs/adr/) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -134,7 +134,7 @@ cargo doc --open
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) before opening a pull request.
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -162,7 +162,7 @@ Contributions are welcome. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) b
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-*Want to appear here? See [CONTRIBUTING.md](docs/CONTRIBUTING.md).*
+*Want to appear here? See [CONTRIBUTING.md](CONTRIBUTING.md).*
 
 ---
 

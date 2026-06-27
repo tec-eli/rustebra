@@ -1,0 +1,11 @@
+theme: jekyll-theme-primer
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true
+include:
+  - README.md
+
+# Disable site title in header
+title: null
