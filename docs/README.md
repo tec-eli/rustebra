@@ -59,10 +59,10 @@ Rust currently lacks a linear algebra library that is simultaneously serious abo
 
 ```toml
 [dependencies]
-rustebra = "0.3"
+rustebra = "0.3.0"
 
 # Optional: heap-backed structures and Krylov solvers
-rustebra = { version = "0.3", features = ["alloc"] }
+rustebra = { version = "0.3.0", features = ["alloc"] }
 ```
 
 ```sh
