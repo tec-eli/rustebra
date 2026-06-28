@@ -21,10 +21,5 @@ re-sort already-sorted data (O(nnz log nnz) overhead). The return type should ch
 │ Missing prune_csc (L-3)     │ New API         │ 0.3.1  │ Non-breaking; adds the missing CSC counterpart for symmetry                       │                                                                                                      
 ├─────────────────────────────┼─────────────────┼────────┼───────────────────────────────────────────────────────────────────────────────────┤                                                                                                      
 │ add_csr return type (L-4)   │ Breaking change │ 0.4.0  │ Changing CsrMatrix<T> → Result<SortedCsrMatrix<T>, …> breaks callers; bumps minor │                                                                                                      
-├─────────────────────────────┼─────────────────┼────────┼───────────────────────────────────────────────────────────────────────────────────┤                                                                                                      
-│ Incomplete error docs (L-5) │ Documentation   │ 0.3.1  │ Non-breaking; clarifies # Errors sections                                         │                                                                                                      
 └─────────────────────────────┴─────────────────┴────────┴───────────────────────────────────────────────────────────────────────────────────┘
 
-### Incomplete error documentation (L-5)
-The `matmat_csr` and `matmat_csc` `# Errors` sections omit the `x_cols == 0` case, which returns `DimensionMismatch`
-when paired with an empty `x` slice.
