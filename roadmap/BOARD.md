@@ -11,30 +11,27 @@ a whole.
 
 # IN PROGRESS
 
-## v0.3.0 — Sparse matrices (foundation)
-
-- [x] COO representation
-- [x] CSR representation
-- [x] Conversions COO ↔ CSR
-- [x] Scalar multiply
-- [x] Sparse × dense vector
-- [x] CSC representation
-- [x] Conversions CSR ↔ CSC
-- [x] Sparse addition
-- [x] Sparse × dense matrix
-- [x] Sparse × sparse
+## v0.3.1
+- [ ] Patches for sparse matrices
 
 ---
 
 # PENDING
 
-## v0.4.0 — Krylov subspace methods
+## v0.4.0 — Eigenvalue computation (power iteration methods)
 
-- [ ] Power iteration / inverse power iteration
-- [ ] Lanczos iteration
-- [ ] Conjugate Gradient (CG)
-- [ ] Arnoldi iteration
-- [ ] GMRES
+- [ ] Power iteration — compute dominant eigenvalue/eigenvector iteratively.
+- [ ] Inverse power iteration — compute smallest eigenvalue/eigenvector.
+
+## v0.4.1 — Iterative linear solvers (symmetric systems)
+
+- [ ] Lanczos iteration — reduce symmetric matrices to tridiagonal form.
+- [ ] Conjugate Gradient (CG) — solve symmetric positive-definite systems without factorization.
+
+## v0.4.2 — Iterative linear solvers (general systems)
+
+- [ ] Arnoldi iteration — reduce general matrices to upper Hessenberg form.
+- [ ] GMRES — solve general linear systems with Arnoldi-based orthogonalization.
 
 ## v0.5.0 — Numerical calculus
 
@@ -71,6 +68,19 @@ a whole.
 ---
 
 ## DELIVERED
+
+## v0.3.0 — Sparse matrices (foundation)
+
+- [x] COO representation
+- [x] CSR representation
+- [x] Conversions COO ↔ CSR
+- [x] Scalar multiply
+- [x] Sparse × dense vector
+- [x] CSC representation
+- [x] Conversions CSR ↔ CSC
+- [x] Sparse addition
+- [x] Sparse × dense matrix
+- [x] Sparse × sparse
 
 ### v0.2.1 — Code clean up
 

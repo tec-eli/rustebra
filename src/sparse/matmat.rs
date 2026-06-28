@@ -15,7 +15,7 @@ use super::{CscMatrix, CsrMatrix};
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x.len() != m.cols() * x_cols`.
+/// Returns `Err(DimensionMismatch)` when `x_cols == 0` or `x.len() != m.cols() * x_cols`.
 ///
 /// # Examples
 ///
@@ -64,7 +64,7 @@ pub fn matmat_csr<T: Scalar>(
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x.len() != m.cols() * x_cols`.
+/// Returns `Err(DimensionMismatch)` when `x_cols == 0` or `x.len() != m.cols() * x_cols`.
 ///
 /// # Examples
 ///

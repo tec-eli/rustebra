@@ -102,10 +102,10 @@ constrained environments. rustebra aims to close that gap.
 
 ```toml
 [dependencies]
-rustebra = "0.3.0"
+rustebra = "0.3.1"
 
 # Optional: heap-backed structures and Krylov solvers
-rustebra = { version = "0.3.0", features = ["alloc"] }
+rustebra = { version = "0.3.1", features = ["alloc"] }
 ```
 
 Build and test locally:
@@ -132,6 +132,7 @@ cargo run --example matrix
 cargo run --example storage
 cargo run --example scalar
 cargo run --example algorithm
+cargo run --example sparse
 ```
 
 ### Firmware Examples
