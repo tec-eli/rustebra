@@ -14,7 +14,12 @@ pub(crate) fn run() {
     .expect("valid CSR arrays");
 
     println!("3×3 identity:");
-    println!("  rows={}, cols={}, nnz={}", eye.rows(), eye.cols(), eye.nnz());
+    println!(
+        "  rows={}, cols={}, nnz={}",
+        eye.rows(),
+        eye.cols(),
+        eye.nnz()
+    );
     println!("  row_ptr     = {:?}", eye.row_ptr());
     println!("  col_indices = {:?}", eye.col_indices());
     println!("  values      = {:?}", eye.values());

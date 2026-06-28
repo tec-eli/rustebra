@@ -14,7 +14,12 @@ pub(crate) fn run() {
     .expect("valid CSC arrays");
 
     println!("3×3 identity:");
-    println!("  rows={}, cols={}, nnz={}", eye.rows(), eye.cols(), eye.nnz());
+    println!(
+        "  rows={}, cols={}, nnz={}",
+        eye.rows(),
+        eye.cols(),
+        eye.nnz()
+    );
     println!("  col_ptr     = {:?}", eye.col_ptr());
     println!("  row_indices = {:?}", eye.row_indices());
     println!("  values      = {:?}", eye.values());
