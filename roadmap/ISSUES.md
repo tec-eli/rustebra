@@ -11,7 +11,7 @@
 ├────────────────────────────────────────────┼────────────────┼────────┼──────────┼────────────────────────────────┤
 │ Differential testing vs nalgebra           │ Test Strategy  │ 0.4.0  │ High     │ Comprehensive cross-checking   │
 ├────────────────────────────────────────────┼────────────────┼────────┼──────────┼────────────────────────────────┤
-│ Comprehensive edge-case testing            │ Test Gap       │ 0.4.0  │ High     │ Singular, 0-size, NaN edge    │
+│ Comprehensive edge-case testing            │ Test Gap       │ 0.4.0  │ High     │ Singular, 0-size, NaN edge     │
 ├────────────────────────────────────────────┼────────────────┼────────┼──────────┼────────────────────────────────┤
 │ Numerical guarantees documentation         │ Doc Gap        │ 0.4.0  │ High     │ docs/NUMERICAL_STABILITY.md    │
 ├────────────────────────────────────────────┼────────────────┼────────┼──────────┼────────────────────────────────┤
