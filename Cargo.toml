@@ -15,6 +15,10 @@ readme = "README.md"
 [features]
 alloc = []
 
+[[example]]
+name = "sparse"
+required-features = ["alloc"]
+
 [profile.release]
 panic = "abort"
 lto = true

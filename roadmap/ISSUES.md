@@ -8,17 +8,22 @@
 The sparse module provides `prune_csr` but not its CSC counterpart, violating the CSR/CSC symmetry principle documented
 in ADR 0010. Both formats should have identical operation sets.
 
+## Goes in 0.4.0
 ### `add_csr` return type inconsistency (L-4)
 The function produces sorted output but returns `CsrMatrix<T>` instead of `SortedCsrMatrix<T>`, forcing callers to
 re-sort already-sorted data (O(nnz log nnz) overhead). The return type should change to `Result<SortedCsrMatrix<T>, DimensionMismatch>`.
 
-### No examples for sparse module (L-6)
-The entire v0.3.0 deliverable (sparse module) has no runnable examples, unlike every other public module. Add
-`examples/sparse/main.rs` demonstrating construction, conversion, and core operations.
-
 ---
 
-## Medium Priority — Documentation & Firmware Correctness
+┌─────────────────────────────┬─────────────────┬────────┬───────────────────────────────────────────────────────────────────────────────────┐                                                                                                      
+│            Issue            │      Type       │ Target │                                      Reason                                       │                                                                                                      
+├─────────────────────────────┼─────────────────┼────────┼───────────────────────────────────────────────────────────────────────────────────┤                                                                                                      
+│ Missing prune_csc (L-3)     │ New API         │ 0.3.1  │ Non-breaking; adds the missing CSC counterpart for symmetry                       │                                                                                                      
+├─────────────────────────────┼─────────────────┼────────┼───────────────────────────────────────────────────────────────────────────────────┤                                                                                                      
+│ add_csr return type (L-4)   │ Breaking change │ 0.4.0  │ Changing CsrMatrix<T> → Result<SortedCsrMatrix<T>, …> breaks callers; bumps minor │                                                                                                      
+├─────────────────────────────┼─────────────────┼────────┼───────────────────────────────────────────────────────────────────────────────────┤                                                                                                      
+│ Incomplete error docs (L-5) │ Documentation   │ 0.3.1  │ Non-breaking; clarifies # Errors sections                                         │                                                                                                      
+└─────────────────────────────┴─────────────────┴────────┴───────────────────────────────────────────────────────────────────────────────────┘
 
 ### Incomplete error documentation (L-5)
 The `matmat_csr` and `matmat_csc` `# Errors` sections omit the `x_cols == 0` case, which returns `DimensionMismatch`

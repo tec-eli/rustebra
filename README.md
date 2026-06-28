@@ -132,6 +132,7 @@ cargo run --example matrix
 cargo run --example storage
 cargo run --example scalar
 cargo run --example algorithm
+cargo run --example sparse
 ```
 
 ### Firmware Examples
