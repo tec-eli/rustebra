@@ -7,12 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-- Updated the list of known-issues.
-- Add a case in the docs where matmat_csr and matmat_csc throw a dimension mismatch error.
-- **Sparse module examples** demonstrating construction, conversion, and core operations.
-- Fixed the GitHub workflow to publish the crate on cargo.
-
 ## [Released]
+
+## [0.3.0] - 2026-06-28
+
+### Added
+
+- Docs for a specific case in the docs where matmat_csr and matmat_csc throw a dimension mismatch error.
+- **Sparse module examples** demonstrating construction, conversion, and core operations.
+
+### Changed
+
+- Updated the list of known-issues.
+
+###
+- GitHub workflow to publish the crate on cargo.
 
 ## [0.3.0] - 2026-06-28
 
