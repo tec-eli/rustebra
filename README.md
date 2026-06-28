@@ -11,10 +11,12 @@
 [![no_std](https://img.shields.io/badge/no__std-compatible-success?style=flat-square)](https://docs.rust-embedded.org/book/)
 [![MSRV](https://img.shields.io/badge/MSRV-1.85-orange?style=flat-square)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)
 
-**A hybrid `no_std`/`alloc` linear algebra library for Rust.**  
-Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
+# rustebra
 
-[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/api/rustebra/) · [Architecture Decisions](docs/adr/) · [Contributing](docs/CONTRIBUTING.md)
+**Linear algebra for embedded systems, microcontrollers, and real-time applications.**  
+A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
+
+[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/api/rustebra/) · [Architecture Decisions](docs/adr/) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -22,15 +24,16 @@ Stack-first by default. Scales to sparse matrices and Krylov subspace solvers wh
 
 ## Status
 
-Early development. The architecture and scope are being defined before implementation; see
-[`docs/adr/`](docs/adr/) for the decisions made so far. No version has been published yet.
+Early development (v0.3.0). Core features implemented: static/dynamic vectors and matrices, matrix decompositions (LU, QR, SVD, Cholesky), sparse matrix support (COO, CSR, CSC). See
+[`docs/adr/`](docs/adr/) for architecture decisions. Krylov subspace solvers (v0.4.0) planned.
 
 ## Why this exists
 
-Rust currently lacks a linear algebra library that is simultaneously serious about `no_std`
+Embedded systems, microcontrollers, and real-time applications need linear algebra without
+assuming a heap. Rust currently lacks a library that is simultaneously serious about `no_std`
 support and complete enough to cover sparse matrices and iterative solvers. Existing options
-tend to assume a heap is always available, or only provide a partial set of operations for
-constrained environments. This project aims to close that gap.
+either assume a heap is always available or only provide a partial set of operations for
+constrained environments. rustebra aims to close that gap.
 
 ## Design principles
 
@@ -45,14 +48,64 @@ constrained environments. This project aims to close that gap.
 - **Explicit error handling.** Recoverable failures are reported through `Result`, not
   panics, since an uncontrolled abort is often unacceptable in embedded contexts.
 
+## When to use rustebra
+
+- Embedded systems (ARM Cortex-M, RISC-V) where allocation is unavailable
+- Real-time systems that need predictable stack-only memory
+- Microcontrollers with tight RAM (STM32, nRF, etc.)
+- Edge devices (Raspberry Pi Zero)
+- Any system needing linear algebra without dynamic allocators
+
+## When NOT to use rustebra
+
+- Desktop/server apps with heap → use ndarray
+- Graphics/game engines → use nalgebra
+- Systems where allocation is not a constraint
+- Need LAPACK-level routines → ndarray
+
+## How rustebra compares
+
+| Feature | rustebra | ndarray | nalgebra |
+|---------|----------|---------|----------|
+| **no_std support** | ✅ Full | ⚠️ Optional (std feature can be disabled) | ⚠️ Optional (requires feature flags) |
+| **Stack-only (no heap required)** | ✅ Default | ❌ No | ✅ For fixed-size |
+| **Sparse matrices** | ✅ v0.3.0+ (COO, CSR, CSC) | ❌ Separate `sprs` crate | ⚠️ Limited (optional feature) |
+| **GPU/SIMD acceleration** | ❌ Not planned | ⚠️ Limited SIMD | ⚠️ SIMD support available |
+| **Krylov solvers** | 🔄 v0.4.0 (planned) | ⚠️ Via `ndarray-linalg` | ❌ Not in core |
+| **3D math/graphics primitives** | ❌ Not focused | ❌ Not provided | ✅ Excellent (Isometry, Rotation, etc.) |
+| **BLAS/LAPACK integration** | ❌ No | ✅ Excellent bindings | ❌ Pure Rust |
+| **Maturity & stability** | 🟡 Early (v0.3.0) | ✅ Mature & stable | ✅ Mature & stable |
+| **Large matrices (100k+)** | ⚠️ With sparse | ✅ Optimized | ⚠️ Fixed-size limits |
+| **Embedded systems** | ✅ Best choice | ❌ Poor fit | ⚠️ For fixed-size only |
+
+### When to use each
+
+**rustebra** — Use if:
+- You need linear algebra **without dynamic allocation** (embedded, real-time, microcontroller)
+- You're working with **sparse matrices** in an embedded context
+- You want **no_std + optional alloc** (best of both worlds for OS environments)
+- Predictable **stack-only memory** is a requirement
+
+**ndarray** — Use if:
+- You need **production-strength BLAS/LAPACK** routines (scientific computing, data science)
+- You're comfortable with **heap allocation** and want optimal performance
+- You need **large matrices** with sophisticated solvers and decompositions
+- Building NumPy-like workflows in Rust
+
+**nalgebra** — Use if:
+- You need **3D graphics, robotics, or game engine** math (Points, Isometries, Rotations)
+- You want **optional no_std support** with fixed-size matrices
+- Building low-level geometric transformations
+- Working with transformation matrices up to ~6×6
+
 ## Usage
 
 ```toml
 [dependencies]
-rustebra = "0.1"
+rustebra = "0.3.0"
 
 # Optional: heap-backed structures and Krylov solvers
-rustebra = { version = "0.1", features = ["alloc"] }
+rustebra = { version = "0.3.0", features = ["alloc"] }
 ```
 
 Build and test locally:
@@ -66,6 +119,46 @@ cargo test
 cargo build --features alloc
 cargo test --features alloc
 ```
+
+## Running Examples
+
+### Host Examples
+
+Run any of the host examples with:
+
+```sh
+cargo run --example vector
+cargo run --example matrix
+cargo run --example storage
+cargo run --example scalar
+cargo run --example algorithm
+```
+
+### Firmware Examples
+
+For bare-metal embedded targets, see the `firmware/` workspace. This keeps device-specific dependencies isolated from the main library.
+
+**ARM Cortex-M3** (via QEMU):
+
+```sh
+cd firmware
+cargo build -p cortex-m3-lm3s6965evb --target thumbv7m-none-eabi --release
+```
+
+The binary will be at `target/thumbv7m-none-eabi/release/cortex-m3-lm3s6965evb`.
+
+To run in QEMU, you need `qemu-system-arm` installed and in your PATH:
+
+```sh
+qemu-system-arm -cpu cortex-m3 -machine lm3s6965evb -nographic \
+  -semihosting -kernel target/thumbv7m-none-eabi/release/cortex-m3-lm3s6965evb
+```
+
+The firmware workspace includes:
+- Linker scripts for memory layout
+- Panic handlers for no_std environments
+- Semihosting I/O for debugging
+- Stack-only operation (no heap allocation)
 
 ## Documentation
 
@@ -81,7 +174,7 @@ cargo doc --open
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) before opening a pull request.
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -109,7 +202,7 @@ Contributions are welcome. Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) b
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-*Want to appear here? See [CONTRIBUTING.md](docs/CONTRIBUTING.md).*
+*Want to appear here? See [CONTRIBUTING.md](CONTRIBUTING.md).*
 
 ---
 

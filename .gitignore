@@ -1,4 +1,5 @@
 /target
+/firmware/target
 
 # JetBrains IDEs (RustRover, IntelliJ, CLion)
 .idea/
@@ -21,3 +22,11 @@ docs/.jekyll-metadata
 /scripts
 # mdbook build output
 /book
+
+# CLAUDE
+
+.claude/*
+
+# INTERNAL
+
+.temp/

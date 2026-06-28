@@ -11,6 +11,6 @@ pub(crate) fn run() {
     println!("l = {l:?}");
 
     let mut l_explicit = [0.0; 4];
-    cholesky_decompose(&a, 2, 2, &mut l_explicit).unwrap();
+    cholesky_decompose(&a, 2, 2, &mut l_explicit, 1e-9).unwrap();
     println!("l (explicit) = {l_explicit:?}");
 }

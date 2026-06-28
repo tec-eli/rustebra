@@ -14,6 +14,16 @@ pub(crate) fn run() {
     println!("sigma = {sigma:?}, u = {u:?}, v = {v:?}");
 
     let mut sigma_explicit = [0.0; 2];
-    svd_qr_iteration(&a, 2, 2, &mut u, &mut sigma_explicit, &mut v, &mut scratch).unwrap();
+    svd_qr_iteration(
+        &a,
+        2,
+        2,
+        &mut u,
+        &mut sigma_explicit,
+        &mut v,
+        &mut scratch,
+        1e-9,
+    )
+    .unwrap();
     println!("sigma (explicit QR iteration) = {sigma_explicit:?}");
 }

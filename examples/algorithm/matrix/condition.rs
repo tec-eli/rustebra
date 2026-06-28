@@ -13,6 +13,6 @@ pub(crate) fn run() {
     );
     println!(
         "kappa(a) via SVD (explicit) = {:?}",
-        condition_number_svd(&a, 2, 2, &mut scratch).unwrap()
+        condition_number_svd(&a, 2, 2, &mut scratch, 1e-9).unwrap()
     );
 }

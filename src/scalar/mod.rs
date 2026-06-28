@@ -1,8 +1,11 @@
 mod f32;
 mod f64;
+mod float_tolerance;
 mod newton_raphson;
 mod taylor;
 mod trigonometry;
+
+pub use self::float_tolerance::FloatTolerance;
 
 /// A numeric type that algorithms in this crate operate on.
 ///

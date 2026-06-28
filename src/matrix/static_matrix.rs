@@ -1,5 +1,7 @@
-use crate::algorithm::matrix::{self as algorithm, DimensionMismatch};
-use crate::scalar::Scalar;
+use crate::algorithm::matrix::{
+    self as algorithm, CholeskyError, ConditionNumberError, DeterminantError, DimensionMismatch,
+};
+use crate::scalar::{FloatTolerance, Scalar};
 use crate::storage::Storage;
 use crate::vector::StaticVector;
 
@@ -31,6 +33,13 @@ use crate::vector::StaticVector;
 pub struct StaticMatrix<T, const R: usize, const C: usize> {
     data: [[T; C]; R],
 }
+
+/// `(u, sigma, v)`, the result of [`StaticMatrix::svd`]'s singular value decomposition.
+type SvdResult<T, const R: usize, const C: usize> = (
+    StaticMatrix<T, R, C>,
+    StaticVector<T, C>,
+    StaticMatrix<T, C, C>,
+);
 
 impl<T, const R: usize, const C: usize> Storage for StaticMatrix<T, R, C> {
     type Item = T;
@@ -208,10 +217,113 @@ impl<T: Scalar, const R: usize, const C: usize> StaticMatrix<T, R, C> {
     /// ```
     pub fn rank(&self) -> usize
     where
-        T: PartialEq,
+        T: FloatTolerance + PartialOrd,
     {
         let mut scratch = [[T::zero(); C]; R];
         algorithm::rank(self, R, C, scratch.as_flattened_mut()).unwrap_or(0)
+    }
+
+    /// Computes the QR decomposition of `self`: factors it as `q * r`, where `q` is an `R x
+    /// R` orthogonal matrix and `r` is an `R x C` upper triangular matrix.
+    ///
+    /// Unlike [`Self::rank`] or [`Self::add`], `R >= C` (required by
+    /// [`crate::algorithm::matrix::qr`]) isn't something the type system can rule out here —
+    /// stable Rust has no way to bound one const generic against another — so this returns a
+    /// `Result` rather than swallowing the dimension check.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(DimensionMismatch)` if `R < C`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::StaticMatrix;
+    /// use rustebra::storage::Storage;
+    ///
+    /// let m = StaticMatrix::new([[3.0_f64, 5.0], [4.0, 0.0]]);
+    /// let (q, r) = m.qr().unwrap();
+    ///
+    /// // q * r reconstructs m (checked within tolerance: q's entries involve dividing by
+    /// // an irrational square root for this m).
+    /// let reconstructed = q.mul_matrix(&r);
+    /// for (i, expected) in [3.0, 5.0, 4.0, 0.0].into_iter().enumerate() {
+    ///     let actual = *reconstructed.get(i).unwrap();
+    ///     assert!((actual - expected).abs() < 1e-9);
+    /// }
+    /// ```
+    pub fn qr(&self) -> Result<(StaticMatrix<T, R, R>, StaticMatrix<T, R, C>), DimensionMismatch>
+    where
+        T: PartialOrd,
+    {
+        let mut q = [[T::zero(); R]; R];
+        let mut r = [[T::zero(); C]; R];
+        let mut scratch = [T::zero(); R];
+        algorithm::qr(
+            self,
+            R,
+            C,
+            q.as_flattened_mut(),
+            r.as_flattened_mut(),
+            &mut scratch,
+        )?;
+        Ok((StaticMatrix::new(q), StaticMatrix::new(r)))
+    }
+
+    /// Computes the singular value decomposition of `self`: factors it as `u * diag(sigma) *
+    /// vᵗ`, where `u` is an `R x C` matrix with orthonormal columns, `sigma` is a length-`C`
+    /// vector of non-negative singular values sorted descending, and `v` is a `C x C`
+    /// orthogonal matrix.
+    ///
+    /// Unlike [`Self::lu`] or [`Self::cholesky`], `self` doesn't need to be square — the
+    /// singular value decomposition exists for any matrix.
+    ///
+    /// `scratch` must have exactly `5 * C * C + C + R` elements — see
+    /// [`crate::algorithm::matrix::svd`]. Unlike every other method here, this can't build its
+    /// own scratch buffer internally: that length combines two different const generics
+    /// (`R` and `C`), and stable Rust has no way to size a fixed-size array from an expression
+    /// over more than one const generic parameter. The caller picks how to provide it — a
+    /// stack array sized with the formula above to stay allocation-free, or a `Vec` if the
+    /// `alloc` feature is enabled and sizing it by hand isn't worth the trouble.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(DimensionMismatch)` if `scratch.len() != 5 * C * C + C + R`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::StaticMatrix;
+    /// use rustebra::storage::Storage;
+    ///
+    /// let m = StaticMatrix::new([[2.0_f64, 0.0], [0.0, 1.0]]);
+    /// let mut scratch = [0.0; 5 * 2 * 2 + 2 + 2];
+    /// let (u, sigma, v) = m.svd(&mut scratch).unwrap();
+    /// assert!(sigma.get(0) >= sigma.get(1));
+    /// assert!(*sigma.get(1).unwrap() >= 0.0);
+    /// let _ = (u, v);
+    /// ```
+    pub fn svd(&self, scratch: &mut [T]) -> Result<SvdResult<T, R, C>, DimensionMismatch>
+    where
+        T: FloatTolerance + PartialOrd,
+    {
+        let mut u = [[T::zero(); C]; R];
+        let mut sigma = [T::zero(); C];
+        let mut v = [[T::zero(); C]; C];
+        algorithm::svd(
+            self,
+            R,
+            C,
+            u.as_flattened_mut(),
+            &mut sigma,
+            v.as_flattened_mut(),
+            scratch,
+        )?;
+        Ok((
+            StaticMatrix::new(u),
+            StaticVector::new(sigma),
+            StaticMatrix::new(v),
+        ))
     }
 }
 
@@ -219,8 +331,15 @@ impl<T: Scalar, const N: usize> StaticMatrix<T, N, N> {
     /// Computes the determinant of `self`.
     ///
     /// `self` is a `StaticMatrix<T, N, N>`, so it's guaranteed by the type system to be
-    /// square; the dimension mismatch [`crate::algorithm::matrix::determinant`] can report
-    /// is unreachable here.
+    /// square; `Err(DeterminantError::DimensionMismatch)` is therefore unreachable. However,
+    /// `Err(DeterminantError::MatrixTooLargeWithoutAlloc)` is returned when the `alloc`
+    /// feature is disabled and `N > 4`; in that case use
+    /// [`crate::algorithm::matrix::determinant_lu`] with a caller-provided scratch buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(DeterminantError::MatrixTooLargeWithoutAlloc)` if the `alloc` feature is
+    /// disabled and `N > 4`.
     ///
     /// # Examples
     ///
@@ -228,19 +347,117 @@ impl<T: Scalar, const N: usize> StaticMatrix<T, N, N> {
     /// use rustebra::matrix::StaticMatrix;
     ///
     /// let m = StaticMatrix::new([[1.0, 2.0], [3.0, 4.0]]);
-    /// assert_eq!(m.determinant(), -2.0);
+    /// assert_eq!(m.determinant(), Ok(-2.0));
     /// ```
-    pub fn determinant(&self) -> T
+    pub fn determinant(&self) -> Result<T, DeterminantError>
     where
-        T: PartialEq,
+        T: PartialOrd,
     {
-        algorithm::determinant(self, N, N).unwrap_or(T::zero())
+        algorithm::determinant(self, N, N)
+    }
+
+    /// Computes the LU decomposition of `self`: factors it as `l * u`, where `l` is unit
+    /// lower triangular and `u` is upper triangular, up to a row permutation recorded as a
+    /// swap count (see [`crate::algorithm::matrix::lu`]) rather than materialized as its own
+    /// matrix.
+    ///
+    /// `self` is a `StaticMatrix<T, N, N>`, so it's guaranteed by the type system to be
+    /// square; the dimension mismatch [`crate::algorithm::matrix::lu`] can report is
+    /// unreachable here.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::StaticMatrix;
+    ///
+    /// // Row 0 already holds the largest-magnitude entry (6) in column 0, so no swap is
+    /// // needed.
+    /// let m = StaticMatrix::new([[6.0, 3.0], [4.0, 3.0]]);
+    /// let (l, u, swap_count) = m.lu();
+    /// assert_eq!(swap_count, 0);
+    /// assert_eq!(l, StaticMatrix::new([[1.0, 0.0], [4.0 / 6.0, 1.0]]));
+    /// assert_eq!(u, StaticMatrix::new([[6.0, 3.0], [0.0, 1.0]]));
+    /// ```
+    pub fn lu(&self) -> (StaticMatrix<T, N, N>, StaticMatrix<T, N, N>, usize)
+    where
+        T: PartialOrd,
+    {
+        let mut l = [[T::zero(); N]; N];
+        let mut u = [[T::zero(); N]; N];
+        let swap_count = algorithm::lu(self, N, N, l.as_flattened_mut(), u.as_flattened_mut())
+            .unwrap_or_default();
+        (StaticMatrix::new(l), StaticMatrix::new(u), swap_count)
+    }
+
+    /// Computes the Cholesky decomposition of `self`: factors it as `l * lᵗ`, where `l` is
+    /// lower triangular with positive diagonal entries.
+    ///
+    /// `self` is a `StaticMatrix<T, N, N>`, so it's guaranteed by the type system to be
+    /// square; the only dimension mismatch [`crate::algorithm::matrix::cholesky`] can report
+    /// is unreachable here. `self` must still be symmetric positive-definite, which the type
+    /// system can't guarantee — see [`crate::algorithm::matrix::CholeskyError`].
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(CholeskyError::NotPositiveDefinite)` if `self` is not positive-definite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::StaticMatrix;
+    ///
+    /// // Symmetric positive-definite: [[4, 2], [2, 2]].
+    /// let m = StaticMatrix::new([[4.0, 2.0], [2.0, 2.0]]);
+    /// let l = m.cholesky().unwrap();
+    /// assert_eq!(l, StaticMatrix::new([[2.0, 0.0], [1.0, 1.0]]));
+    /// ```
+    pub fn cholesky(&self) -> Result<StaticMatrix<T, N, N>, CholeskyError>
+    where
+        T: FloatTolerance + PartialOrd,
+    {
+        let mut l = [[T::zero(); N]; N];
+        algorithm::cholesky(self, N, N, l.as_flattened_mut())?;
+        Ok(StaticMatrix::new(l))
+    }
+
+    /// Computes the condition number of `self`: `kappa(self) = sigma_max / sigma_min`, the
+    /// ratio of its largest to smallest singular value.
+    ///
+    /// `scratch` must have exactly `7 * N * N + 3 * N` elements — see
+    /// [`crate::algorithm::matrix::condition_number`]. As with [`Self::svd`], this can't build
+    /// its own scratch buffer internally: that length is a polynomial in `N`, and stable Rust
+    /// has no way to size a fixed-size array from anything but a const generic parameter used
+    /// standalone. The caller picks how to provide it — a stack array sized with the formula
+    /// above to stay allocation-free, or a `Vec` if the `alloc` feature is enabled.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(ConditionNumberError::DimensionMismatch)` if `scratch.len() != 7 * N * N +
+    /// 3 * N`. Returns `Err(ConditionNumberError::Singular)` if `self`'s smallest singular
+    /// value is negligible relative to its largest.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rustebra::matrix::StaticMatrix;
+    ///
+    /// let m = StaticMatrix::new([[1.0_f64, 0.0], [0.0, 1.0]]);
+    /// let mut scratch = [0.0; 7 * 2 * 2 + 3 * 2];
+    /// let kappa = m.condition_number(&mut scratch).unwrap();
+    /// assert!((kappa - 1.0).abs() < 1e-9);
+    /// ```
+    pub fn condition_number(&self, scratch: &mut [T]) -> Result<T, ConditionNumberError>
+    where
+        T: FloatTolerance + PartialOrd,
+    {
+        algorithm::condition_number(self, N, N, scratch)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::StaticMatrix;
+    use crate::storage::Storage;
     use crate::vector::StaticVector;
 
     #[test]
@@ -308,7 +525,7 @@ mod tests {
     fn determinant_is_wired_to_the_algorithm_layer() {
         let m = StaticMatrix::new([[1.0, 2.0], [3.0, 4.0]]);
 
-        assert_eq!(m.determinant(), -2.0);
+        assert_eq!(m.determinant(), Ok(-2.0));
     }
 
     #[test]
@@ -316,5 +533,107 @@ mod tests {
         let m = StaticMatrix::new([[1.0, 2.0], [2.0, 4.0]]);
 
         assert_eq!(m.rank(), 1);
+    }
+
+    #[test]
+    fn lu_is_wired_to_the_algorithm_layer() {
+        let m = StaticMatrix::new([[6.0, 3.0], [4.0, 3.0]]);
+
+        let (l, u, swap_count) = m.lu();
+        assert_eq!(swap_count, 0);
+        assert_eq!(l, StaticMatrix::new([[1.0, 0.0], [4.0 / 6.0, 1.0]]));
+        assert_eq!(u, StaticMatrix::new([[6.0, 3.0], [0.0, 1.0]]));
+    }
+
+    #[test]
+    fn qr_is_wired_to_the_algorithm_layer() {
+        let m = StaticMatrix::new([[3.0_f64, 5.0], [4.0, 0.0]]);
+
+        let (q, r) = m.qr().unwrap();
+        let reconstructed = q.mul_matrix(&r);
+        for (actual, expected) in [
+            reconstructed.data[0][0],
+            reconstructed.data[0][1],
+            reconstructed.data[1][0],
+            reconstructed.data[1][1],
+        ]
+        .into_iter()
+        .zip([3.0, 5.0, 4.0, 0.0])
+        {
+            assert!((actual - expected).abs() < 1e-9);
+        }
+    }
+
+    #[test]
+    fn qr_of_matrix_with_more_columns_than_rows_is_an_error_not_a_panic() {
+        let m = StaticMatrix::new([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]);
+
+        assert_eq!(m.qr(), Err(crate::algorithm::matrix::DimensionMismatch));
+    }
+
+    #[test]
+    fn cholesky_is_wired_to_the_algorithm_layer() {
+        let m = StaticMatrix::new([[4.0, 2.0], [2.0, 2.0]]);
+
+        assert_eq!(
+            m.cholesky(),
+            Ok(StaticMatrix::new([[2.0, 0.0], [1.0, 1.0]]))
+        );
+    }
+
+    #[test]
+    fn cholesky_of_non_positive_definite_matrix_is_an_error_not_a_panic() {
+        // [[1, 2], [2, 1]]; not positive-definite (its second leading principal minor,
+        // 1*1 - 2*2 = -3, is negative).
+        let m = StaticMatrix::new([[1.0, 2.0], [2.0, 1.0]]);
+
+        assert_eq!(
+            m.cholesky(),
+            Err(crate::algorithm::matrix::CholeskyError::NotPositiveDefinite)
+        );
+    }
+
+    #[test]
+    fn svd_is_wired_to_the_algorithm_layer() {
+        // [[1, 1], [0, 1]]; a non-diagonal, well-conditioned case (golden-ratio singular
+        // values).
+        let m = StaticMatrix::new([[1.0_f64, 1.0], [0.0, 1.0]]);
+        let mut scratch = [0.0; 5 * 2 * 2 + 2 + 2];
+
+        let (_, sigma, _) = m.svd(&mut scratch).unwrap();
+        assert!(sigma.get(0) >= sigma.get(1));
+        assert!(*sigma.get(1).unwrap() >= 0.0);
+    }
+
+    #[test]
+    fn svd_mismatched_scratch_length_is_an_error_not_a_panic() {
+        let m = StaticMatrix::new([[1.0, 1.0], [0.0, 1.0]]);
+        let mut scratch = [0.0; 4];
+
+        assert_eq!(
+            m.svd(&mut scratch),
+            Err(crate::algorithm::matrix::DimensionMismatch)
+        );
+    }
+
+    #[test]
+    fn condition_number_is_wired_to_the_algorithm_layer() {
+        let m = StaticMatrix::new([[100.0_f64, 0.0], [0.0, 1.0]]);
+        let mut scratch = [0.0; 7 * 2 * 2 + 3 * 2];
+
+        let kappa = m.condition_number(&mut scratch).unwrap();
+        assert!((kappa - 100.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn condition_number_of_singular_matrix_is_an_error() {
+        // [[1, 2], [2, 4]]; row 1 is twice row 0, so this is singular (rank 1).
+        let m = StaticMatrix::new([[1.0_f64, 2.0], [2.0, 4.0]]);
+        let mut scratch = [0.0; 7 * 2 * 2 + 3 * 2];
+
+        assert_eq!(
+            m.condition_number(&mut scratch),
+            Err(crate::algorithm::matrix::ConditionNumberError::Singular)
+        );
     }
 }
