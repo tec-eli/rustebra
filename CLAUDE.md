@@ -1,6 +1,5 @@
 # CLAUDE.md
-
-Read `docs/adr/` before writing any code. 
+Read `CONTEXT.md` before writing any code. 
 
 ## Non-negotiable rules
 
@@ -14,9 +13,7 @@ Read `docs/adr/` before writing any code.
 - New code gets its own module. Split into a folder when a module mixes distinct
   responsibilities (trait def / per-type impl / algorithm = three files).
 - Never mention ADR numbers or content in source code, comments, or commit messages.
-- Match existing naming — check `docs/adr/` and existing code first.
-
-## After every task
-
-- Do not log mechanical actions.
+- Match existing naming — check existing code first.
 - Do not commit anything unless asked to do so.
+- Do not write features that are not requested.
+- Do not write code ahead of time. Do not start refactors unless they are requested.
