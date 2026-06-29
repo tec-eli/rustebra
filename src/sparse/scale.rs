@@ -104,4 +104,19 @@ mod tests {
         let scaled = scale_csc(m, -2.0);
         assert_eq!(scaled.values(), &[-8.0, -12.0]);
     }
+
+    #[test]
+    fn s3_scale_csr_by_zero() {
+        let m = CsrMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![3.0_f64, 7.0]).unwrap();
+        let scaled = scale_csr(m, 0.0);
+        assert_eq!(scaled.nnz(), 0);
+    }
+
+    #[test]
+    fn s3_scale_csc_by_zero() {
+        let m = CscMatrix::new(3, 3, vec![0, 1, 2, 3], vec![0, 1, 2], vec![1.0_f64, 2.0, 3.0])
+            .unwrap();
+        let scaled = scale_csc(m, 0.0);
+        assert_eq!(scaled.nnz(), 0);
+    }
 }

@@ -98,3 +98,16 @@ pub fn spmm_csr<T: Scalar>(
         out_val,
     )))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn s2_spmm_exact_cancellation_zeros() {
+        let a = CsrMatrix::new(1, 2, vec![0, 2], vec![0, 1], vec![1.0_f64, -1.0]).unwrap();
+        let b = CsrMatrix::new(2, 2, vec![0, 1, 1], vec![0], vec![1.0_f64]).unwrap();
+        let c = spmm_csr(&a, &b).unwrap();
+        assert_eq!(c.nnz(), 0);
+    }
+}

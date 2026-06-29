@@ -19,6 +19,10 @@ alloc = []
 name = "sparse"
 required-features = ["alloc"]
 
+[dev-dependencies]
+proptest = "1"
+nalgebra = "0.33"
+
 [profile.release]
 panic = "abort"
 lto = true

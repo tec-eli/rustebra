@@ -155,3 +155,24 @@ pub fn add_csc<T: Scalar>(
         out_val,
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn s1_add_csr_cancellation_zeros() {
+        let a = CsrMatrix::new(1, 2, vec![0, 1], vec![0], vec![3.0_f64]).unwrap();
+        let b = CsrMatrix::new(1, 2, vec![0, 1], vec![0], vec![-3.0_f64]).unwrap();
+        let c = add_csr(&a, &b).unwrap();
+        assert_eq!(c.nnz(), 0);
+    }
+
+    #[test]
+    fn s1_add_csc_cancellation_zeros() {
+        let a = CscMatrix::new(2, 1, vec![0, 1], vec![0], vec![5.0_f64]).unwrap();
+        let b = CscMatrix::new(2, 1, vec![0, 1], vec![0], vec![-5.0_f64]).unwrap();
+        let c = add_csc(&a, &b).unwrap();
+        assert_eq!(c.nnz(), 0);
+    }
+}
