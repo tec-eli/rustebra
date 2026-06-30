@@ -1,6 +1,6 @@
 [package]
 name = "rustebra"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2024"
 license = "Apache-2.0"
 description = "A hybrid no_std/alloc linear algebra crate for Rust, scaling from embedded targets to dynamic Krylov subspace solvers."
@@ -21,7 +21,6 @@ required-features = ["alloc"]
 
 [dev-dependencies]
 proptest = "1"
-nalgebra = "0.33"
 
 [profile.release]
 panic = "abort"

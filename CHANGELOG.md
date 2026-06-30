@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [Released]
+
+## [0.3.2] - 2026-06-30
 
 ### Added
 
@@ -13,34 +15,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Replaced `Vec::new()` for `separse/add`.
-- Moved `/firmware` tests to the test folder and put also added `integration` folder to contain the previous black-box tests.
-- The sparse module now provides `prune_csr` its CSC counterpart.
+- `sparse/add`: `pairs` buffer is now allocated once outside the row loop and cleared each iteration, avoiding repeated allocation.
+- Moved firmware tests to `tests/firmware/`; added `tests/integration/` to contain the previous black-box tests.
+- The sparse module now provides `prune_csc`, the CSC counterpart to `prune_csr`.
 
 ### Fixed
 
-- Hidden `panic` on `sparse/matmat`.
-- `matmat_csr` does now checks that the dense matrix it gets has the right number of elements so it does not overflow a 32-bit device.
-- `prune_csr` does not accept negative tolerance anymore.__
-- Sparse Addition Produces Stored Zeros.
-- `add_csr` stores cancellation zeros.
-- `add_csr` stores cancellation zeros.
+- `matmat_csr` and `matmat_csc` now guard both `m.cols() * x_cols` and `m.rows() * x_cols` against overflow via `checked_mul`, preventing a panic or silent wrong result on 32-bit targets.
+- `prune_csr` and `prune_csc` clamp negative tolerance to zero instead of inverting the keep/drop predicate.
+- `add_csr`, `add_csc`, and `spmm_csr` no longer store exact cancellation zeros in the output.
 
-## [Released]
-
-## [0.3.0] - 2026-06-28
+## [0.3.1] - 2026-06-28
 
 ### Added
 
-- Docs for a specific case in the docs where matmat_csr and matmat_csc throw a dimension mismatch error.
+- Docs for the `x_cols == 0` case in `matmat_csr` and `matmat_csc` that returns `DimensionMismatch`.
 - **Sparse module examples** demonstrating construction, conversion, and core operations.
 
 ### Changed
 
-- Updated the list of known-issues.
+- Updated the list of known issues.
 
-###
-- GitHub workflow to publish the crate on cargo.
+### Fixed
+
+- GitHub Actions workflow now passes `CARGO_REGISTRY_TOKEN` as an environment variable instead of a CLI flag.
 
 ## [0.3.0] - 2026-06-28
 
