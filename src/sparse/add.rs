@@ -67,8 +67,10 @@ pub fn add_csr<T: Scalar>(
                 sum = sum.add(pairs[j].1);
                 j += 1;
             }
-            out_col.push(col);
-            out_val.push(sum);
+            if sum != T::zero() {
+                out_col.push(col);
+                out_val.push(sum);
+            }
             k = j;
         }
         out_row_ptr[r + 1] = out_col.len();
@@ -140,8 +142,10 @@ pub fn add_csc<T: Scalar>(
                 sum = sum.add(pairs[j].1);
                 j += 1;
             }
-            out_row.push(row);
-            out_val.push(sum);
+            if sum != T::zero() {
+                out_row.push(row);
+                out_val.push(sum);
+            }
             k = j;
         }
         out_col_ptr[c + 1] = out_row.len();

@@ -23,7 +23,7 @@ pub use self::float_tolerance::FloatTolerance;
 ///     x.add(x)
 /// }
 /// ```
-pub trait Scalar: Copy {
+pub trait Scalar: Copy + PartialEq {
     /// The additive identity, `0`.
     fn zero() -> Self;
     /// The multiplicative identity, `1`.
