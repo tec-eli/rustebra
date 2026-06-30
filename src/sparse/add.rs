@@ -47,9 +47,10 @@ pub fn add_csr<T: Scalar>(
     let mut out_row_ptr = vec![0usize; rows + 1];
     let mut out_col: Vec<usize> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
+    let mut pairs: Vec<(usize, T)> = Vec::new();
 
     for r in 0..rows {
-        let mut pairs: Vec<(usize, T)> = Vec::new();
+        pairs.clear();
         let a_range = a.row_ptr()[r]..a.row_ptr()[r + 1];
         for k in a_range {
             pairs.push((a.col_indices()[k], a.values()[k]));
@@ -67,8 +68,10 @@ pub fn add_csr<T: Scalar>(
                 sum = sum.add(pairs[j].1);
                 j += 1;
             }
-            out_col.push(col);
-            out_val.push(sum);
+            if sum != T::zero() {
+                out_col.push(col);
+                out_val.push(sum);
+            }
             k = j;
         }
         out_row_ptr[r + 1] = out_col.len();
@@ -120,9 +123,10 @@ pub fn add_csc<T: Scalar>(
     let mut out_col_ptr = vec![0usize; cols + 1];
     let mut out_row: Vec<usize> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
+    let mut pairs: Vec<(usize, T)> = Vec::new();
 
     for c in 0..cols {
-        let mut pairs: Vec<(usize, T)> = Vec::new();
+        pairs.clear();
         let a_range = a.col_ptr()[c]..a.col_ptr()[c + 1];
         for k in a_range {
             pairs.push((a.row_indices()[k], a.values()[k]));
@@ -140,8 +144,10 @@ pub fn add_csc<T: Scalar>(
                 sum = sum.add(pairs[j].1);
                 j += 1;
             }
-            out_row.push(row);
-            out_val.push(sum);
+            if sum != T::zero() {
+                out_row.push(row);
+                out_val.push(sum);
+            }
             k = j;
         }
         out_col_ptr[c + 1] = out_row.len();
@@ -154,4 +160,25 @@ pub fn add_csc<T: Scalar>(
         out_row,
         out_val,
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn s1_add_csr_cancellation_zeros() {
+        let a = CsrMatrix::new(1, 2, vec![0, 1], vec![0], vec![3.0_f64]).unwrap();
+        let b = CsrMatrix::new(1, 2, vec![0, 1], vec![0], vec![-3.0_f64]).unwrap();
+        let c = add_csr(&a, &b).unwrap();
+        assert_eq!(c.nnz(), 0);
+    }
+
+    #[test]
+    fn s1_add_csc_cancellation_zeros() {
+        let a = CscMatrix::new(2, 1, vec![0, 1], vec![0], vec![5.0_f64]).unwrap();
+        let b = CscMatrix::new(2, 1, vec![0, 1], vec![0], vec![-5.0_f64]).unwrap();
+        let c = add_csc(&a, &b).unwrap();
+        assert_eq!(c.nnz(), 0);
+    }
 }

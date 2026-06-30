@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Released]
 
+## [0.3.2] - 2026-06-30
+
+### Added
+
+- Property test for sparse conversion matrices.
+
+### Changed
+
+- `sparse/add`: `pairs` buffer is now allocated once outside the row loop and cleared each iteration, avoiding repeated allocation.
+- Moved firmware tests to `tests/firmware/`; added `tests/integration/` to contain the previous black-box tests.
+- The sparse module now provides `prune_csc`, the CSC counterpart to `prune_csr`.
+
+### Fixed
+
+- `matmat_csr` and `matmat_csc` now guard both `m.cols() * x_cols` and `m.rows() * x_cols` against overflow via `checked_mul`, preventing a panic or silent wrong result on 32-bit targets.
+- `prune_csr` and `prune_csc` clamp negative tolerance to zero instead of inverting the keep/drop predicate.
+- `add_csr`, `add_csc`, and `spmm_csr` no longer store exact cancellation zeros in the output.
+
+## [0.3.1] - 2026-06-28
+
+### Added
+
+- Docs for the `x_cols == 0` case in `matmat_csr` and `matmat_csc` that returns `DimensionMismatch`.
+- **Sparse module examples** demonstrating construction, conversion, and core operations.
+
+### Changed
+
+- Updated the list of known issues.
+
+### Fixed
+
+- GitHub Actions workflow now passes `CARGO_REGISTRY_TOKEN` as an environment variable instead of a CLI flag.
+
 ## [0.3.0] - 2026-06-28
 
 ### Added

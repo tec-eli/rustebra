@@ -6,7 +6,7 @@
 //! Hardware: Cortex-M3 (simulated via QEMU: lm3s6965evb machine)
 //!
 //! Build:
-//!   cd firmware/cortex-m3-lm3s6965evb
+//!   cd tests/firmware/cortex-m3-lm3s6965evb
 //!   cargo build --target thumbv7m-none-eabi --release
 //!
 //! Run (requires QEMU):

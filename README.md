@@ -65,18 +65,18 @@ constrained environments. rustebra aims to close that gap.
 
 ## How rustebra compares
 
-| Feature | rustebra | ndarray | nalgebra |
-|---------|----------|---------|----------|
-| **no_std support** | ✅ Full | ⚠️ Optional (std feature can be disabled) | ⚠️ Optional (requires feature flags) |
-| **Stack-only (no heap required)** | ✅ Default | ❌ No | ✅ For fixed-size |
+| Feature | rustebra                  | ndarray | nalgebra |
+|---------|---------------------------|---------|----------|
+| **no_std support** | ✅ Full                    | ⚠️ Optional (std feature can be disabled) | ⚠️ Optional (requires feature flags) |
+| **Stack-only (no heap required)** | ✅ Default                 | ❌ No | ✅ For fixed-size |
 | **Sparse matrices** | ✅ v0.3.0+ (COO, CSR, CSC) | ❌ Separate `sprs` crate | ⚠️ Limited (optional feature) |
-| **GPU/SIMD acceleration** | ❌ Not planned | ⚠️ Limited SIMD | ⚠️ SIMD support available |
-| **Krylov solvers** | 🔄 v0.4.0 (planned) | ⚠️ Via `ndarray-linalg` | ❌ Not in core |
-| **3D math/graphics primitives** | ❌ Not focused | ❌ Not provided | ✅ Excellent (Isometry, Rotation, etc.) |
-| **BLAS/LAPACK integration** | ❌ No | ✅ Excellent bindings | ❌ Pure Rust |
-| **Maturity & stability** | 🟡 Early (v0.3.0) | ✅ Mature & stable | ✅ Mature & stable |
-| **Large matrices (100k+)** | ⚠️ With sparse | ✅ Optimized | ⚠️ Fixed-size limits |
-| **Embedded systems** | ✅ Best choice | ❌ Poor fit | ⚠️ For fixed-size only |
+| **GPU/SIMD acceleration** | ❌ Not planned             | ⚠️ Limited SIMD | ⚠️ SIMD support available |
+| **Krylov solvers** | 🔄 v0.4.0 (planned)       | ⚠️ Via `ndarray-linalg` | ❌ Not in core |
+| **3D math/graphics primitives** | ❌ Not focused             | ❌ Not provided | ✅ Excellent (Isometry, Rotation, etc.) |
+| **BLAS/LAPACK integration** | ❌ No                      | ✅ Excellent bindings | ❌ Pure Rust |
+| **Maturity & stability** | 🟡 Early (v0.3.2)         | ✅ Mature & stable | ✅ Mature & stable |
+| **Large matrices (100k+)** | ⚠️ With sparse            | ✅ Optimized | ⚠️ Fixed-size limits |
+| **Embedded systems** | ✅ Best choice             | ❌ Poor fit | ⚠️ For fixed-size only |
 
 ### When to use each
 
@@ -102,10 +102,10 @@ constrained environments. rustebra aims to close that gap.
 
 ```toml
 [dependencies]
-rustebra = "0.3.1"
+rustebra = "0.3.2"
 
 # Optional: heap-backed structures and Krylov solvers
-rustebra = { version = "0.3.1", features = ["alloc"] }
+rustebra = { version = "0.3.2", features = ["alloc"] }
 ```
 
 Build and test locally:
@@ -132,17 +132,19 @@ cargo run --example matrix
 cargo run --example storage
 cargo run --example scalar
 cargo run --example algorithm
-cargo run --example sparse
+
+# Requires alloc feature (uses dynamic sparse matrices)
+cargo run --example sparse --features alloc
 ```
 
 ### Firmware Examples
 
-For bare-metal embedded targets, see the `firmware/` workspace. This keeps device-specific dependencies isolated from the main library.
+For bare-metal embedded targets, see the `tests/firmware/` workspace. This keeps device-specific dependencies isolated from the main library.
 
 **ARM Cortex-M3** (via QEMU):
 
 ```sh
-cd firmware
+cd tests/firmware
 cargo build -p cortex-m3-lm3s6965evb --target thumbv7m-none-eabi --release
 ```
 

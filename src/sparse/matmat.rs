@@ -34,10 +34,12 @@ pub fn matmat_csr<T: Scalar>(
     x: &[T],
     x_cols: usize,
 ) -> Result<Vec<T>, DimensionMismatch> {
-    if x_cols == 0 || x.len() != m.cols() * x_cols {
+    let expected = m.cols().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    if x_cols == 0 || x.len() != expected {
         return Err(DimensionMismatch);
     }
-    let mut out = vec![T::zero(); m.rows() * x_cols];
+    let out_len = m.rows().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let mut out = vec![T::zero(); out_len];
     let row_ptr = m.row_ptr();
     let col_idx = m.col_indices();
     let vals = m.values();
@@ -83,10 +85,12 @@ pub fn matmat_csc<T: Scalar>(
     x: &[T],
     x_cols: usize,
 ) -> Result<Vec<T>, DimensionMismatch> {
-    if x_cols == 0 || x.len() != m.cols() * x_cols {
+    let expected = m.cols().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    if x_cols == 0 || x.len() != expected {
         return Err(DimensionMismatch);
     }
-    let mut out = vec![T::zero(); m.rows() * x_cols];
+    let out_len = m.rows().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let mut out = vec![T::zero(); out_len];
     let col_ptr = m.col_ptr();
     let row_idx = m.row_indices();
     let vals = m.values();
@@ -101,4 +105,28 @@ pub fn matmat_csc<T: Scalar>(
         }
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    #[allow(unused_imports)]
+    use super::{CscMatrix, CsrMatrix, matmat_csc, matmat_csr};
+
+    /// On 32-bit targets `65536 * 65536 == 0 (mod 2^32)`.  Without `checked_mul` a
+    /// zero-length slice would bypass the length check and be silently accepted.
+    #[cfg(target_pointer_width = "32")]
+    #[test]
+    fn matmat_csr_rejects_overflowing_dimensions() {
+        let m = CsrMatrix::<f64>::new(1, 65536, vec![0, 0], vec![], vec![]).unwrap();
+        let x: Vec<f64> = vec![];
+        assert!(matmat_csr(&m, &x, 65536).is_err());
+    }
+
+    #[cfg(target_pointer_width = "32")]
+    #[test]
+    fn matmat_csc_rejects_overflowing_dimensions() {
+        let m = CscMatrix::<f64>::new(65536, 65536, vec![0usize; 65537], vec![], vec![]).unwrap();
+        let x: Vec<f64> = vec![];
+        assert!(matmat_csc(&m, &x, 65536).is_err());
+    }
 }

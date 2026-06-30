@@ -10,9 +10,7 @@ pub use self::float_tolerance::FloatTolerance;
 /// A numeric type that algorithms in this crate operate on.
 ///
 /// Defines the minimal arithmetic surface required by the algorithm layer: additive and
-/// multiplicative identities, and the four basic arithmetic operations. See ADR 0005 for why
-/// the scalar type is generic rather than hardcoded, and ADR 0006 for how this trait fits into
-/// the crate's layered architecture.
+/// multiplicative identities, and the four basic arithmetic operations.
 ///
 /// # Examples
 ///
@@ -23,7 +21,7 @@ pub use self::float_tolerance::FloatTolerance;
 ///     x.add(x)
 /// }
 /// ```
-pub trait Scalar: Copy {
+pub trait Scalar: Copy + PartialEq {
     /// The additive identity, `0`.
     fn zero() -> Self;
     /// The multiplicative identity, `1`.

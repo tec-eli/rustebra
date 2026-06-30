@@ -51,7 +51,8 @@ fn scale_csr_empty_matrix() {
 fn scale_csr_by_zero_yields_zero_values() {
     let m = CsrMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![3.0_f64, 7.0]).unwrap();
     let scaled = scale_csr(m, 0.0);
-    assert_eq!(scaled.values(), &[0.0, 0.0]);
+    assert_eq!(scaled.nnz(), 0);
+    assert_eq!(scaled.values(), &[]);
 }
 
 // ── scale_csc ────────────────────────────────────────────────────────────────
@@ -105,7 +106,8 @@ fn scale_csc_empty_matrix() {
 fn scale_csc_by_zero_yields_zero_values() {
     let m = CscMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![3.0_f64, 7.0]).unwrap();
     let scaled = scale_csc(m, 0.0);
-    assert_eq!(scaled.values(), &[0.0, 0.0]);
+    assert_eq!(scaled.nnz(), 0);
+    assert_eq!(scaled.values(), &[]);
 }
 
 #[test]

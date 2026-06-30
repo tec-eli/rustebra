@@ -56,4 +56,4 @@ pub use self::spmm::spmm_csr;
 #[cfg(feature = "alloc")]
 mod prune;
 #[cfg(feature = "alloc")]
-pub use self::prune::prune_csr;
+pub use self::prune::{prune_csc, prune_csr};

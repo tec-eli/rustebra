@@ -1,5 +1,7 @@
 /target
-/firmware/target
+/tests/firmware/target
+/tests/firmware/cortex-m3-lm3s6965evb/target
+**/target/
 
 # JetBrains IDEs (RustRover, IntelliJ, CLion)
 .idea/
