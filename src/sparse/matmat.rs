@@ -38,7 +38,8 @@ pub fn matmat_csr<T: Scalar>(
     if x_cols == 0 || x.len() != expected {
         return Err(DimensionMismatch);
     }
-    let mut out = vec![T::zero(); m.rows() * x_cols];
+    let out_len = m.rows().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let mut out = vec![T::zero(); out_len];
     let row_ptr = m.row_ptr();
     let col_idx = m.col_indices();
     let vals = m.values();
@@ -88,7 +89,8 @@ pub fn matmat_csc<T: Scalar>(
     if x_cols == 0 || x.len() != expected {
         return Err(DimensionMismatch);
     }
-    let mut out = vec![T::zero(); m.rows() * x_cols];
+    let out_len = m.rows().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let mut out = vec![T::zero(); out_len];
     let col_ptr = m.col_ptr();
     let row_idx = m.row_indices();
     let vals = m.values();
@@ -108,7 +110,7 @@ pub fn matmat_csc<T: Scalar>(
 #[cfg(test)]
 mod tests {
     #[allow(unused_imports)]
-    use super::{matmat_csc, matmat_csr, CscMatrix, CsrMatrix};
+    use super::{CscMatrix, CsrMatrix, matmat_csc, matmat_csr};
 
     /// On 32-bit targets `65536 * 65536 == 0 (mod 2^32)`.  Without `checked_mul` a
     /// zero-length slice would bypass the length check and be silently accepted.

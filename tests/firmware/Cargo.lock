@@ -62,7 +62,6 @@ dependencies = [
 name = "cortex-m3-lm3s6965evb"
 version = "0.1.0"
 dependencies = [
- "cortex-m",
  "cortex-m-rt",
  "cortex-m-semihosting",
  "rustebra",
@@ -122,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "rustebra"
-version = "0.2.1"
+version = "0.3.1"
 
 [[package]]
 name = "semver"

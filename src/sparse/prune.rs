@@ -37,7 +37,11 @@ use super::{CscMatrix, CsrMatrix};
 /// ```
 pub fn prune_csr<T: Scalar + PartialOrd>(m: CsrMatrix<T>, tolerance: T) -> CsrMatrix<T> {
     let (rows, cols, old_row_ptr, old_col, old_val) = m.into_raw_parts();
-    let tolerance = if tolerance < T::zero() { T::zero() } else { tolerance };
+    let tolerance = if tolerance < T::zero() {
+        T::zero()
+    } else {
+        tolerance
+    };
     let neg_tol = T::zero().sub(tolerance);
 
     let mut new_row_ptr = vec![0usize; rows + 1];
@@ -89,7 +93,11 @@ pub fn prune_csr<T: Scalar + PartialOrd>(m: CsrMatrix<T>, tolerance: T) -> CsrMa
 /// ```
 pub fn prune_csc<T: Scalar + PartialOrd>(m: CscMatrix<T>, tolerance: T) -> CscMatrix<T> {
     let (rows, cols, old_col_ptr, old_row, old_val) = m.into_raw_parts();
-    let tolerance = if tolerance < T::zero() { T::zero() } else { tolerance };
+    let tolerance = if tolerance < T::zero() {
+        T::zero()
+    } else {
+        tolerance
+    };
     let neg_tol = T::zero().sub(tolerance);
 
     let mut new_col_ptr = vec![0usize; cols + 1];
@@ -194,8 +202,7 @@ mod tests {
 
     #[test]
     fn nan_entry_is_kept_not_silently_dropped() {
-        let m =
-            CsrMatrix::new(1, 2, vec![0, 2], vec![0, 1], vec![f64::NAN, 2.0]).unwrap();
+        let m = CsrMatrix::new(1, 2, vec![0, 2], vec![0, 1], vec![f64::NAN, 2.0]).unwrap();
         let p = prune_csr(m, 1e-10);
         assert_eq!(p.nnz(), 2);
         assert!(p.values()[0].is_nan());
@@ -285,8 +292,7 @@ mod tests_csc {
 
     #[test]
     fn csc_nan_entry_is_kept_not_silently_dropped() {
-        let m =
-            CscMatrix::new(2, 1, vec![0, 2], vec![0, 1], vec![f64::NAN, 2.0]).unwrap();
+        let m = CscMatrix::new(2, 1, vec![0, 2], vec![0, 1], vec![f64::NAN, 2.0]).unwrap();
         let p = prune_csc(m, 1e-10);
         assert_eq!(p.nnz(), 2);
         assert!(p.values()[0].is_nan());

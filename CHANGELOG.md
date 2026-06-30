@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Hidden `panic` on `sparse/matmat`.
 - `matmat_csr` does now checks that the dense matrix it gets has the right number of elements so it does not overflow a 32-bit device.
 - `prune_csr` does not accept negative tolerance anymore.__
 - Sparse Addition Produces Stored Zeros.
