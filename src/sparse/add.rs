@@ -47,9 +47,10 @@ pub fn add_csr<T: Scalar>(
     let mut out_row_ptr = vec![0usize; rows + 1];
     let mut out_col: Vec<usize> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
+    let mut pairs: Vec<(usize, T)> = Vec::new();
 
     for r in 0..rows {
-        let mut pairs: Vec<(usize, T)> = Vec::new();
+        pairs.clear();
         let a_range = a.row_ptr()[r]..a.row_ptr()[r + 1];
         for k in a_range {
             pairs.push((a.col_indices()[k], a.values()[k]));
@@ -122,9 +123,10 @@ pub fn add_csc<T: Scalar>(
     let mut out_col_ptr = vec![0usize; cols + 1];
     let mut out_row: Vec<usize> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
+    let mut pairs: Vec<(usize, T)> = Vec::new();
 
     for c in 0..cols {
-        let mut pairs: Vec<(usize, T)> = Vec::new();
+        pairs.clear();
         let a_range = a.col_ptr()[c]..a.col_ptr()[c + 1];
         for k in a_range {
             pairs.push((a.row_indices()[k], a.values()[k]));

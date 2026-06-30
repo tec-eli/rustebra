@@ -13,13 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Replaced `Vec::new()` for `separse/add`.
 - Moved `/firmware` tests to the test folder and put also added `integration` folder to contain the previous black-box tests.
 - The sparse module now provides `prune_csr` its CSC counterpart.
 
 ### Fixed
 
 - `matmat_csr` does now checks that the dense matrix it gets has the right number of elements so it does not overflow a 32-bit device.
-- `prune_csr` does not accept negative tolerance anymore.
+- `prune_csr` does not accept negative tolerance anymore.__
 - Sparse Addition Produces Stored Zeros.
 - `add_csr` stores cancellation zeros.
 - `add_csr` stores cancellation zeros.
