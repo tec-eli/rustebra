@@ -8,9 +8,9 @@ use super::{CscMatrix, CsrMatrix};
 /// Removes stored entries from `m` whose absolute value does not exceed `tolerance`,
 /// returning a new `CsrMatrix<T>` with a reduced sparsity pattern and unchanged shape.
 ///
-/// An entry `v` is **kept** when `v > tolerance || v < -tolerance` (strictly outside
-/// `[-tolerance, tolerance]`). Setting `tolerance` to `T::zero()` removes only entries
-/// that are exactly `0`.
+/// An entry `v` is **kept** when its absolute value strictly exceeds `tolerance`.
+/// Setting `tolerance` to `T::zero()` removes only entries that are exactly `0`.
+/// Negative `tolerance` is clamped to `T::zero()`. NaN entries are always kept.
 ///
 /// This is useful after repeated sparse additions or Krylov-solver updates, where
 /// accumulated fill-in or exact cancellations leave stored zeros that inflate `nnz`
@@ -37,6 +37,7 @@ use super::{CscMatrix, CsrMatrix};
 /// ```
 pub fn prune_csr<T: Scalar + PartialOrd>(m: CsrMatrix<T>, tolerance: T) -> CsrMatrix<T> {
     let (rows, cols, old_row_ptr, old_col, old_val) = m.into_raw_parts();
+    let tolerance = if tolerance < T::zero() { T::zero() } else { tolerance };
     let neg_tol = T::zero().sub(tolerance);
 
     let mut new_row_ptr = vec![0usize; rows + 1];
@@ -46,7 +47,7 @@ pub fn prune_csr<T: Scalar + PartialOrd>(m: CsrMatrix<T>, tolerance: T) -> CsrMa
     for r in 0..rows {
         for k in old_row_ptr[r]..old_row_ptr[r + 1] {
             let v = old_val[k];
-            if v > tolerance || v < neg_tol {
+            if !(v <= tolerance && v >= neg_tol) {
                 new_col.push(old_col[k]);
                 new_val.push(v);
             }
@@ -60,9 +61,9 @@ pub fn prune_csr<T: Scalar + PartialOrd>(m: CsrMatrix<T>, tolerance: T) -> CsrMa
 /// Removes stored entries from `m` whose absolute value does not exceed `tolerance`,
 /// returning a new `CscMatrix<T>` with a reduced sparsity pattern and unchanged shape.
 ///
-/// An entry `v` is **kept** when `v > tolerance || v < -tolerance` (strictly outside
-/// `[-tolerance, tolerance]`). Setting `tolerance` to `T::zero()` removes only entries
-/// that are exactly `0`.
+/// An entry `v` is **kept** when its absolute value strictly exceeds `tolerance`.
+/// Setting `tolerance` to `T::zero()` removes only entries that are exactly `0`.
+/// Negative `tolerance` is clamped to `T::zero()`. NaN entries are always kept.
 ///
 /// This is the CSC counterpart to [`prune_csr`], providing symmetric support for both
 /// sparse matrix formats.
@@ -88,6 +89,7 @@ pub fn prune_csr<T: Scalar + PartialOrd>(m: CsrMatrix<T>, tolerance: T) -> CsrMa
 /// ```
 pub fn prune_csc<T: Scalar + PartialOrd>(m: CscMatrix<T>, tolerance: T) -> CscMatrix<T> {
     let (rows, cols, old_col_ptr, old_row, old_val) = m.into_raw_parts();
+    let tolerance = if tolerance < T::zero() { T::zero() } else { tolerance };
     let neg_tol = T::zero().sub(tolerance);
 
     let mut new_col_ptr = vec![0usize; cols + 1];
@@ -97,7 +99,7 @@ pub fn prune_csc<T: Scalar + PartialOrd>(m: CscMatrix<T>, tolerance: T) -> CscMa
     for c in 0..cols {
         for k in old_col_ptr[c]..old_col_ptr[c + 1] {
             let v = old_val[k];
-            if v > tolerance || v < neg_tol {
+            if !(v <= tolerance && v >= neg_tol) {
                 new_row.push(old_row[k]);
                 new_val.push(v);
             }
@@ -178,6 +180,27 @@ mod tests {
         assert_eq!(p.nnz(), 0);
         assert_eq!(p.rows(), 3);
     }
+
+    #[test]
+    fn negative_tolerance_clamped_to_zero() {
+        // Negative tolerance must not invert the predicate and keep everything.
+        let m = CsrMatrix::new(1, 3, vec![0, 3], vec![0, 1, 2], vec![0.0_f64, 5.0, 0.0]).unwrap();
+        let p = prune_csr(m, -1.0);
+        // Clamped to 0.0: only exact zeros removed, 5.0 kept.
+        assert_eq!(p.nnz(), 1);
+        assert_eq!(p.col_indices(), &[1]);
+        assert_eq!(p.values(), &[5.0]);
+    }
+
+    #[test]
+    fn nan_entry_is_kept_not_silently_dropped() {
+        let m =
+            CsrMatrix::new(1, 2, vec![0, 2], vec![0, 1], vec![f64::NAN, 2.0]).unwrap();
+        let p = prune_csr(m, 1e-10);
+        assert_eq!(p.nnz(), 2);
+        assert!(p.values()[0].is_nan());
+        assert_eq!(p.values()[1], 2.0);
+    }
 }
 
 #[cfg(test)]
@@ -249,5 +272,24 @@ mod tests_csc {
         let p = prune_csc(m, 1e-10);
         assert_eq!(p.nnz(), 0);
         assert_eq!(p.cols(), 3);
+    }
+
+    #[test]
+    fn csc_negative_tolerance_clamped_to_zero() {
+        let m = CscMatrix::new(3, 1, vec![0, 3], vec![0, 1, 2], vec![0.0_f64, 5.0, 0.0]).unwrap();
+        let p = prune_csc(m, -1.0);
+        assert_eq!(p.nnz(), 1);
+        assert_eq!(p.row_indices(), &[1]);
+        assert_eq!(p.values(), &[5.0]);
+    }
+
+    #[test]
+    fn csc_nan_entry_is_kept_not_silently_dropped() {
+        let m =
+            CscMatrix::new(2, 1, vec![0, 2], vec![0, 1], vec![f64::NAN, 2.0]).unwrap();
+        let p = prune_csc(m, 1e-10);
+        assert_eq!(p.nnz(), 2);
+        assert!(p.values()[0].is_nan());
+        assert_eq!(p.values()[1], 2.0);
     }
 }
