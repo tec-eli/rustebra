@@ -1,3 +1,0 @@
-[workspace]
-members = ["cortex-m3-lm3s6965evb"]
-resolver = "2"

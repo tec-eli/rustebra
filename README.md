@@ -132,17 +132,19 @@ cargo run --example matrix
 cargo run --example storage
 cargo run --example scalar
 cargo run --example algorithm
-cargo run --example sparse
+
+# Requires alloc feature (uses dynamic sparse matrices)
+cargo run --example sparse --features alloc
 ```
 
 ### Firmware Examples
 
-For bare-metal embedded targets, see the `firmware/` workspace. This keeps device-specific dependencies isolated from the main library.
+For bare-metal embedded targets, see the `tests/firmware/` workspace. This keeps device-specific dependencies isolated from the main library.
 
 **ARM Cortex-M3** (via QEMU):
 
 ```sh
-cd firmware
+cd tests/firmware
 cargo build -p cortex-m3-lm3s6965evb --target thumbv7m-none-eabi --release
 ```
 

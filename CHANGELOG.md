@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## Changed
+### Added
 
+- Property test for sparse conversion matrices.
+
+### Changed
+
+- Moved `/firmware` tests to the test folder and put also added `integration` folder to contain the previous black-box tests.
 - The sparse module now provides `prune_csr` its CSC counterpart.
 
-## Fixed
+### Fixed
 
 - Sparse Addition Produces Stored Zeros.
 - add_csr stores cancellation zeros.

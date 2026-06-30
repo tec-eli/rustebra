@@ -15,12 +15,8 @@
 ├────────────────────────────────────────────┼────────────────┼────────┼──────────┼────────────────────────────────┤
 │ Usize arithmetic & overflow checking       │ Safety Review  │ 0.4.0  │ Medium   │ Saturating/checked operations  │
 ├────────────────────────────────────────────┼────────────────┼────────┼──────────┼────────────────────────────────┤
-│ Missing prune_csc                          │ New API        │ 0.3.2  │ Low      │ Implement prune_csc symmetric  │
-├────────────────────────────────────────────┼────────────────┼────────┼──────────┼────────────────────────────────┤
 │ add_csr return type inconsistency          │ Breaking API   │ 0.4.0  │ Low      │ Change return to SortedCsrMat  │
 └────────────────────────────────────────────┴────────────────┴────────┴──────────┴────────────────────────────────┘
-
-**Note**: Test-related issues have been moved to [roadmap/COVERAGE.md](COVERAGE.md). Bug-related issues are tracked in [roadmap/BUGS.md](BUGS.md). Documentation and ADR items are in [roadmap/DOCS.md](DOCS.md).
 
 ---
 
@@ -92,13 +88,6 @@ Verify no overflow in sparse structures when computing indices, allocations, or 
 
 ## LOW PRIORITY
 
-### L-3: Missing `prune_csc`
-**Target**: 0.3.1 | **Scope**: src/sparse/
-
-The sparse module provides `prune_csr` but not its CSC counterpart, violating the CSR/CSC symmetry principle (ADR 0010).
-
-- [ ] Implement `prune_csc<T>(m: CscMatrix<T>, tolerance: T) -> CscMatrix<T>` symmetric to `prune_csr`
-
 ### L-4: `add_csr` Return Type Inconsistency
 **Target**: 0.4.0 | **Scope**: src/sparse/
 
@@ -123,5 +112,4 @@ duplicates, conversions, NaN/Inf.
 **v0.4.0+ Comprehensive Numerical & Testing Audit**: A mathematician and Rust engineer review of numerical correctness, 
 edge-case handling, testing coverage, and embedded safety.
 
-See also: [roadmap/COVERAGE.md](COVERAGE.md) for test coverage roadmap, [roadmap/BUGS.md](BUGS.md) for known bugs, and [roadmap/DOCS.md](DOCS.md) for documentation and ADR items.
 

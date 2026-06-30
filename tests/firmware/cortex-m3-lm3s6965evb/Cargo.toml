@@ -5,8 +5,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
-rustebra = { path = "../../" }
-cortex-m = "0.7"
+rustebra = { path = "../../../" }
 cortex-m-rt = "0.7"
 cortex-m-semihosting = "0.5"
 
