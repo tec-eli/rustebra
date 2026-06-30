@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
 ## [Released]
 
 ## [0.3.2] - 2026-06-30
@@ -39,6 +41,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - GitHub Actions workflow now passes `CARGO_REGISTRY_TOKEN` as an environment variable instead of a CLI flag.
+
+## [0.3.0] - 2026-06-28
+
+### Added
+
+- Docs for a specific case in the docs where matmat_csr and matmat_csc throw a dimension mismatch error.
+- **Sparse module examples** demonstrating construction, conversion, and core operations.
+
+### Changed
+
+- Updated the list of known-issues.
+
+###
+- GitHub workflow to publish the crate on cargo.
 
 ## [0.3.0] - 2026-06-28
 
