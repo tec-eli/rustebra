@@ -81,8 +81,10 @@ pub fn spmm_csr<T: Scalar>(
         // Emit output entries sorted by column index.
         touched.sort_unstable();
         for &col in &touched {
-            out_col.push(col);
-            out_val.push(dense[col]);
+            if dense[col] != T::zero() {
+                out_col.push(col);
+                out_val.push(dense[col]);
+            }
             dense[col] = T::zero();
             in_touched[col] = false;
         }
@@ -106,7 +108,7 @@ mod tests {
     #[test]
     fn s2_spmm_exact_cancellation_zeros() {
         let a = CsrMatrix::new(1, 2, vec![0, 2], vec![0, 1], vec![1.0_f64, -1.0]).unwrap();
-        let b = CsrMatrix::new(2, 2, vec![0, 1, 1], vec![0], vec![1.0_f64]).unwrap();
+        let b = CsrMatrix::new(2, 1, vec![0, 1, 2], vec![0, 0], vec![1.0_f64, 1.0]).unwrap();
         let c = spmm_csr(&a, &b).unwrap();
         assert_eq!(c.nnz(), 0);
     }

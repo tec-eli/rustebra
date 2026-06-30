@@ -1,3 +1,4 @@
+use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::scalar::Scalar;
@@ -28,6 +29,10 @@ use super::{CscMatrix, CsrMatrix};
 /// assert_eq!(scaled.col_indices(), &[0, 1]);
 /// ```
 pub fn scale_csr<T: Scalar>(m: CsrMatrix<T>, scalar: T) -> CsrMatrix<T> {
+    if scalar == T::zero() {
+        let (rows, cols, _, _, _) = m.into_raw_parts();
+        return CsrMatrix::new_raw(rows, cols, vec![0; rows + 1], Vec::new(), Vec::new());
+    }
     let (rows, cols, row_ptr, col_indices, values) = m.into_raw_parts();
     let scaled: Vec<T> = values.into_iter().map(|v| v.mul(scalar)).collect();
     CsrMatrix::new_raw(rows, cols, row_ptr, col_indices, scaled)
@@ -57,6 +62,10 @@ pub fn scale_csr<T: Scalar>(m: CsrMatrix<T>, scalar: T) -> CsrMatrix<T> {
 /// assert_eq!(scaled.row_indices(), &[0, 1]);
 /// ```
 pub fn scale_csc<T: Scalar>(m: CscMatrix<T>, scalar: T) -> CscMatrix<T> {
+    if scalar == T::zero() {
+        let (rows, cols, _, _, _) = m.into_raw_parts();
+        return CscMatrix::new_raw(rows, cols, vec![0; cols + 1], Vec::new(), Vec::new());
+    }
     let (rows, cols, col_ptr, row_indices, values) = m.into_raw_parts();
     let scaled: Vec<T> = values.into_iter().map(|v| v.mul(scalar)).collect();
     CscMatrix::new_raw(rows, cols, col_ptr, row_indices, scaled)
@@ -95,7 +104,8 @@ mod tests {
         )
         .unwrap();
         let scaled = scale_csc(m, 0.0);
-        assert_eq!(scaled.values(), &[0.0, 0.0, 0.0]);
+        assert_eq!(scaled.nnz(), 0);
+        assert_eq!(scaled.values(), &[]);
     }
 
     #[test]
@@ -114,8 +124,14 @@ mod tests {
 
     #[test]
     fn s3_scale_csc_by_zero() {
-        let m = CscMatrix::new(3, 3, vec![0, 1, 2, 3], vec![0, 1, 2], vec![1.0_f64, 2.0, 3.0])
-            .unwrap();
+        let m = CscMatrix::new(
+            3,
+            3,
+            vec![0, 1, 2, 3],
+            vec![0, 1, 2],
+            vec![1.0_f64, 2.0, 3.0],
+        )
+        .unwrap();
         let scaled = scale_csc(m, 0.0);
         assert_eq!(scaled.nnz(), 0);
     }

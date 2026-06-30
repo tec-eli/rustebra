@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## Fixed
 
 - Sparse Addition Produces Stored Zeros.
+- add_csr stores cancellation zeros.
+- add_csr stores cancellation zeros.
 
 ## [Released]
 
