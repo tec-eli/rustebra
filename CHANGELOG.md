@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## Changed
+
+- The sparse module now provides `prune_csr` its CSC counterpart.
+
 ## Fixed
 
 - Sparse Addition Produces Stored Zeros.
