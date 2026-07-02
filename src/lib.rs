@@ -4,6 +4,7 @@
 extern crate alloc;
 
 pub mod algorithm;
+pub mod krylov;
 pub mod matrix;
 pub mod scalar;
 pub mod sparse;
