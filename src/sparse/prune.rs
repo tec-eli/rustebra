@@ -44,19 +44,19 @@ pub fn prune_csr<T: Scalar + PartialOrd>(m: CsrMatrix<T>, tolerance: T) -> CsrMa
     };
     let neg_tol = T::zero().sub(tolerance);
 
-    let mut new_row_ptr = vec![0usize; rows + 1];
-    let mut new_col: Vec<usize> = Vec::new();
+    let mut new_row_ptr = vec![0u32; rows + 1];
+    let mut new_col: Vec<u32> = Vec::new();
     let mut new_val: Vec<T> = Vec::new();
 
     for r in 0..rows {
-        for k in old_row_ptr[r]..old_row_ptr[r + 1] {
+        for k in old_row_ptr[r] as usize..old_row_ptr[r + 1] as usize {
             let v = old_val[k];
             if !(v <= tolerance && v >= neg_tol) {
                 new_col.push(old_col[k]);
                 new_val.push(v);
             }
         }
-        new_row_ptr[r + 1] = new_col.len();
+        new_row_ptr[r + 1] = new_col.len() as u32;
     }
 
     CsrMatrix::new_raw(rows, cols, new_row_ptr, new_col, new_val)
@@ -100,19 +100,19 @@ pub fn prune_csc<T: Scalar + PartialOrd>(m: CscMatrix<T>, tolerance: T) -> CscMa
     };
     let neg_tol = T::zero().sub(tolerance);
 
-    let mut new_col_ptr = vec![0usize; cols + 1];
-    let mut new_row: Vec<usize> = Vec::new();
+    let mut new_col_ptr = vec![0u32; cols + 1];
+    let mut new_row: Vec<u32> = Vec::new();
     let mut new_val: Vec<T> = Vec::new();
 
     for c in 0..cols {
-        for k in old_col_ptr[c]..old_col_ptr[c + 1] {
+        for k in old_col_ptr[c] as usize..old_col_ptr[c + 1] as usize {
             let v = old_val[k];
             if !(v <= tolerance && v >= neg_tol) {
                 new_row.push(old_row[k]);
                 new_val.push(v);
             }
         }
-        new_col_ptr[c + 1] = new_row.len();
+        new_col_ptr[c + 1] = new_row.len() as u32;
     }
 
     CscMatrix::new_raw(rows, cols, new_col_ptr, new_row, new_val)

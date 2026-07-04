@@ -88,9 +88,9 @@ impl<T: Scalar> SparseLinearOp<T> for CsrMatrix<T> {
         let col_idx = self.col_indices();
         let vals = self.values();
         for r in 0..CsrMatrix::rows(self) {
-            for k in row_ptr[r]..row_ptr[r + 1] {
+            for k in row_ptr[r] as usize..row_ptr[r + 1] as usize {
                 let prev = out[r];
-                out[r] = prev.add(vals[k].mul(x[col_idx[k]]));
+                out[r] = prev.add(vals[k].mul(x[col_idx[k] as usize]));
             }
         }
         Ok(())
@@ -115,8 +115,8 @@ impl<T: Scalar> SparseLinearOp<T> for CscMatrix<T> {
         let row_idx = self.row_indices();
         let vals = self.values();
         for c in 0..CscMatrix::cols(self) {
-            for k in col_ptr[c]..col_ptr[c + 1] {
-                let r = row_idx[k];
+            for k in col_ptr[c] as usize..col_ptr[c + 1] as usize {
+                let r = row_idx[k] as usize;
                 let prev = out[r];
                 out[r] = prev.add(vals[k].mul(x[c]));
             }

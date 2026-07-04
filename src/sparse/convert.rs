@@ -41,8 +41,8 @@ pub fn coo_to_csr<T: Scalar>(coo: CooMatrix<T>) -> SortedCsrMatrix<T> {
     let mut order: Vec<usize> = (0..nnz_in).collect();
     order.sort_by_key(|&i| (coo_row[i], coo_col[i]));
 
-    let mut out_row: Vec<usize> = Vec::new();
-    let mut out_col: Vec<usize> = Vec::new();
+    let mut out_row: Vec<u32> = Vec::new();
+    let mut out_col: Vec<u32> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
 
     for &i in &order {
@@ -63,9 +63,9 @@ pub fn coo_to_csr<T: Scalar>(coo: CooMatrix<T>) -> SortedCsrMatrix<T> {
     }
 
     // Prefix-sum of per-row entry counts to build row_ptr.
-    let mut row_ptr = vec![0usize; rows + 1];
+    let mut row_ptr = vec![0u32; rows + 1];
     for &r in &out_row {
-        row_ptr[r + 1] += 1;
+        row_ptr[r as usize + 1] += 1;
     }
     for i in 1..=rows {
         row_ptr[i] += row_ptr[i - 1];
@@ -113,7 +113,7 @@ pub fn csr_to_coo<T>(csr: CsrMatrix<T>) -> CooMatrix<T> {
     for r in 0..rows {
         let count = row_ptr[r + 1] - row_ptr[r];
         for _ in 0..count {
-            row_indices.push(r);
+            row_indices.push(r as u32);
         }
     }
 
@@ -149,25 +149,25 @@ pub fn csr_to_csc<T: Scalar>(m: CsrMatrix<T>) -> CscMatrix<T> {
     let nnz = values.len();
 
     // Collect (col, row, val) triples from the CSR layout.
-    let mut triples: Vec<(usize, usize, T)> = Vec::with_capacity(nnz);
+    let mut triples: Vec<(u32, u32, T)> = Vec::with_capacity(nnz);
     for r in 0..rows {
-        for k in row_ptr[r]..row_ptr[r + 1] {
-            triples.push((col_indices[k], r, values[k]));
+        for k in row_ptr[r] as usize..row_ptr[r + 1] as usize {
+            triples.push((col_indices[k], r as u32, values[k]));
         }
     }
     // Sort by (col, row) so entries are in column-major order.
     triples.sort_by_key(|&(c, r, _)| (c, r));
 
     // Build col_ptr via prefix-sum of per-column counts.
-    let mut col_ptr = vec![0usize; cols + 1];
+    let mut col_ptr = vec![0u32; cols + 1];
     for &(c, _, _) in &triples {
-        col_ptr[c + 1] += 1;
+        col_ptr[c as usize + 1] += 1;
     }
     for i in 1..=cols {
         col_ptr[i] += col_ptr[i - 1];
     }
 
-    let mut out_row: Vec<usize> = Vec::with_capacity(nnz);
+    let mut out_row: Vec<u32> = Vec::with_capacity(nnz);
     let mut out_val: Vec<T> = Vec::with_capacity(nnz);
     for (_, r, v) in triples {
         out_row.push(r);
@@ -205,25 +205,25 @@ pub fn csc_to_csr<T: Scalar>(m: CscMatrix<T>) -> CsrMatrix<T> {
     let nnz = values.len();
 
     // Collect (row, col, val) triples from the CSC layout.
-    let mut triples: Vec<(usize, usize, T)> = Vec::with_capacity(nnz);
+    let mut triples: Vec<(u32, u32, T)> = Vec::with_capacity(nnz);
     for c in 0..cols {
-        for k in col_ptr[c]..col_ptr[c + 1] {
-            triples.push((row_indices[k], c, values[k]));
+        for k in col_ptr[c] as usize..col_ptr[c + 1] as usize {
+            triples.push((row_indices[k], c as u32, values[k]));
         }
     }
     // Sort by (row, col) so entries are in row-major order.
     triples.sort_by_key(|&(r, c, _)| (r, c));
 
     // Build row_ptr via prefix-sum of per-row counts.
-    let mut row_ptr = vec![0usize; rows + 1];
+    let mut row_ptr = vec![0u32; rows + 1];
     for &(r, _, _) in &triples {
-        row_ptr[r + 1] += 1;
+        row_ptr[r as usize + 1] += 1;
     }
     for i in 1..=rows {
         row_ptr[i] += row_ptr[i - 1];
     }
 
-    let mut out_col: Vec<usize> = Vec::with_capacity(nnz);
+    let mut out_col: Vec<u32> = Vec::with_capacity(nnz);
     let mut out_val: Vec<T> = Vec::with_capacity(nnz);
     for (_, c, v) in triples {
         out_col.push(c);

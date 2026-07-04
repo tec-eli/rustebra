@@ -44,8 +44,8 @@ pub fn spmm_csr<T: Scalar>(
     let m = a.rows();
     let n = b.cols();
 
-    let mut out_row_ptr = vec![0usize; m + 1];
-    let mut out_col: Vec<usize> = Vec::new();
+    let mut out_row_ptr = vec![0u32; m + 1];
+    let mut out_col: Vec<u32> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
 
     // Dense accumulator: `dense[j]` holds the accumulated value for column j in the
@@ -64,11 +64,11 @@ pub fn spmm_csr<T: Scalar>(
     let b_val = b.values();
 
     for r in 0..m {
-        for ka in a_row_ptr[r]..a_row_ptr[r + 1] {
-            let k = a_col[ka];
+        for ka in a_row_ptr[r] as usize..a_row_ptr[r + 1] as usize {
+            let k = a_col[ka] as usize;
             let av = a_val[ka];
-            for kb in b_row_ptr[k]..b_row_ptr[k + 1] {
-                let j = b_col[kb];
+            for kb in b_row_ptr[k] as usize..b_row_ptr[k + 1] as usize {
+                let j = b_col[kb] as usize;
                 let bv = b_val[kb];
                 let prev = dense[j];
                 dense[j] = prev.add(av.mul(bv));
@@ -82,14 +82,14 @@ pub fn spmm_csr<T: Scalar>(
         touched.sort_unstable();
         for &col in &touched {
             if dense[col] != T::zero() {
-                out_col.push(col);
+                out_col.push(col as u32);
                 out_val.push(dense[col]);
             }
             dense[col] = T::zero();
             in_touched[col] = false;
         }
         touched.clear();
-        out_row_ptr[r + 1] = out_col.len();
+        out_row_ptr[r + 1] = out_col.len() as u32;
     }
 
     Ok(SortedCsrMatrix::from_sorted_unchecked(CsrMatrix::new_raw(

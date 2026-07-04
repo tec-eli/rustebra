@@ -8,8 +8,9 @@ pub use self::power_iteration::power_iteration;
 ///
 /// Unlike the direct decompositions in [`crate::algorithm::matrix`], the methods here refine
 /// an estimate over many iterations, so alongside the usual shape disagreements they can fail
-/// by simply not reaching the requested tolerance, or by an iterate degenerating to the zero
-/// vector (which can't be normalized into a direction for the next step).
+/// by simply not reaching the requested tolerance, by an iterate degenerating to the zero
+/// vector (which can't be normalized into a direction for the next step), or by an iterate
+/// going non-finite (`NaN`/`Inf`).
 ///
 /// # Examples
 ///
@@ -32,6 +33,15 @@ pub enum ConvergenceError {
     /// The initial vector, or an iterate produced along the way, has zero norm and therefore
     /// no direction the iteration can continue from.
     ZeroVector,
+    /// An iterate produced along the way contains a `NaN` or infinite value.
+    ///
+    /// This crate otherwise lets `NaN`/`Inf` propagate through arithmetic rather than
+    /// checking for it. Krylov methods are the exception: because they loop, a poisoned
+    /// iterate doesn't just produce one bad result, it burns the entire remaining iteration
+    /// budget computing on garbage — a real cost on embedded targets, where that budget is
+    /// bounded and can't be spent elsewhere. Detecting the condition once and stopping is
+    /// cheaper than paying for `max_iter` more rounds of `NaN` arithmetic.
+    NonFinite,
     /// The convergence criteria were not met within the requested iteration budget.
     MaxIterationsExceeded,
     /// The shifted matrix `a - shift * I` is singular, or within the caller's singularity

@@ -44,18 +44,18 @@ pub fn add_csr<T: Scalar>(
     let rows = a.rows();
     let cols = a.cols();
 
-    let mut out_row_ptr = vec![0usize; rows + 1];
-    let mut out_col: Vec<usize> = Vec::new();
+    let mut out_row_ptr = vec![0u32; rows + 1];
+    let mut out_col: Vec<u32> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
-    let mut pairs: Vec<(usize, T)> = Vec::new();
+    let mut pairs: Vec<(u32, T)> = Vec::new();
 
     for r in 0..rows {
         pairs.clear();
-        let a_range = a.row_ptr()[r]..a.row_ptr()[r + 1];
+        let a_range = a.row_ptr()[r] as usize..a.row_ptr()[r + 1] as usize;
         for k in a_range {
             pairs.push((a.col_indices()[k], a.values()[k]));
         }
-        let b_range = b.row_ptr()[r]..b.row_ptr()[r + 1];
+        let b_range = b.row_ptr()[r] as usize..b.row_ptr()[r + 1] as usize;
         for k in b_range {
             pairs.push((b.col_indices()[k], b.values()[k]));
         }
@@ -74,7 +74,7 @@ pub fn add_csr<T: Scalar>(
             }
             k = j;
         }
-        out_row_ptr[r + 1] = out_col.len();
+        out_row_ptr[r + 1] = out_col.len() as u32;
     }
 
     Ok(CsrMatrix::new_raw(
@@ -120,18 +120,18 @@ pub fn add_csc<T: Scalar>(
     let rows = a.rows();
     let cols = a.cols();
 
-    let mut out_col_ptr = vec![0usize; cols + 1];
-    let mut out_row: Vec<usize> = Vec::new();
+    let mut out_col_ptr = vec![0u32; cols + 1];
+    let mut out_row: Vec<u32> = Vec::new();
     let mut out_val: Vec<T> = Vec::new();
-    let mut pairs: Vec<(usize, T)> = Vec::new();
+    let mut pairs: Vec<(u32, T)> = Vec::new();
 
     for c in 0..cols {
         pairs.clear();
-        let a_range = a.col_ptr()[c]..a.col_ptr()[c + 1];
+        let a_range = a.col_ptr()[c] as usize..a.col_ptr()[c + 1] as usize;
         for k in a_range {
             pairs.push((a.row_indices()[k], a.values()[k]));
         }
-        let b_range = b.col_ptr()[c]..b.col_ptr()[c + 1];
+        let b_range = b.col_ptr()[c] as usize..b.col_ptr()[c + 1] as usize;
         for k in b_range {
             pairs.push((b.row_indices()[k], b.values()[k]));
         }
@@ -150,7 +150,7 @@ pub fn add_csc<T: Scalar>(
             }
             k = j;
         }
-        out_col_ptr[c + 1] = out_row.len();
+        out_col_ptr[c + 1] = out_row.len() as u32;
     }
 
     Ok(CscMatrix::new_raw(

@@ -95,8 +95,8 @@ pub fn validate_csc<T: Scalar>(m: &CscMatrix<T>) -> Result<(), ValidateError> {
 fn validate_compressed<T: Scalar>(
     outer: usize,
     inner: usize,
-    ptr: &[usize],
-    indices: &[usize],
+    ptr: &[u32],
+    indices: &[u32],
     values: &[T],
 ) -> Result<(), ValidateError> {
     if indices.len() != values.len() {
@@ -106,7 +106,7 @@ fn validate_compressed<T: Scalar>(
         return Err(ValidateError::PtrLengthMismatch);
     }
     let nnz = indices.len();
-    if ptr[0] != 0 || ptr[outer] != nnz {
+    if ptr[0] != 0 || ptr[outer] as usize != nnz {
         return Err(ValidateError::PtrInvalid);
     }
     for i in 1..=outer {
@@ -115,12 +115,12 @@ fn validate_compressed<T: Scalar>(
         }
     }
     for &idx in indices {
-        if idx >= inner {
+        if idx as usize >= inner {
             return Err(ValidateError::IndexOutOfBounds);
         }
     }
     for s in 0..outer {
-        for k in ptr[s] + 1..ptr[s + 1] {
+        for k in ptr[s] as usize + 1..ptr[s + 1] as usize {
             if indices[k] == indices[k - 1] {
                 return Err(ValidateError::DuplicateIndex);
             }

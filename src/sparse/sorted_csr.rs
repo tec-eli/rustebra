@@ -72,12 +72,12 @@ impl<T: Scalar> SortedCsrMatrix<T> {
     pub fn from_csr(m: CsrMatrix<T>) -> Self {
         let (rows, cols, row_ptr, mut col_indices, mut values) = m.into_raw_parts();
         for r in 0..rows {
-            let start = row_ptr[r];
-            let end = row_ptr[r + 1];
+            let start = row_ptr[r] as usize;
+            let end = row_ptr[r + 1] as usize;
             if end <= start + 1 {
                 continue;
             }
-            let mut pairs: Vec<(usize, T)> =
+            let mut pairs: Vec<(u32, T)> =
                 (start..end).map(|k| (col_indices[k], values[k])).collect();
             pairs.sort_unstable_by_key(|&(c, _)| c);
             for (i, (c, v)) in pairs.into_iter().enumerate() {

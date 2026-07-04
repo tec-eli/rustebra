@@ -46,7 +46,7 @@ use crate::storage::Storage;
 /// error is amplified almost entirely along the eigenvector being sought, so the iteration
 /// converges faster, not worse. Should a solve still degenerate (e.g. overflow to non-finite
 /// values), the iterate fails normalization and the call stops with
-/// [`ConvergenceError::ZeroVector`] rather than looping on a NaN chain.
+/// [`ConvergenceError::NonFinite`] rather than looping on a `NaN` chain.
 ///
 /// # Convergence
 ///
@@ -76,8 +76,10 @@ use crate::storage::Storage;
 /// - [`ConvergenceError::SingularShift`] if `a - shift * I` is singular within
 ///   `singular_tol`, as described above (including `n == 0`, where there is no invertible
 ///   operator at all).
-/// - [`ConvergenceError::ZeroVector`] if `v0` has zero norm, or an iterate degenerates to an
-///   unnormalizable (zero or non-finite) vector.
+/// - [`ConvergenceError::ZeroVector`] if `v0` has zero norm, or an iterate degenerates to the
+///   zero vector.
+/// - [`ConvergenceError::NonFinite`] if an iterate goes `NaN` or infinite (e.g. via a
+///   near-singular solve amplifying rounding error past the type's range).
 /// - [`ConvergenceError::MaxIterationsExceeded`] if the criteria above aren't met within
 ///   `max_iter` iterations.
 ///
@@ -639,6 +641,32 @@ mod tests {
         );
 
         assert_eq!(result, Err(ConvergenceError::ZeroVector));
+    }
+
+    #[test]
+    fn non_finite_initial_vector_is_a_distinct_error_from_zero_vector() {
+        let a = StaticStorage::new([2.0, 0.0, 0.0, 1.0]);
+        let v0 = StaticStorage::new([f64::NAN, 0.0]);
+        let mut eigenvector = [0.0; 2];
+        let mut factor = [0.0; 4];
+        let mut pivots = [0_usize; 2];
+        let mut scratch = [0.0; 2];
+
+        let result = inverse_power_iteration(
+            &a,
+            2,
+            &v0,
+            0.5,
+            100,
+            1e-12,
+            1e-12,
+            &mut eigenvector,
+            &mut factor,
+            &mut pivots,
+            &mut scratch,
+        );
+
+        assert_eq!(result, Err(ConvergenceError::NonFinite));
     }
 
     #[test]

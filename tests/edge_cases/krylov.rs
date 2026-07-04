@@ -238,8 +238,8 @@ fn non_finite_matrix_entries_are_an_error_not_a_panic_or_a_spurious_ok() {
 }
 
 #[test]
-fn non_finite_initial_vector_is_a_zero_vector_error() {
-    // A non-finite v0 poisons the norm, which the normalization treats as unnormalizable.
+fn non_finite_initial_vector_is_a_non_finite_error() {
+    // A non-finite v0 poisons the norm, which the normalization treats as non-finite.
     for poison in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
         let a = StaticStorage::new([2.0, 0.0, 0.0, 1.0]);
         let v0 = StaticStorage::new([poison, 1.0]);
@@ -255,7 +255,7 @@ fn non_finite_initial_vector_is_a_zero_vector_error() {
             &mut eigenvector,
             &mut scratch,
         );
-        assert_eq!(result, Err(ConvergenceError::ZeroVector), "poison {poison}");
+        assert_eq!(result, Err(ConvergenceError::NonFinite), "poison {poison}");
 
         let mut factor = [0.0; 4];
         let mut pivots = [0_usize; 2];
@@ -272,7 +272,7 @@ fn non_finite_initial_vector_is_a_zero_vector_error() {
             &mut pivots,
             &mut scratch,
         );
-        assert_eq!(result, Err(ConvergenceError::ZeroVector), "poison {poison}");
+        assert_eq!(result, Err(ConvergenceError::NonFinite), "poison {poison}");
     }
 }
 

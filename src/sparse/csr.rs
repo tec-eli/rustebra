@@ -52,8 +52,8 @@ pub enum CsrError {
 pub struct CsrMatrix<T> {
     rows: usize,
     cols: usize,
-    row_ptr: Vec<usize>,
-    col_indices: Vec<usize>,
+    row_ptr: Vec<u32>,
+    col_indices: Vec<u32>,
     values: Vec<T>,
 }
 
@@ -61,8 +61,8 @@ impl<T> CsrMatrix<T> {
     pub(super) fn new_raw(
         rows: usize,
         cols: usize,
-        row_ptr: Vec<usize>,
-        col_indices: Vec<usize>,
+        row_ptr: Vec<u32>,
+        col_indices: Vec<u32>,
         values: Vec<T>,
     ) -> Self {
         Self {
@@ -74,7 +74,7 @@ impl<T> CsrMatrix<T> {
         }
     }
 
-    pub(super) fn into_raw_parts(self) -> (usize, usize, Vec<usize>, Vec<usize>, Vec<T>) {
+    pub(super) fn into_raw_parts(self) -> (usize, usize, Vec<u32>, Vec<u32>, Vec<T>) {
         (
             self.rows,
             self.cols,
@@ -106,8 +106,8 @@ impl<T> CsrMatrix<T> {
     pub fn new(
         rows: usize,
         cols: usize,
-        row_ptr: Vec<usize>,
-        col_indices: Vec<usize>,
+        row_ptr: Vec<u32>,
+        col_indices: Vec<u32>,
         values: Vec<T>,
     ) -> Result<Self, CsrError> {
         if col_indices.len() != values.len() {
@@ -117,7 +117,7 @@ impl<T> CsrMatrix<T> {
             return Err(CsrError::RowPtrLengthMismatch);
         }
         let nnz = col_indices.len();
-        if row_ptr[0] != 0 || row_ptr[rows] != nnz {
+        if row_ptr[0] != 0 || row_ptr[rows] as usize != nnz {
             return Err(CsrError::RowPtrInvalid);
         }
         for i in 1..=rows {
@@ -126,7 +126,7 @@ impl<T> CsrMatrix<T> {
             }
         }
         for &c in &col_indices {
-            if c >= cols {
+            if c as usize >= cols {
                 return Err(CsrError::ColIndexOutOfBounds);
             }
         }
@@ -192,7 +192,7 @@ impl<T> CsrMatrix<T> {
     /// let m = CsrMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![3.0_f64, 7.0]).unwrap();
     /// assert_eq!(m.row_ptr(), &[0, 1, 2]);
     /// ```
-    pub fn row_ptr(&self) -> &[usize] {
+    pub fn row_ptr(&self) -> &[u32] {
         &self.row_ptr
     }
 
@@ -206,7 +206,7 @@ impl<T> CsrMatrix<T> {
     /// let m = CsrMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![3.0_f64, 7.0]).unwrap();
     /// assert_eq!(m.col_indices(), &[0, 1]);
     /// ```
-    pub fn col_indices(&self) -> &[usize] {
+    pub fn col_indices(&self) -> &[u32] {
         &self.col_indices
     }
 
@@ -243,7 +243,7 @@ impl<T> CsrMatrix<T> {
         if row >= self.rows {
             None
         } else {
-            Some(self.row_ptr[row]..self.row_ptr[row + 1])
+            Some(self.row_ptr[row] as usize..self.row_ptr[row + 1] as usize)
         }
     }
 }

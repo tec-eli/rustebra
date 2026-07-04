@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `ConvergenceError::NonFinite` in `src/krylov/mod.rs`, with a doc-comment explaining it as an explicit exception to the 
+  crate's general NaN/Inf-propagation policy — bounded compute budget on embedded targets         
+  shouldn't be spent iterating on poisoned state.
 - `krylov` module with eigenvalue computation algorithms.
 - `power_iteration` in the `krylov` module: computes the dominant eigenvalue and corresponding eigenvector
   of a matrix via power iteration. Generic over `impl SparseLinearOp<T>` for use with sparse or dense
@@ -21,14 +24,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Edge case tests for Krylov algorithms covering convergence, tolerance handling, and numerical stability.
 - `SparseLinearOp` validation module (`sparse::validate`) for checking the linear operator trait bounds.
 
+### Fixed
+
+- Edge case test `non_finite_initial_vector_is_a_zero_vector_error` was renamed to `non_finite_initial_vector_is_a_non_finite_error` 
+  and updated to expect `Err(ConvergenceError::NonFinite)` instead of `Err(ConvergenceError::ZeroVector)`, reflecting the 
+  implementation's distinction between non-finite inputs and genuine zero vectors per ADR 0013.
+
 ### Changed
 
 - **Breaking:** `SparseLinearOp::apply` now writes into a caller-supplied `&mut [T]` buffer and returns
   `Result<(), DimensionMismatch>` instead of allocating and returning a new `Vec<T>`. This makes the
   matrix-vector product allocation-free so iterative solver loops can reuse one workspace across
   iterations. For an owned-`Vec` result, use `matvec_csr`/`matvec_csc`.
-
-### Fixed
 
 
 ## [Released]

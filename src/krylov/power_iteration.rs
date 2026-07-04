@@ -78,6 +78,7 @@ impl<T> Storage for Slice<'_, T> {
 ///   any of `v0`, `out_eigenvector`, `scratch` doesn't have exactly `n` elements.
 /// - [`ConvergenceError::ZeroVector`] if `v0` has zero norm (including `n == 0`, where every
 ///   vector is empty), or an iterate lands in the null space of `a` and maps to zero.
+/// - [`ConvergenceError::NonFinite`] if an iterate goes `NaN` or infinite.
 /// - [`ConvergenceError::MaxIterationsExceeded`] if the criteria above aren't met within
 ///   `max_iter` iterations.
 ///
@@ -187,10 +188,11 @@ where
 
 /// Scales `v` in place to unit Euclidean length.
 ///
-/// Errors with `ZeroVector` when `‖v‖` is not strictly positive — that covers the zero
-/// vector, the empty (`n == 0`) vector, and a norm poisoned by non-finite input (`NaN`
-/// compares false against everything, so it lands in the error arm rather than being
-/// divided by).
+/// Errors with `ZeroVector` when `‖v‖` is exactly zero — that covers the zero vector and the
+/// empty (`n == 0`) vector. Errors with `NonFinite` when `‖v‖` is neither strictly positive
+/// nor exactly zero, which is only possible when it's `NaN`: a norm poisoned by non-finite
+/// input compares false against every ordinary value, including `0`, so it fails both checks
+/// rather than being divided by.
 pub(super) fn normalize<T: Scalar + PartialOrd>(v: &mut [T]) -> Result<(), ConvergenceError> {
     let length = norm(&Slice { data: &*v });
     if length > T::zero() {
@@ -199,8 +201,10 @@ pub(super) fn normalize<T: Scalar + PartialOrd>(v: &mut [T]) -> Result<(), Conve
             *slot = slot.mul(inv);
         }
         Ok(())
-    } else {
+    } else if length == T::zero() {
         Err(ConvergenceError::ZeroVector)
+    } else {
+        Err(ConvergenceError::NonFinite)
     }
 }
 
@@ -380,6 +384,32 @@ mod tests {
         let result = power_iteration(&a, 2, &v0, 10, 1e-12, &mut eigenvector, &mut scratch);
 
         assert_eq!(result, Err(ConvergenceError::ZeroVector));
+    }
+
+    #[test]
+    fn non_finite_initial_vector_is_a_distinct_error_from_zero_vector() {
+        let a = StaticStorage::new([2.0, 0.0, 0.0, 1.0]);
+        let v0 = StaticStorage::new([f64::NAN, 0.0]);
+        let mut eigenvector = [0.0; 2];
+        let mut scratch = [0.0; 2];
+
+        let result = power_iteration(&a, 2, &v0, 10, 1e-12, &mut eigenvector, &mut scratch);
+
+        assert_eq!(result, Err(ConvergenceError::NonFinite));
+    }
+
+    #[test]
+    fn iterate_poisoned_by_a_non_finite_matrix_entry_is_a_distinct_error_from_zero_vector() {
+        // A NaN entry in `a` poisons the very first `a * v_k` product, so the iterate that
+        // reaches normalization is non-finite rather than the exact zero vector.
+        let a = StaticStorage::new([f64::NAN, 0.0, 0.0, 1.0]);
+        let v0 = StaticStorage::new([1.0, 1.0]);
+        let mut eigenvector = [0.0; 2];
+        let mut scratch = [0.0; 2];
+
+        let result = power_iteration(&a, 2, &v0, 10, 1e-12, &mut eigenvector, &mut scratch);
+
+        assert_eq!(result, Err(ConvergenceError::NonFinite));
     }
 
     #[test]

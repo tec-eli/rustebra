@@ -44,8 +44,8 @@ pub fn matmat_csr<T: Scalar>(
     let col_idx = m.col_indices();
     let vals = m.values();
     for r in 0..m.rows() {
-        for k in row_ptr[r]..row_ptr[r + 1] {
-            let c = col_idx[k];
+        for k in row_ptr[r] as usize..row_ptr[r + 1] as usize {
+            let c = col_idx[k] as usize;
             let v = vals[k];
             for j in 0..x_cols {
                 let prev = out[r * x_cols + j];
@@ -95,8 +95,8 @@ pub fn matmat_csc<T: Scalar>(
     let row_idx = m.row_indices();
     let vals = m.values();
     for c in 0..m.cols() {
-        for k in col_ptr[c]..col_ptr[c + 1] {
-            let r = row_idx[k];
+        for k in col_ptr[c] as usize..col_ptr[c + 1] as usize {
+            let r = row_idx[k] as usize;
             let v = vals[k];
             for j in 0..x_cols {
                 let prev = out[r * x_cols + j];
@@ -125,7 +125,7 @@ mod tests {
     #[cfg(target_pointer_width = "32")]
     #[test]
     fn matmat_csc_rejects_overflowing_dimensions() {
-        let m = CscMatrix::<f64>::new(65536, 65536, vec![0usize; 65537], vec![], vec![]).unwrap();
+        let m = CscMatrix::<f64>::new(65536, 65536, vec![0u32; 65537], vec![], vec![]).unwrap();
         let x: Vec<f64> = vec![];
         assert!(matmat_csc(&m, &x, 65536).is_err());
     }
