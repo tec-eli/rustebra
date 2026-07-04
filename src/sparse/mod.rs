@@ -57,3 +57,8 @@ pub use self::spmm::spmm_csr;
 mod prune;
 #[cfg(feature = "alloc")]
 pub use self::prune::{prune_csc, prune_csr};
+
+#[cfg(feature = "alloc")]
+mod validate;
+#[cfg(feature = "alloc")]
+pub use self::validate::{ValidateError, validate_csc, validate_csr};

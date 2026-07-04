@@ -165,7 +165,8 @@ mod tests {
     fn apply_into_matches_apply_for_csr() {
         // [ 1  2  0 ]   [ 1 ]   [ 5 ]
         // [ 0  0  3 ] × [ 2 ] = [ 9 ]
-        let m = CsrMatrix::new(2, 3, vec![0, 2, 3], vec![0, 1, 2], vec![1.0_f64, 2.0, 3.0]).unwrap();
+        let m =
+            CsrMatrix::new(2, 3, vec![0, 2, 3], vec![0, 1, 2], vec![1.0_f64, 2.0, 3.0]).unwrap();
         let x = [1.0, 2.0, 3.0];
         let expected = m.apply(&x).unwrap();
         let mut out = vec![7.0; 2];
@@ -177,7 +178,8 @@ mod tests {
     fn apply_into_matches_apply_for_csc() {
         // [ 1  0 ]   [ 2 ]   [ 2 ]
         // [ 4  3 ] × [ 4 ] = [ 20 ]
-        let m = CscMatrix::new(2, 2, vec![0, 2, 3], vec![0, 1, 1], vec![1.0_f64, 4.0, 3.0]).unwrap();
+        let m =
+            CscMatrix::new(2, 2, vec![0, 2, 3], vec![0, 1, 1], vec![1.0_f64, 4.0, 3.0]).unwrap();
         let x = [2.0, 4.0];
         let expected = m.apply(&x).unwrap();
         let mut out = vec![7.0; 2];
