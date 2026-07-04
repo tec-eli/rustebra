@@ -1,6 +1,3 @@
-use alloc::vec;
-use alloc::vec::Vec;
-
 use crate::scalar::Scalar;
 
 use super::add::DimensionMismatch;
@@ -9,7 +6,9 @@ use super::{CscMatrix, CsrMatrix};
 /// An abstract sparse linear operator that can be applied to a dense vector.
 ///
 /// Implementing this trait for a storage format lets iterative Krylov solvers (CG, GMRES,
-/// Lanczos, etc.) be written once, generically, rather than once per format.
+/// Lanczos, etc.) be written once, generically, rather than once per format. The output is
+/// written into a caller-supplied buffer, so applying the operator never allocates — solver
+/// loops can reuse the same workspace across iterations.
 ///
 /// # Examples
 ///
@@ -17,11 +16,12 @@ use super::{CscMatrix, CsrMatrix};
 /// use rustebra::sparse::{CsrMatrix, SparseLinearOp};
 ///
 /// let eye = CsrMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![1.0_f64, 1.0]).unwrap();
-/// let y = eye.apply(&[3.0, 5.0]).unwrap();
-/// assert_eq!(y, vec![3.0, 5.0]);
+/// let mut y = [0.0; 2];
+/// eye.apply(&[3.0, 5.0], &mut y).unwrap();
+/// assert_eq!(y, [3.0, 5.0]);
 /// ```
 pub trait SparseLinearOp<T: Scalar> {
-    /// Number of rows (length of the output vector from [`apply`](SparseLinearOp::apply)).
+    /// Number of rows (required length of the output buffer for [`apply`](SparseLinearOp::apply)).
     ///
     /// # Examples
     ///
@@ -45,28 +45,8 @@ pub trait SparseLinearOp<T: Scalar> {
     /// ```
     fn cols(&self) -> usize;
 
-    /// Multiplies the operator by the dense column vector `x`, returning a new `Vec<T>`
-    /// of length `self.rows()`.
-    ///
-    /// # Errors
-    ///
-    /// Returns `Err(DimensionMismatch)` when `x.len() != self.cols()`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rustebra::sparse::{CscMatrix, SparseLinearOp};
-    ///
-    /// // [ 1  0 ]   [ 2 ]   [ 2 ]
-    /// // [ 0  3 ] × [ 4 ] = [ 12 ]
-    /// let m = CscMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![1.0_f64, 3.0]).unwrap();
-    /// let y = m.apply(&[2.0, 4.0]).unwrap();
-    /// assert_eq!(y, vec![2.0, 12.0]);
-    /// ```
-    fn apply(&self, x: &[T]) -> Result<Vec<T>, DimensionMismatch>;
-
     /// Multiplies the operator by the dense column vector `x`, writing the result into the
-    /// caller-supplied buffer `out` instead of allocating.
+    /// caller-supplied buffer `out`.
     ///
     /// `out` is overwritten entirely; its previous contents are ignored.
     ///
@@ -84,10 +64,10 @@ pub trait SparseLinearOp<T: Scalar> {
     /// // [ 0  3 ] × [ 4 ] = [ 12 ]
     /// let m = CscMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![1.0_f64, 3.0]).unwrap();
     /// let mut y = [0.0; 2];
-    /// m.apply_into(&[2.0, 4.0], &mut y).unwrap();
+    /// m.apply(&[2.0, 4.0], &mut y).unwrap();
     /// assert_eq!(y, [2.0, 12.0]);
     /// ```
-    fn apply_into(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch>;
+    fn apply(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch>;
 }
 
 impl<T: Scalar> SparseLinearOp<T> for CsrMatrix<T> {
@@ -99,13 +79,7 @@ impl<T: Scalar> SparseLinearOp<T> for CsrMatrix<T> {
         CsrMatrix::cols(self)
     }
 
-    fn apply(&self, x: &[T]) -> Result<Vec<T>, DimensionMismatch> {
-        let mut out = vec![T::zero(); CsrMatrix::rows(self)];
-        self.apply_into(x, &mut out)?;
-        Ok(out)
-    }
-
-    fn apply_into(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
+    fn apply(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
         if x.len() != CsrMatrix::cols(self) || out.len() != CsrMatrix::rows(self) {
             return Err(DimensionMismatch);
         }
@@ -132,13 +106,7 @@ impl<T: Scalar> SparseLinearOp<T> for CscMatrix<T> {
         CscMatrix::cols(self)
     }
 
-    fn apply(&self, x: &[T]) -> Result<Vec<T>, DimensionMismatch> {
-        let mut out = vec![T::zero(); CscMatrix::rows(self)];
-        self.apply_into(x, &mut out)?;
-        Ok(out)
-    }
-
-    fn apply_into(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
+    fn apply(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
         if x.len() != CscMatrix::cols(self) || out.len() != CscMatrix::rows(self) {
             return Err(DimensionMismatch);
         }
@@ -159,31 +127,47 @@ impl<T: Scalar> SparseLinearOp<T> for CscMatrix<T> {
 
 #[cfg(test)]
 mod tests {
+    use alloc::vec;
+
     use super::*;
 
     #[test]
-    fn apply_into_matches_apply_for_csr() {
+    fn apply_overwrites_out_for_csr() {
         // [ 1  2  0 ]   [ 1 ]   [ 5 ]
         // [ 0  0  3 ] × [ 2 ] = [ 9 ]
         let m =
             CsrMatrix::new(2, 3, vec![0, 2, 3], vec![0, 1, 2], vec![1.0_f64, 2.0, 3.0]).unwrap();
         let x = [1.0, 2.0, 3.0];
-        let expected = m.apply(&x).unwrap();
-        let mut out = vec![7.0; 2];
-        m.apply_into(&x, &mut out).unwrap();
-        assert_eq!(out, expected);
+        let mut out = [7.0; 2];
+        m.apply(&x, &mut out).unwrap();
+        assert_eq!(out, [5.0, 9.0]);
     }
 
     #[test]
-    fn apply_into_matches_apply_for_csc() {
+    fn apply_overwrites_out_for_csc() {
         // [ 1  0 ]   [ 2 ]   [ 2 ]
         // [ 4  3 ] × [ 4 ] = [ 20 ]
         let m =
             CscMatrix::new(2, 2, vec![0, 2, 3], vec![0, 1, 1], vec![1.0_f64, 4.0, 3.0]).unwrap();
         let x = [2.0, 4.0];
-        let expected = m.apply(&x).unwrap();
-        let mut out = vec![7.0; 2];
-        m.apply_into(&x, &mut out).unwrap();
-        assert_eq!(out, expected);
+        let mut out = [7.0; 2];
+        m.apply(&x, &mut out).unwrap();
+        assert_eq!(out, [2.0, 20.0]);
+    }
+
+    #[test]
+    fn apply_rejects_wrong_input_length_for_csr() {
+        let m =
+            CsrMatrix::new(2, 3, vec![0, 2, 3], vec![0, 1, 2], vec![1.0_f64, 2.0, 3.0]).unwrap();
+        let mut out = [0.0; 2];
+        assert_eq!(m.apply(&[1.0, 2.0], &mut out), Err(DimensionMismatch));
+    }
+
+    #[test]
+    fn apply_rejects_wrong_output_length_for_csc() {
+        let m =
+            CscMatrix::new(2, 2, vec![0, 2, 3], vec![0, 1, 1], vec![1.0_f64, 4.0, 3.0]).unwrap();
+        let mut out = [0.0; 3];
+        assert_eq!(m.apply(&[2.0, 4.0], &mut out), Err(DimensionMismatch));
     }
 }

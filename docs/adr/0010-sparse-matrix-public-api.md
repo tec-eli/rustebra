@@ -2,7 +2,7 @@
 # ADR 0010: Sparse Matrix Public API Shape
 
 ## Status
-Accepted
+Accepted (Revised — see Revision History)
 
 ## Context
 The sparse matrix module introduces three storage formats — COO (coordinate),
@@ -141,3 +141,21 @@ format type.
   exists today, so the cost is accepted.
 - `SparseLinearOp` adds a trait to learn. Its narrowness (three methods) keeps
   this cost low.
+
+## Revision History
+
+* **Original version:** `SparseLinearOp::apply` took only the input vector and returned a
+  newly allocated `Vec<T>`, on the grounds that a caller-supplied output slice was
+  speculative ("no such pipeline exists in this codebase today"). That premise no longer
+  holds: the Krylov solver work is exactly the deferred pipeline. Iterative solvers call
+  the matrix-vector product once per iteration, and a per-iteration heap allocation is
+  both a throughput cost and, on embedded real-time targets, a determinism problem
+  (fragmentation, unpredictable latency). The trait method is now
+  `apply(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch>`, writing into a
+  caller-supplied buffer of length `rows()` and overwriting it entirely; passing a buffer
+  of the wrong length is a `DimensionMismatch`, the same unified error as before. The
+  trait definition itself no longer requires allocation, though it remains behind the
+  `alloc` feature because all current implementers are `Vec`-backed formats. Callers who
+  want an owned `Vec<T>` result use the format-explicit free functions (`matvec_csr`,
+  `matvec_csc`), which keep the owned-return convenience this ADR originally placed on
+  the trait.

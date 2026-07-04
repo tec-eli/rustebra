@@ -170,12 +170,8 @@ impl<T: Scalar> SparseLinearOp<T> for SortedCsrMatrix<T> {
         self.0.cols()
     }
 
-    fn apply(&self, x: &[T]) -> Result<Vec<T>, DimensionMismatch> {
-        SparseLinearOp::apply(&self.0, x)
-    }
-
-    fn apply_into(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
-        SparseLinearOp::apply_into(&self.0, x, out)
+    fn apply(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
+        SparseLinearOp::apply(&self.0, x, out)
     }
 }
 

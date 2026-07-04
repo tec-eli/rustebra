@@ -7,11 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## Added
+### Added
 
-- Edge test cases for Krylov
+- `krylov` module with eigenvalue computation algorithms.
+- `power_iteration` in the `krylov` module: computes the dominant eigenvalue and corresponding eigenvector
+  of a matrix via power iteration. Generic over `impl SparseLinearOp<T>` for use with sparse or dense
+  matrices. Returns `Result<(T, Vec<T>), PowerIterationError>` with configurable iteration count and
+  convergence tolerance. Includes property tests exercising convergence on diagonalizable matrices.
+- `inverse_power_iteration` in the `krylov` module: computes the smallest eigenvalue (by magnitude)
+  and corresponding eigenvector via inverse power iteration. Also generic over `impl SparseLinearOp<T>`,
+  with the same `Result<(T, Vec<T>), InversePowerIterationError>` signature and configurability.
+  Includes comprehensive property tests covering standard and edge cases.
+- Edge case tests for Krylov algorithms covering convergence, tolerance handling, and numerical stability.
+- `SparseLinearOp` validation module (`sparse::validate`) for checking the linear operator trait bounds.
 
-## Fixed
+### Changed
+
+- **Breaking:** `SparseLinearOp::apply` now writes into a caller-supplied `&mut [T]` buffer and returns
+  `Result<(), DimensionMismatch>` instead of allocating and returning a new `Vec<T>`. This makes the
+  matrix-vector product allocation-free so iterative solver loops can reuse one workspace across
+  iterations. For an owned-`Vec` result, use `matvec_csr`/`matvec_csc`.
+
+### Fixed
 
 
 ## [Released]
