@@ -39,9 +39,9 @@ proptest! {
             .expect("entries should be in bounds");
 
         // Convert COO → CSR → COO
-        let sorted_csr = coo_to_csr(coo);
+        let sorted_csr = coo_to_csr(coo).expect("dimensions fit within test-generated bounds");
         let csr: rustebra::sparse::CsrMatrix<f64> = sorted_csr.into();
-        let coo_roundtrip = csr_to_coo(csr);
+        let coo_roundtrip = csr_to_coo(csr).expect("dimensions fit within test-generated bounds");
 
         // Verify dimensions are preserved
         prop_assert_eq!(coo_roundtrip.rows(), rows);

@@ -52,7 +52,7 @@ pub trait SparseLinearOp<T: Scalar> {
     ///
     /// # Errors
     ///
-    /// Returns `Err(DimensionMismatch)` when `x.len() != self.cols()` or
+    /// Returns `Err(DimensionMismatch::Shape)` when `x.len() != self.cols()` or
     /// `out.len() != self.rows()`.
     ///
     /// # Examples
@@ -81,7 +81,7 @@ impl<T: Scalar> SparseLinearOp<T> for CsrMatrix<T> {
 
     fn apply(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
         if x.len() != CsrMatrix::cols(self) || out.len() != CsrMatrix::rows(self) {
-            return Err(DimensionMismatch);
+            return Err(DimensionMismatch::Shape);
         }
         out.fill(T::zero());
         let row_ptr = self.row_ptr();
@@ -108,7 +108,7 @@ impl<T: Scalar> SparseLinearOp<T> for CscMatrix<T> {
 
     fn apply(&self, x: &[T], out: &mut [T]) -> Result<(), DimensionMismatch> {
         if x.len() != CscMatrix::cols(self) || out.len() != CscMatrix::rows(self) {
-            return Err(DimensionMismatch);
+            return Err(DimensionMismatch::Shape);
         }
         out.fill(T::zero());
         let col_ptr = self.col_ptr();
@@ -160,7 +160,10 @@ mod tests {
         let m =
             CsrMatrix::new(2, 3, vec![0, 2, 3], vec![0, 1, 2], vec![1.0_f64, 2.0, 3.0]).unwrap();
         let mut out = [0.0; 2];
-        assert_eq!(m.apply(&[1.0, 2.0], &mut out), Err(DimensionMismatch));
+        assert_eq!(
+            m.apply(&[1.0, 2.0], &mut out),
+            Err(DimensionMismatch::Shape)
+        );
     }
 
     #[test]
@@ -168,6 +171,9 @@ mod tests {
         let m =
             CscMatrix::new(2, 2, vec![0, 2, 3], vec![0, 1, 1], vec![1.0_f64, 4.0, 3.0]).unwrap();
         let mut out = [0.0; 3];
-        assert_eq!(m.apply(&[2.0, 4.0], &mut out), Err(DimensionMismatch));
+        assert_eq!(
+            m.apply(&[2.0, 4.0], &mut out),
+            Err(DimensionMismatch::Shape)
+        );
     }
 }

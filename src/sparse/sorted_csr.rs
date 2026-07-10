@@ -114,8 +114,8 @@ impl<T: Scalar> SortedCsrMatrix<T> {
     /// use rustebra::sparse::{CooMatrix, CsrMatrix, SortedCsrMatrix, coo_to_csr, csr_to_coo};
     ///
     /// let coo = CooMatrix::new(2, 2, vec![0, 1], vec![1, 0], vec![3.0_f64, 7.0]).unwrap();
-    /// let sorted: SortedCsrMatrix<f64> = coo_to_csr(coo);
-    /// let coo2 = csr_to_coo(sorted.into_inner());
+    /// let sorted: SortedCsrMatrix<f64> = coo_to_csr(coo).unwrap();
+    /// let coo2 = csr_to_coo(sorted.into_inner()).unwrap();
     /// assert_eq!(coo2.nnz(), 2);
     /// ```
     pub fn into_inner(self) -> CsrMatrix<T> {

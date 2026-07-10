@@ -17,7 +17,7 @@ use super::sorted_csr::SortedCsrMatrix;
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `a.cols() != b.rows()`.
+/// Returns `Err(DimensionMismatch::Shape)` when `a.cols() != b.rows()`.
 ///
 /// # Examples
 ///
@@ -39,7 +39,7 @@ pub fn spmm_csr<T: Scalar>(
     b: &CsrMatrix<T>,
 ) -> Result<SortedCsrMatrix<T>, DimensionMismatch> {
     if a.cols() != b.rows() {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
     let m = a.rows();
     let n = b.cols();
@@ -89,7 +89,8 @@ pub fn spmm_csr<T: Scalar>(
             in_touched[col] = false;
         }
         touched.clear();
-        out_row_ptr[r + 1] = out_col.len() as u32;
+        out_row_ptr[r + 1] =
+            u32::try_from(out_col.len()).map_err(|_| DimensionMismatch::DimensionOverflow)?;
     }
 
     Ok(SortedCsrMatrix::from_sorted_unchecked(CsrMatrix::new_raw(

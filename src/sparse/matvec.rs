@@ -15,7 +15,7 @@ use super::{CscMatrix, CsrMatrix};
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x.len() != m.cols()`.
+/// Returns `Err(DimensionMismatch::Shape)` when `x.len() != m.cols()`.
 ///
 /// # Examples
 ///
@@ -30,7 +30,7 @@ use super::{CscMatrix, CsrMatrix};
 /// ```
 pub fn matvec_csr<T: Scalar>(m: &CsrMatrix<T>, x: &[T]) -> Result<Vec<T>, DimensionMismatch> {
     if x.len() != m.cols() {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
     let mut out = vec![T::zero(); m.rows()];
     let row_ptr = m.row_ptr();
@@ -53,7 +53,7 @@ pub fn matvec_csr<T: Scalar>(m: &CsrMatrix<T>, x: &[T]) -> Result<Vec<T>, Dimens
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x.len() != m.cols()`.
+/// Returns `Err(DimensionMismatch::Shape)` when `x.len() != m.cols()`.
 ///
 /// # Examples
 ///
@@ -68,7 +68,7 @@ pub fn matvec_csr<T: Scalar>(m: &CsrMatrix<T>, x: &[T]) -> Result<Vec<T>, Dimens
 /// ```
 pub fn matvec_csc<T: Scalar>(m: &CscMatrix<T>, x: &[T]) -> Result<Vec<T>, DimensionMismatch> {
     if x.len() != m.cols() {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
     let mut out = vec![T::zero(); m.rows()];
     let col_ptr = m.col_ptr();

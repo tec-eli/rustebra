@@ -35,7 +35,7 @@ fn add_csr_merged_and_sorted_within_row() {
 fn add_csr_shape_mismatch_is_an_error() {
     let a = CsrMatrix::<f64>::new(2, 2, vec![0, 0, 0], vec![], vec![]).unwrap();
     let b = CsrMatrix::<f64>::new(2, 3, vec![0, 0, 0], vec![], vec![]).unwrap();
-    assert_eq!(add_csr(&a, &b), Err(DimensionMismatch));
+    assert_eq!(add_csr(&a, &b), Err(DimensionMismatch::Shape));
 }
 
 #[test]
@@ -72,5 +72,5 @@ fn add_csc_disjoint_rows_within_column() {
 fn add_csc_shape_mismatch_is_an_error() {
     let a = CscMatrix::<f64>::new(2, 2, vec![0, 0, 0], vec![], vec![]).unwrap();
     let b = CscMatrix::<f64>::new(3, 2, vec![0, 0, 0], vec![], vec![]).unwrap();
-    assert_eq!(add_csc(&a, &b), Err(DimensionMismatch));
+    assert_eq!(add_csc(&a, &b), Err(DimensionMismatch::Shape));
 }

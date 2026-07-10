@@ -48,7 +48,7 @@ fn spmm_general_2x2() {
 fn spmm_dimension_mismatch_is_an_error() {
     let a = CsrMatrix::<f64>::new(2, 3, vec![0, 0, 0], vec![], vec![]).unwrap();
     let b = CsrMatrix::<f64>::new(2, 2, vec![0, 0, 0], vec![], vec![]).unwrap();
-    assert_eq!(spmm_csr(&a, &b), Err(DimensionMismatch));
+    assert_eq!(spmm_csr(&a, &b), Err(DimensionMismatch::Shape));
 }
 
 #[test]

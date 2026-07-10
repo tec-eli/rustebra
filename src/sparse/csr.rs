@@ -14,6 +14,8 @@ pub enum CsrError {
     RowPtrInvalid,
     /// A column index is >= the declared column count.
     ColIndexOutOfBounds,
+    /// Computing `rows + 1` overflowed `usize`.
+    DimensionOverflow,
 }
 
 /// A sparse matrix in compressed sparse row (CSR) format. Requires the `alloc` feature.
@@ -93,6 +95,7 @@ impl<T> CsrMatrix<T> {
     /// - [`CsrError::RowPtrInvalid`] — `row_ptr[0] != 0`, `row_ptr` is not non-decreasing,
     ///   or `row_ptr[rows] != col_indices.len()`.
     /// - [`CsrError::ColIndexOutOfBounds`] — any column index `>= cols`.
+    /// - [`CsrError::DimensionOverflow`] — `rows + 1` overflows `usize`.
     ///
     /// # Examples
     ///
@@ -113,7 +116,8 @@ impl<T> CsrMatrix<T> {
         if col_indices.len() != values.len() {
             return Err(CsrError::LengthMismatch);
         }
-        if row_ptr.len() != rows + 1 {
+        let expected_len = rows.checked_add(1).ok_or(CsrError::DimensionOverflow)?;
+        if row_ptr.len() != expected_len {
             return Err(CsrError::RowPtrLengthMismatch);
         }
         let nnz = col_indices.len();
@@ -361,6 +365,12 @@ mod tests {
         let c = CsrMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![1.0_f64, 9.0]).unwrap();
         assert_eq!(a, b);
         assert_ne!(a, c);
+    }
+
+    #[test]
+    fn rows_plus_one_overflow_is_an_error_not_a_panic() {
+        let err = CsrMatrix::<f64>::new(usize::MAX, 1, vec![], vec![], vec![]);
+        assert_eq!(err, Err(CsrError::DimensionOverflow));
     }
 
     #[test]

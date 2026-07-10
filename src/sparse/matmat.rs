@@ -15,7 +15,8 @@ use super::{CscMatrix, CsrMatrix};
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x_cols == 0` or `x.len() != m.cols() * x_cols`.
+/// Returns `Err(DimensionMismatch::Shape)` when `x_cols == 0` or `x.len() != m.cols() * x_cols`,
+/// and `Err(DimensionMismatch::DimensionOverflow)` when computing the expected sizes overflows.
 ///
 /// # Examples
 ///
@@ -34,11 +35,17 @@ pub fn matmat_csr<T: Scalar>(
     x: &[T],
     x_cols: usize,
 ) -> Result<Vec<T>, DimensionMismatch> {
-    let expected = m.cols().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let expected = m
+        .cols()
+        .checked_mul(x_cols)
+        .ok_or(DimensionMismatch::DimensionOverflow)?;
     if x_cols == 0 || x.len() != expected {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
-    let out_len = m.rows().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let out_len = m
+        .rows()
+        .checked_mul(x_cols)
+        .ok_or(DimensionMismatch::DimensionOverflow)?;
     let mut out = vec![T::zero(); out_len];
     let row_ptr = m.row_ptr();
     let col_idx = m.col_indices();
@@ -66,7 +73,8 @@ pub fn matmat_csr<T: Scalar>(
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x_cols == 0` or `x.len() != m.cols() * x_cols`.
+/// Returns `Err(DimensionMismatch::Shape)` when `x_cols == 0` or `x.len() != m.cols() * x_cols`,
+/// and `Err(DimensionMismatch::DimensionOverflow)` when computing the expected sizes overflows.
 ///
 /// # Examples
 ///
@@ -85,11 +93,17 @@ pub fn matmat_csc<T: Scalar>(
     x: &[T],
     x_cols: usize,
 ) -> Result<Vec<T>, DimensionMismatch> {
-    let expected = m.cols().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let expected = m
+        .cols()
+        .checked_mul(x_cols)
+        .ok_or(DimensionMismatch::DimensionOverflow)?;
     if x_cols == 0 || x.len() != expected {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
-    let out_len = m.rows().checked_mul(x_cols).ok_or(DimensionMismatch)?;
+    let out_len = m
+        .rows()
+        .checked_mul(x_cols)
+        .ok_or(DimensionMismatch::DimensionOverflow)?;
     let mut out = vec![T::zero(); out_len];
     let col_ptr = m.col_ptr();
     let row_idx = m.row_indices();

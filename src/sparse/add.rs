@@ -8,7 +8,14 @@ use super::{CscMatrix, CsrMatrix};
 /// Error returned by sparse arithmetic functions when operands have incompatible shapes,
 /// or when the vector length does not match the matrix column count.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DimensionMismatch;
+pub enum DimensionMismatch {
+    /// Operands have incompatible shapes, or a vector length does not match the expected
+    /// matrix dimension.
+    Shape,
+    /// An arithmetic overflow occurred while computing a size (e.g. total non-zero count
+    /// exceeding `u32::MAX`).
+    DimensionOverflow,
+}
 
 /// Adds two CSR sparse matrices element-wise, merging and deduplicating entries per row.
 ///
@@ -18,7 +25,7 @@ pub struct DimensionMismatch;
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `a` and `b` don't have the same shape.
+/// Returns `Err(DimensionMismatch::Shape)` when `a` and `b` don't have the same shape.
 ///
 /// # Examples
 ///
@@ -39,7 +46,7 @@ pub fn add_csr<T: Scalar>(
     b: &CsrMatrix<T>,
 ) -> Result<CsrMatrix<T>, DimensionMismatch> {
     if a.rows() != b.rows() || a.cols() != b.cols() {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
     let rows = a.rows();
     let cols = a.cols();
@@ -74,7 +81,8 @@ pub fn add_csr<T: Scalar>(
             }
             k = j;
         }
-        out_row_ptr[r + 1] = out_col.len() as u32;
+        out_row_ptr[r + 1] =
+            u32::try_from(out_col.len()).map_err(|_| DimensionMismatch::DimensionOverflow)?;
     }
 
     Ok(CsrMatrix::new_raw(
@@ -94,7 +102,7 @@ pub fn add_csr<T: Scalar>(
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `a` and `b` don't have the same shape.
+/// Returns `Err(DimensionMismatch::Shape)` when `a` and `b` don't have the same shape.
 ///
 /// # Examples
 ///
@@ -115,7 +123,7 @@ pub fn add_csc<T: Scalar>(
     b: &CscMatrix<T>,
 ) -> Result<CscMatrix<T>, DimensionMismatch> {
     if a.rows() != b.rows() || a.cols() != b.cols() {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
     let rows = a.rows();
     let cols = a.cols();
@@ -150,7 +158,8 @@ pub fn add_csc<T: Scalar>(
             }
             k = j;
         }
-        out_col_ptr[c + 1] = out_row.len() as u32;
+        out_col_ptr[c + 1] =
+            u32::try_from(out_row.len()).map_err(|_| DimensionMismatch::DimensionOverflow)?;
     }
 
     Ok(CscMatrix::new_raw(
