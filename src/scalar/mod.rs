@@ -68,11 +68,13 @@ pub trait Scalar: Copy + PartialEq {
     /// Returns the sine of `self` (in radians), via a fixed-iteration Taylor series
     /// expansion around zero: `sin(x) = x - x^3/3! + x^5/5! - ...`.
     ///
+    /// `self` is first reduced to `[-pi, pi]` by subtracting the nearest multiple of
+    /// `2*pi`, so the fixed iteration budget below stays accurate across the whole
+    /// documented `[-2*pi, 2*pi]` domain instead of only near zero.
+    ///
     /// The iteration count is fixed rather than convergence-checked, so behavior is
     /// predictable in `no_std` contexts (the same amount of work runs regardless of the
-    /// input). This converges to the correctly-rounded result near zero, but loses
-    /// precision as `self` grows away from zero, since this implementation performs no
-    /// range reduction (e.g. reducing `self` modulo `2*pi` first).
+    /// input).
     ///
     /// # Examples
     ///
@@ -89,9 +91,9 @@ pub trait Scalar: Copy + PartialEq {
     /// Returns the cosine of `self` (in radians), via a fixed-iteration Taylor series
     /// expansion around zero: `cos(x) = 1 - x^2/2! + x^4/4! - ...`.
     ///
-    /// Same fixed-iteration, no-range-reduction trade-off as [`Scalar::sin`]: predictable,
-    /// bounded work in `no_std` contexts, at the cost of precision for `self` far from
-    /// zero.
+    /// Same range reduction and fixed-iteration trade-off as [`Scalar::sin`]: predictable,
+    /// bounded work in `no_std` contexts, accurate across the documented `[-2*pi, 2*pi]`
+    /// domain.
     ///
     /// # Examples
     ///

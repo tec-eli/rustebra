@@ -17,3 +17,4 @@ Read `CONTEXT.md` before writing any code.
 - Do not commit anything unless asked to do so.
 - Do not write features that are not requested.
 - Do not write code ahead of time. Do not start refactors unless they are requested.
+- Do not trigger agents if you are not requested to do so.

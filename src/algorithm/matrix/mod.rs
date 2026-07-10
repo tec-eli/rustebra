@@ -21,8 +21,9 @@ pub use svd::{svd, svd_qr_iteration};
 
 /// The absolute value of `x`, for any `Scalar` with an ordering — `Scalar`'s arithmetic
 /// surface is deliberately minimal and has no `abs` of its own, and every
-/// largest-magnitude-pivot or tolerance comparison in this module needs one.
-pub(super) fn abs<T: Scalar + PartialOrd>(x: T) -> T {
+/// largest-magnitude-pivot or tolerance comparison in this module (and the convergence
+/// checks in [`crate::krylov`]) needs one.
+pub(crate) fn abs<T: Scalar + PartialOrd>(x: T) -> T {
     if x < T::zero() { T::zero().sub(x) } else { x }
 }
 

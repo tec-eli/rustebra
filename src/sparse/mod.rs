@@ -19,6 +19,11 @@ mod sorted_csr;
 pub use self::sorted_csr::SortedCsrMatrix;
 
 #[cfg(feature = "alloc")]
+mod sorted_csc;
+#[cfg(feature = "alloc")]
+pub use self::sorted_csc::SortedCscMatrix;
+
+#[cfg(feature = "alloc")]
 mod linear_op;
 #[cfg(feature = "alloc")]
 pub use self::linear_op::SparseLinearOp;
@@ -57,3 +62,8 @@ pub use self::spmm::spmm_csr;
 mod prune;
 #[cfg(feature = "alloc")]
 pub use self::prune::{prune_csc, prune_csr};
+
+#[cfg(feature = "alloc")]
+mod validate;
+#[cfg(feature = "alloc")]
+pub use self::validate::{ValidateError, validate_csc, validate_csr};

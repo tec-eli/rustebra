@@ -52,7 +52,7 @@ fn matvec_csr_empty_rows_produce_zero_entries() {
 #[test]
 fn matvec_csr_dimension_mismatch_returns_error() {
     let m = CsrMatrix::new(2, 3, vec![0, 1, 1], vec![0], vec![1.0_f64]).unwrap();
-    assert_eq!(matvec_csr(&m, &[1.0, 2.0]), Err(DimensionMismatch));
+    assert_eq!(matvec_csr(&m, &[1.0, 2.0]), Err(DimensionMismatch::Shape));
 }
 
 #[test]
@@ -135,7 +135,7 @@ fn matvec_csc_empty_columns_produce_zero_entries() {
 #[test]
 fn matvec_csc_dimension_mismatch_returns_error() {
     let m = CscMatrix::new(2, 3, vec![0, 1, 1, 1], vec![0], vec![1.0_f64]).unwrap();
-    assert_eq!(matvec_csc(&m, &[1.0, 2.0]), Err(DimensionMismatch));
+    assert_eq!(matvec_csc(&m, &[1.0, 2.0]), Err(DimensionMismatch::Shape));
 }
 
 #[test]

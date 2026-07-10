@@ -9,7 +9,7 @@ pub(crate) fn run() {
     // coo_to_csr: duplicate (row, col) entries are summed; columns sorted per row.
     let coo = CooMatrix::new(2, 2, vec![0, 0, 1], vec![0, 0, 1], vec![3.0_f64, 4.0, 5.0])
         .expect("valid COO");
-    let csr: SortedCsrMatrix<f64> = coo_to_csr(coo);
+    let csr: SortedCsrMatrix<f64> = coo_to_csr(coo).expect("dimensions fit within limits");
     println!("coo_to_csr (duplicate (0,0) summed: 3+4=7):");
     println!(
         "  row_ptr={:?}  col_indices={:?}  values={:?}",
@@ -27,7 +27,7 @@ pub(crate) fn run() {
         vec![1.0_f64, 1.0, 1.0],
     )
     .expect("valid CSR");
-    let coo_out = csr_to_coo(csr_eye);
+    let coo_out = csr_to_coo(csr_eye).expect("dimensions fit within limits");
     println!(
         "\ncsr_to_coo (3×3 identity): row_indices={:?}",
         coo_out.row_indices()
@@ -42,7 +42,7 @@ pub(crate) fn run() {
         vec![1.0_f64, 2.0, 3.0, 4.0],
     )
     .expect("valid 2×3 CSR");
-    let csc_out = csr_to_csc(csr_rect);
+    let csc_out = csr_to_csc(csr_rect).expect("dimensions fit within limits");
     println!("\ncsr_to_csc (2×3):");
     println!(
         "  col_ptr={:?}  row_indices={:?}  values={:?}",
@@ -60,7 +60,7 @@ pub(crate) fn run() {
         vec![1.0_f64, 1.0, 1.0],
     )
     .expect("valid CSC");
-    let csr_back = csc_to_csr(csc_eye);
+    let csr_back = csc_to_csr(csc_eye).expect("dimensions fit within limits");
     println!(
         "\ncsc_to_csr (3×3 identity): row_ptr={:?}",
         csr_back.row_ptr()

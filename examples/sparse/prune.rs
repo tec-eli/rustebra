@@ -12,7 +12,7 @@ pub(crate) fn run() {
         vec![1e-15_f64, 2.0, -1e-15],
     )
     .expect("valid CSR");
-    let pruned = prune_csr(m, 1e-10);
+    let pruned = prune_csr(m, 1e-10).expect("dimensions fit within limits");
     println!("prune_csr (tolerance=1e-10, two near-zeros removed):");
     println!("  nnz={}", pruned.nnz());
     println!(

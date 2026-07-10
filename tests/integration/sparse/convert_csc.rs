@@ -10,7 +10,7 @@ fn csr_to_csc_identity() {
         vec![1.0_f64, 1.0, 1.0],
     )
     .unwrap();
-    let csc = csr_to_csc(csr);
+    let csc = csr_to_csc(csr).unwrap();
     assert_eq!(csc.col_ptr(), &[0, 1, 2, 3]);
     assert_eq!(csc.row_indices(), &[0, 1, 2]);
     assert_eq!(csc.values(), &[1.0, 1.0, 1.0]);
@@ -26,7 +26,7 @@ fn csc_to_csr_identity() {
         vec![1.0_f64, 1.0, 1.0],
     )
     .unwrap();
-    let csr = csc_to_csr(csc);
+    let csr = csc_to_csr(csc).unwrap();
     assert_eq!(csr.row_ptr(), &[0, 1, 2, 3]);
     assert_eq!(csr.col_indices(), &[0, 1, 2]);
     assert_eq!(csr.values(), &[1.0, 1.0, 1.0]);
@@ -43,7 +43,7 @@ fn csr_to_csc_general_matrix() {
         vec![1.0_f64, 2.0, 3.0, 4.0],
     )
     .unwrap();
-    let csc = csr_to_csc(csr);
+    let csc = csr_to_csc(csr).unwrap();
     // Column 0: rows [0, 1] with values [1, 3].
     // Column 1: rows [0, 1] with values [2, 4].
     assert_eq!(csc.col_ptr(), &[0, 2, 4]);
@@ -62,7 +62,7 @@ fn csc_to_csr_general_matrix() {
         vec![1.0_f64, 3.0, 2.0, 4.0],
     )
     .unwrap();
-    let csr = csc_to_csr(csc);
+    let csr = csc_to_csr(csc).unwrap();
     assert_eq!(csr.row_ptr(), &[0, 2, 4]);
     assert_eq!(csr.col_indices(), &[0, 1, 0, 1]);
     assert_eq!(csr.values(), &[1.0, 2.0, 3.0, 4.0]);
@@ -83,8 +83,8 @@ fn csr_csc_roundtrip() {
     let expected_row_ptr = csr.row_ptr().to_vec();
     let expected_col = csr.col_indices().to_vec();
     let expected_val = csr.values().to_vec();
-    let csc = csr_to_csc(csr);
-    let back = csc_to_csr(csc);
+    let csc = csr_to_csc(csr).unwrap();
+    let back = csc_to_csr(csc).unwrap();
     assert_eq!(back.row_ptr(), expected_row_ptr.as_slice());
     assert_eq!(back.col_indices(), expected_col.as_slice());
     assert_eq!(back.values(), expected_val.as_slice());
@@ -93,7 +93,7 @@ fn csr_csc_roundtrip() {
 #[test]
 fn csr_to_csc_empty_matrix() {
     let csr = CsrMatrix::<f64>::new(3, 3, vec![0, 0, 0, 0], vec![], vec![]).unwrap();
-    let csc = csr_to_csc(csr);
+    let csc = csr_to_csc(csr).unwrap();
     assert_eq!(csc.col_ptr(), &[0, 0, 0, 0]);
     assert_eq!(csc.nnz(), 0);
 }
@@ -101,7 +101,7 @@ fn csr_to_csc_empty_matrix() {
 #[test]
 fn csc_to_csr_empty_matrix() {
     let csc = CscMatrix::<f64>::new(3, 3, vec![0, 0, 0, 0], vec![], vec![]).unwrap();
-    let csr = csc_to_csr(csc);
+    let csr = csc_to_csr(csc).unwrap();
     assert_eq!(csr.row_ptr(), &[0, 0, 0, 0]);
     assert_eq!(csr.nnz(), 0);
 }
@@ -117,7 +117,7 @@ fn csr_to_csc_non_square_matrix() {
         vec![10.0_f64, 20.0, 30.0],
     )
     .unwrap();
-    let csc = csr_to_csc(csr);
+    let csc = csr_to_csc(csr).unwrap();
     assert_eq!(csc.rows(), 2);
     assert_eq!(csc.cols(), 3);
     // Col 0: row 1 → 20.0; col 1: row 0 → 10.0; col 2: row 1 → 30.0.

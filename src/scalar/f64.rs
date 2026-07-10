@@ -1,7 +1,7 @@
 use super::FloatTolerance;
 use super::Scalar;
 use super::newton_raphson::newton_raphson;
-use super::trigonometry::{cos, sin};
+use super::trigonometry::{cos, reduce_f64, sin};
 
 impl Scalar for f64 {
     fn zero() -> Self {
@@ -33,11 +33,23 @@ impl Scalar for f64 {
     }
 
     fn sin(self) -> Self {
-        sin(self, Self::zero(), Self::one())
+        let (r, quadrant) = reduce_f64(self);
+        match quadrant {
+            0 => sin(r, Self::zero(), Self::one()),
+            1 => cos(r, Self::zero(), Self::one()),
+            2 => -sin(r, Self::zero(), Self::one()),
+            _ => -cos(r, Self::zero(), Self::one()),
+        }
     }
 
     fn cos(self) -> Self {
-        cos(self, Self::zero(), Self::one())
+        let (r, quadrant) = reduce_f64(self);
+        match quadrant {
+            0 => cos(r, Self::zero(), Self::one()),
+            1 => -sin(r, Self::zero(), Self::one()),
+            2 => -cos(r, Self::zero(), Self::one()),
+            _ => sin(r, Self::zero(), Self::one()),
+        }
     }
 }
 

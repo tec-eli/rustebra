@@ -15,7 +15,7 @@ use super::{CscMatrix, CsrMatrix};
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x.len() != m.cols()`.
+/// Returns `Err(DimensionMismatch::Shape)` when `x.len() != m.cols()`.
 ///
 /// # Examples
 ///
@@ -30,16 +30,16 @@ use super::{CscMatrix, CsrMatrix};
 /// ```
 pub fn matvec_csr<T: Scalar>(m: &CsrMatrix<T>, x: &[T]) -> Result<Vec<T>, DimensionMismatch> {
     if x.len() != m.cols() {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
     let mut out = vec![T::zero(); m.rows()];
     let row_ptr = m.row_ptr();
     let col_idx = m.col_indices();
     let vals = m.values();
     for r in 0..m.rows() {
-        for k in row_ptr[r]..row_ptr[r + 1] {
+        for k in row_ptr[r] as usize..row_ptr[r + 1] as usize {
             let prev = out[r];
-            out[r] = prev.add(vals[k].mul(x[col_idx[k]]));
+            out[r] = prev.add(vals[k].mul(x[col_idx[k] as usize]));
         }
     }
     Ok(out)
@@ -53,7 +53,7 @@ pub fn matvec_csr<T: Scalar>(m: &CsrMatrix<T>, x: &[T]) -> Result<Vec<T>, Dimens
 ///
 /// # Errors
 ///
-/// Returns `Err(DimensionMismatch)` when `x.len() != m.cols()`.
+/// Returns `Err(DimensionMismatch::Shape)` when `x.len() != m.cols()`.
 ///
 /// # Examples
 ///
@@ -68,15 +68,15 @@ pub fn matvec_csr<T: Scalar>(m: &CsrMatrix<T>, x: &[T]) -> Result<Vec<T>, Dimens
 /// ```
 pub fn matvec_csc<T: Scalar>(m: &CscMatrix<T>, x: &[T]) -> Result<Vec<T>, DimensionMismatch> {
     if x.len() != m.cols() {
-        return Err(DimensionMismatch);
+        return Err(DimensionMismatch::Shape);
     }
     let mut out = vec![T::zero(); m.rows()];
     let col_ptr = m.col_ptr();
     let row_idx = m.row_indices();
     let vals = m.values();
     for c in 0..m.cols() {
-        for k in col_ptr[c]..col_ptr[c + 1] {
-            let r = row_idx[k];
+        for k in col_ptr[c] as usize..col_ptr[c + 1] as usize {
+            let r = row_idx[k] as usize;
             let prev = out[r];
             out[r] = prev.add(vals[k].mul(x[c]));
         }

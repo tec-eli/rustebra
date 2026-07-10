@@ -43,8 +43,8 @@ pub enum CooError {
 pub struct CooMatrix<T> {
     rows: usize,
     cols: usize,
-    row_indices: Vec<usize>,
-    col_indices: Vec<usize>,
+    row_indices: Vec<u32>,
+    col_indices: Vec<u32>,
     values: Vec<T>,
 }
 
@@ -52,8 +52,8 @@ impl<T> CooMatrix<T> {
     pub(super) fn new_raw(
         rows: usize,
         cols: usize,
-        row_indices: Vec<usize>,
-        col_indices: Vec<usize>,
+        row_indices: Vec<u32>,
+        col_indices: Vec<u32>,
         values: Vec<T>,
     ) -> Self {
         Self {
@@ -65,7 +65,7 @@ impl<T> CooMatrix<T> {
         }
     }
 
-    pub(super) fn into_raw_parts(self) -> (usize, usize, Vec<usize>, Vec<usize>, Vec<T>) {
+    pub(super) fn into_raw_parts(self) -> (usize, usize, Vec<u32>, Vec<u32>, Vec<T>) {
         (
             self.rows,
             self.cols,
@@ -98,20 +98,20 @@ impl<T> CooMatrix<T> {
     pub fn new(
         rows: usize,
         cols: usize,
-        row_indices: Vec<usize>,
-        col_indices: Vec<usize>,
+        row_indices: Vec<u32>,
+        col_indices: Vec<u32>,
         values: Vec<T>,
     ) -> Result<Self, CooError> {
         if row_indices.len() != col_indices.len() || row_indices.len() != values.len() {
             return Err(CooError::LengthMismatch);
         }
         for &r in &row_indices {
-            if r >= rows {
+            if r as usize >= rows {
                 return Err(CooError::RowIndexOutOfBounds);
             }
         }
         for &c in &col_indices {
-            if c >= cols {
+            if c as usize >= cols {
                 return Err(CooError::ColIndexOutOfBounds);
             }
         }
@@ -177,7 +177,7 @@ impl<T> CooMatrix<T> {
     /// let m = CooMatrix::new(2, 2, vec![0, 1], vec![1, 0], vec![5.0_f64, 9.0]).unwrap();
     /// assert_eq!(m.row_indices(), &[0, 1]);
     /// ```
-    pub fn row_indices(&self) -> &[usize] {
+    pub fn row_indices(&self) -> &[u32] {
         &self.row_indices
     }
 
@@ -191,7 +191,7 @@ impl<T> CooMatrix<T> {
     /// let m = CooMatrix::new(2, 2, vec![0, 1], vec![1, 0], vec![5.0_f64, 9.0]).unwrap();
     /// assert_eq!(m.col_indices(), &[1, 0]);
     /// ```
-    pub fn col_indices(&self) -> &[usize] {
+    pub fn col_indices(&self) -> &[u32] {
         &self.col_indices
     }
 

@@ -20,6 +20,7 @@ name = "sparse"
 required-features = ["alloc"]
 
 [dev-dependencies]
+nalgebra = "0.33"
 proptest = "1"
 
 [profile.release]

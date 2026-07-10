@@ -33,38 +33,6 @@ a whole.
 - [ ] Arnoldi iteration — reduce general matrices to upper Hessenberg form.
 - [ ] GMRES — solve general linear systems with Arnoldi-based orthogonalization.
 
-## v0.5.0 — Numerical calculus
-
-- [ ] Numerical differentiation (finite differences)
-- [ ] Numerical integration (trapezoidal, Simpson's, Gaussian quadrature)
-- [ ] Root finding (bisection, Newton-Raphson, secant)
-- [ ] Interpolation (linear, polynomial, cubic spline)
-- [ ] Basic optimization (gradient descent, line search)
-
-## v0.6.0 — Dynamical systems
-
-- [ ] ODE solvers (Euler, Runge-Kutta, adaptive step-size, implicit methods)
-- [ ] Systems of coupled ODEs
-- [ ] Canonical examples (logistic map, Lorenz system, Rössler system)
-- [ ] Fixed points and stability analysis
-- [ ] Lyapunov exponents
-- [ ] Bifurcation analysis
-
-## v0.7.0 — Signal processing
-
-- [ ] FIR / IIR filtering
-- [ ] Convolution / correlation
-- [ ] DFT / FFT
-- [ ] Window functions
-- [ ] Signal analysis (RMS, peak detection, zero-crossing rate, spectral analysis)
-- [ ] Resampling (decimation, interpolation)
-
----
-
-## BACKLOG
-
-- [ ] SIMD acceleration
-
 ---
 
 ## DELIVERED

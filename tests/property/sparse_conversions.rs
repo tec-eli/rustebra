@@ -28,18 +28,20 @@ proptest! {
 
         prop_assume!(!valid_entries.is_empty());
 
-        let row_idx: Vec<_> = valid_entries.iter().map(|e| e.0).collect();
-        let col_idx: Vec<_> = valid_entries.iter().map(|e| e.1).collect();
+        let row_idx: Vec<usize> = valid_entries.iter().map(|e| e.0).collect();
+        let col_idx: Vec<usize> = valid_entries.iter().map(|e| e.1).collect();
         let values: Vec<_> = valid_entries.iter().map(|e| e.2).collect();
+        let row_idx_u32: Vec<u32> = row_idx.iter().map(|&r| r as u32).collect();
+        let col_idx_u32: Vec<u32> = col_idx.iter().map(|&c| c as u32).collect();
 
         // Create COO matrix
-        let coo = CooMatrix::new(rows, cols, row_idx.clone(), col_idx.clone(), values.clone())
+        let coo = CooMatrix::new(rows, cols, row_idx_u32, col_idx_u32, values.clone())
             .expect("entries should be in bounds");
 
         // Convert COO → CSR → COO
-        let sorted_csr = coo_to_csr(coo);
+        let sorted_csr = coo_to_csr(coo).expect("dimensions fit within test-generated bounds");
         let csr: rustebra::sparse::CsrMatrix<f64> = sorted_csr.into();
-        let coo_roundtrip = csr_to_coo(csr);
+        let coo_roundtrip = csr_to_coo(csr).expect("dimensions fit within test-generated bounds");
 
         // Verify dimensions are preserved
         prop_assert_eq!(coo_roundtrip.rows(), rows);
@@ -54,8 +56,8 @@ proptest! {
         // Build a map from output entries
         let mut actual: HashMap<(usize, usize), f64> = HashMap::new();
         for i in 0..coo_roundtrip.nnz() {
-            let r = coo_roundtrip.row_indices()[i];
-            let c = coo_roundtrip.col_indices()[i];
+            let r = coo_roundtrip.row_indices()[i] as usize;
+            let c = coo_roundtrip.col_indices()[i] as usize;
             let v = coo_roundtrip.values()[i];
             *actual.entry((r, c)).or_insert(0.0) += v;
         }
