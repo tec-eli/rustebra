@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 
 use crate::scalar::Scalar;
 
-use super::{CscMatrix, CsrMatrix};
+use super::{CscMatrix, CsrMatrix, SortedCscMatrix, SortedCsrMatrix};
 
 /// Error returned by sparse arithmetic functions when operands have incompatible shapes,
 /// or when the vector length does not match the matrix column count.
@@ -20,8 +20,9 @@ pub enum DimensionMismatch {
 /// Adds two CSR sparse matrices element-wise, merging and deduplicating entries per row.
 ///
 /// For each row, entries from `a` and `b` are merged; entries at the same column position
-/// have their values summed. The output has sorted, deduplicated column indices within each
-/// row (same invariant as matrices produced by [`crate::sparse::coo_to_csr`]).
+/// have their values summed. The output always has sorted, deduplicated column indices
+/// within each row (same invariant as matrices produced by [`crate::sparse::coo_to_csr`]),
+/// which is why the result is a [`SortedCsrMatrix`] rather than a plain `CsrMatrix`.
 ///
 /// # Errors
 ///
@@ -44,7 +45,7 @@ pub enum DimensionMismatch {
 pub fn add_csr<T: Scalar>(
     a: &CsrMatrix<T>,
     b: &CsrMatrix<T>,
-) -> Result<CsrMatrix<T>, DimensionMismatch> {
+) -> Result<SortedCsrMatrix<T>, DimensionMismatch> {
     if a.rows() != b.rows() || a.cols() != b.cols() {
         return Err(DimensionMismatch::Shape);
     }
@@ -85,20 +86,21 @@ pub fn add_csr<T: Scalar>(
             u32::try_from(out_col.len()).map_err(|_| DimensionMismatch::DimensionOverflow)?;
     }
 
-    Ok(CsrMatrix::new_raw(
+    Ok(SortedCsrMatrix::from_sorted_unchecked(CsrMatrix::new_raw(
         rows,
         cols,
         out_row_ptr,
         out_col,
         out_val,
-    ))
+    )))
 }
 
 /// Adds two CSC sparse matrices element-wise, merging and deduplicating entries per column.
 ///
 /// For each column, entries from `a` and `b` are merged; entries at the same row position
-/// have their values summed. The output has sorted, deduplicated row indices within each
-/// column.
+/// have their values summed. The output always has sorted, deduplicated row indices within
+/// each column, which is why the result is a [`SortedCscMatrix`] rather than a plain
+/// `CscMatrix`.
 ///
 /// # Errors
 ///
@@ -121,7 +123,7 @@ pub fn add_csr<T: Scalar>(
 pub fn add_csc<T: Scalar>(
     a: &CscMatrix<T>,
     b: &CscMatrix<T>,
-) -> Result<CscMatrix<T>, DimensionMismatch> {
+) -> Result<SortedCscMatrix<T>, DimensionMismatch> {
     if a.rows() != b.rows() || a.cols() != b.cols() {
         return Err(DimensionMismatch::Shape);
     }
@@ -162,13 +164,13 @@ pub fn add_csc<T: Scalar>(
             u32::try_from(out_row.len()).map_err(|_| DimensionMismatch::DimensionOverflow)?;
     }
 
-    Ok(CscMatrix::new_raw(
+    Ok(SortedCscMatrix::from_sorted_unchecked(CscMatrix::new_raw(
         rows,
         cols,
         out_col_ptr,
         out_row,
         out_val,
-    ))
+    )))
 }
 
 #[cfg(test)]
@@ -189,5 +191,29 @@ mod tests {
         let b = CscMatrix::new(2, 1, vec![0, 1], vec![0], vec![-5.0_f64]).unwrap();
         let c = add_csc(&a, &b).unwrap();
         assert_eq!(c.nnz(), 0);
+    }
+
+    #[test]
+    fn add_csr_result_has_sorted_col_indices_per_row() {
+        // Row 0: a contributes col 2, b contributes cols 0 and 1 -> merged/sorted [0, 1, 2].
+        let a = CsrMatrix::new(1, 3, vec![0, 1], vec![2], vec![9.0_f64]).unwrap();
+        let b = CsrMatrix::new(1, 3, vec![0, 2], vec![0, 1], vec![1.0_f64, 2.0]).unwrap();
+        let c = add_csr(&a, &b).unwrap();
+        assert_eq!(c.col_indices(), &[0, 1, 2]);
+        for w in c.col_indices().windows(2) {
+            assert!(w[0] < w[1]);
+        }
+    }
+
+    #[test]
+    fn add_csc_result_has_sorted_row_indices_per_column() {
+        // Column 0: a contributes row 2, b contributes rows 0 and 1 -> merged/sorted [0, 1, 2].
+        let a = CscMatrix::new(3, 1, vec![0, 1], vec![2], vec![9.0_f64]).unwrap();
+        let b = CscMatrix::new(3, 1, vec![0, 2], vec![0, 1], vec![1.0_f64, 2.0]).unwrap();
+        let c = add_csc(&a, &b).unwrap();
+        assert_eq!(c.row_indices(), &[0, 1, 2]);
+        for w in c.row_indices().windows(2) {
+            assert!(w[0] < w[1]);
+        }
     }
 }

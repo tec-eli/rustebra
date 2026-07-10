@@ -19,6 +19,11 @@ mod sorted_csr;
 pub use self::sorted_csr::SortedCsrMatrix;
 
 #[cfg(feature = "alloc")]
+mod sorted_csc;
+#[cfg(feature = "alloc")]
+pub use self::sorted_csc::SortedCscMatrix;
+
+#[cfg(feature = "alloc")]
 mod linear_op;
 #[cfg(feature = "alloc")]
 pub use self::linear_op::SparseLinearOp;
