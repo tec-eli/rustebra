@@ -15,8 +15,7 @@ use crate::storage::Storage;
 /// # Errors
 ///
 /// Returns `Err(DimensionMismatch)` if `a_rows != b_rows`, `a_cols != b_cols`, or any of
-/// `a`, `b`, `out` doesn't have exactly `a_rows * a_cols` elements, rather than panicking,
-/// per ADR 0004.
+/// `a`, `b`, `out` doesn't have exactly `a_rows * a_cols` elements, rather than panicking.
 ///
 /// # Examples
 ///
@@ -54,7 +53,7 @@ where
     }
     for (i, slot) in out.iter_mut().enumerate() {
         // `i < len == a.len() == b.len()`, so both `get` calls below are always `Some`;
-        // handled explicitly rather than panicking, per ADR 0004.
+        // handled explicitly rather than panicking.
         let (Some(&x), Some(&y)) = (a.get(i), b.get(i)) else {
             return Err(DimensionMismatch);
         };
@@ -75,8 +74,7 @@ where
 /// # Errors
 ///
 /// Returns `Err(DimensionMismatch)` if `a_rows != b_rows`, `a_cols != b_cols`, or any of
-/// `a`, `b`, `out` doesn't have exactly `a_rows * a_cols` elements, rather than panicking,
-/// per ADR 0004.
+/// `a`, `b`, `out` doesn't have exactly `a_rows * a_cols` elements, rather than panicking.
 ///
 /// # Examples
 ///
@@ -114,7 +112,7 @@ where
     }
     for (i, slot) in out.iter_mut().enumerate() {
         // `i < len == a.len() == b.len()`, so both `get` calls below are always `Some`;
-        // handled explicitly rather than panicking, per ADR 0004.
+        // handled explicitly rather than panicking.
         let (Some(&x), Some(&y)) = (a.get(i), b.get(i)) else {
             return Err(DimensionMismatch);
         };
@@ -133,7 +131,7 @@ where
 /// # Errors
 ///
 /// Returns `Err(DimensionMismatch)` if `a` or `out` doesn't have exactly `a_rows * a_cols`
-/// elements, rather than panicking, per ADR 0004.
+/// elements, rather than panicking.
 ///
 /// # Examples
 ///
@@ -164,7 +162,7 @@ where
     }
     for (i, slot) in out.iter_mut().enumerate() {
         // `i < len == a.len()`, so `get` below is always `Some`; handled explicitly rather
-        // than panicking, per ADR 0004.
+        // than panicking.
         let Some(&x) = a.get(i) else {
             return Err(DimensionMismatch);
         };
@@ -232,7 +230,7 @@ impl<S: Storage> Storage for Column<'_, S> {
 /// Returns `Err(DimensionMismatch)` if `v`'s length doesn't match `a_cols` (the "inner
 /// dimension" matrix-vector multiplication requires), or if `a` or `out` doesn't have a
 /// length matching its claimed shape (`a_rows * a_cols` and `a_rows` respectively), rather
-/// than panicking, per ADR 0004.
+/// than panicking.
 ///
 /// # Examples
 ///
@@ -290,7 +288,7 @@ where
 ///
 /// Returns `Err(DimensionMismatch)` if `a_cols != b_rows` (the "inner dimension" matrix
 /// multiplication requires), or if `a`, `b`, or `out` doesn't have a length matching its
-/// claimed shape, rather than panicking, per ADR 0004.
+/// claimed shape, rather than panicking.
 ///
 /// # Examples
 ///
@@ -359,7 +357,7 @@ where
 /// # Errors
 ///
 /// Returns `Err(DimensionMismatch)` if `a` or `out` doesn't have exactly `a_rows * a_cols`
-/// elements, rather than panicking, per ADR 0004.
+/// elements, rather than panicking.
 ///
 /// # Examples
 ///

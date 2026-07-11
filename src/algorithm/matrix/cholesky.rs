@@ -7,6 +7,19 @@ use crate::storage::Storage;
 /// Beyond the shape problems [`crate::algorithm::matrix::DimensionMismatch`] covers,
 /// Cholesky has two failure modes of its own: the input might not be symmetric, or it
 /// might not be positive-definite.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::algorithm::matrix::{CholeskyError, cholesky_decompose};
+/// use rustebra::storage::StaticStorage;
+///
+/// // [[1, 2], [3, 4]] is not symmetric: a[0][1] = 2 disagrees with a[1][0] = 3.
+/// let a = StaticStorage::new([1.0_f64, 2.0, 3.0, 4.0]);
+/// let mut l = [0.0; 4];
+/// let result = cholesky_decompose(&a, 2, 2, &mut l, 1e-9);
+/// assert_eq!(result, Err(CholeskyError::NotSymmetric));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CholeskyError {
     /// `a` is not square, or `a`/`out_l` doesn't have exactly `rows * cols` elements.
@@ -355,9 +368,9 @@ mod tests {
 
     #[test]
     fn cholesky_explicit_zero_tolerance_rejects_the_same_rounding_noise() {
-        // Same matrix as above, but with an explicit tolerance of exactly 0 (the old,
-        // pre-ADR-0009 behavior) instead of the scale-aware default: the rounding residual
-        // is no longer absorbed, so this genuinely PSD matrix is wrongly rejected.
+        // Same matrix as above, but with an explicit tolerance of exactly 0 instead of the
+        // scale-aware default: the rounding residual is no longer absorbed, so this genuinely
+        // PSD matrix is wrongly rejected.
         let a = StaticStorage::new([3.0_f64, 3.0, 3.0, 3.0]);
         let mut l = [0.0; 4];
 

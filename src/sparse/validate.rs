@@ -7,6 +7,16 @@ use super::{CscMatrix, CsrMatrix};
 ///
 /// "Pointer array" means `row_ptr` for CSR and `col_ptr` for CSC; "index array" means
 /// `col_indices` for CSR and `row_indices` for CSC.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::sparse::{CsrMatrix, ValidateError, validate_csr};
+///
+/// // A stored zero is constructible, but not canonical.
+/// let zero = CsrMatrix::new(1, 2, vec![0, 1], vec![0], vec![0.0_f64]).unwrap();
+/// assert_eq!(validate_csr(&zero), Err(ValidateError::ExplicitZero));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ValidateError {
     /// The index and value arrays have different lengths.

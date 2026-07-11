@@ -7,6 +7,17 @@ use super::{CscMatrix, CsrMatrix, SortedCscMatrix, SortedCsrMatrix};
 
 /// Error returned by sparse arithmetic functions when operands have incompatible shapes,
 /// or when the vector length does not match the matrix column count.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::sparse::{CsrMatrix, DimensionMismatch, add_csr};
+///
+/// // 2x2 vs 3x2: row counts disagree.
+/// let a = CsrMatrix::new(2, 2, vec![0, 1, 2], vec![0, 1], vec![1.0_f64, 2.0]).unwrap();
+/// let b = CsrMatrix::new(3, 2, vec![0, 1, 2, 2], vec![0, 1], vec![1.0_f64, 2.0]).unwrap();
+/// assert_eq!(add_csr(&a, &b), Err(DimensionMismatch::Shape));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DimensionMismatch {
     /// Operands have incompatible shapes, or a vector length does not match the expected

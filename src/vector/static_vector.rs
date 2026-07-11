@@ -7,8 +7,8 @@ use crate::storage::{StaticStorage, Storage};
 
 /// A stack-allocated vector of exactly `N` elements.
 ///
-/// This is the public API layer (ADR 0006, layer 4) for vectors backed by static storage:
-/// it wires [`StaticStorage`] together with the generic functions in
+/// This is the top-level, ergonomic API for vectors backed by static storage: it wires
+/// [`StaticStorage`] together with the generic functions in
 /// [`crate::algorithm::vector`] into a concrete, ergonomic type, so callers don't need to
 /// work with `Storage`/`Scalar` generics directly.
 ///

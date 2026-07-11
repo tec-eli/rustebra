@@ -7,9 +7,9 @@ use crate::vector::StaticVector;
 
 /// A stack-allocated `R x C` matrix, stored row-major.
 ///
-/// This is the public API layer (ADR 0006, layer 4) for matrices backed by static storage:
-/// `R` rows of `C` elements each, laid out as `[[T; C]; R]` (the const-generic, stack-based
-/// representation ADR 0001 calls for), wired to the generic functions in
+/// This is the top-level, ergonomic API for matrices backed by static storage: `R` rows of
+/// `C` elements each, laid out as `[[T; C]; R]` (a const-generic, stack-based representation,
+/// so no heap allocation or allocator is required), wired to the generic functions in
 /// [`crate::algorithm::matrix`] so callers don't need to work with `Storage`/`Scalar`
 /// generics or row/column index arithmetic directly.
 ///

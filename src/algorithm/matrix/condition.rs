@@ -7,6 +7,19 @@ use crate::storage::Storage;
 /// Beyond the shape problems [`DimensionMismatch`] covers, computing a condition number has
 /// a failure mode of its own: a singular matrix has no well-defined condition number (it
 /// would require dividing by a zero smallest singular value).
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::algorithm::matrix::{ConditionNumberError, condition_number_svd};
+/// use rustebra::storage::StaticStorage;
+///
+/// // The zero matrix is singular: every singular value is 0.
+/// let a = StaticStorage::new([0.0_f64, 0.0, 0.0, 0.0]);
+/// let mut scratch = [0.0; 7 * 2 * 2 + 3 * 2];
+/// let result = condition_number_svd(&a, 2, 2, &mut scratch, 1e-9);
+/// assert_eq!(result, Err(ConditionNumberError::Singular));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConditionNumberError {
     /// `a` is not square, or `a`/`scratch` doesn't have the expected number of elements.
