@@ -1,6 +1,6 @@
 //! Verifies `Scalar::sqrt`/`sin`/`cos` against a pre-generated high-precision reference,
-//! per the precision targets in `docs/NUMERICAL_STABILITY.md`: f64 < 1e-14, f32 < 1e-6
-//! relative error, over `[-2*pi, 2*pi]`.
+//! targeting a relative error below `1e-14` for f64 and below `1e-6` for f32, over
+//! `[-2*pi, 2*pi]`.
 //!
 //! The reference fixtures (`fixtures/elementary_reference_{f64,f32}.csv`) were generated
 //! offline by a standalone program using the host platform's `f64` libm (correctly rounded

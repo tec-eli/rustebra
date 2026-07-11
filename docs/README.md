@@ -79,6 +79,7 @@ cargo test --features alloc
 
 - **[API Reference](rustdoc/rustebra/index.html)** — generated from `cargo doc`
 - **[Algorithms](algorithms/index.md)** — mathematical reference for every algorithm
+- **[Design & Specs](specs/index.md)** — design decisions behind the library
 - **[Contributing Guide](https://github.com/tec-eli/rustebra/blob/main/CONTRIBUTING.md)** — how to get involved
 
 Licensed under the [Apache License 2.0](https://github.com/tec-eli/rustebra/blob/main/LICENSE.md).
