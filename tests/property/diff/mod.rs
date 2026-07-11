@@ -3,6 +3,7 @@
 //! examples.
 
 mod cholesky;
+mod qr;
 mod svd;
 
 /// Whether `a` and `b` differ by no more than `tol` in absolute value.
