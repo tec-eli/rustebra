@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   matrix, since their output was already sorted — this makes that guarantee visible in the
   type instead of just the docs. Comes with a new `SortedCscMatrix` type to match the
   `SortedCsrMatrix` that already existed.
+- A property test for the CSR → CSC → CSR round-trip, alongside the existing COO → CSR → COO
+  one, now lives in `tests/property/convert.rs`.
 
 ### Fixed
 
