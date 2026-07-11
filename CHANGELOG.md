@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `SortedCsrMatrix` that already existed.
 - A differential property test checking `svd`'s singular values against nalgebra's
   independently computed SVD on well-conditioned random matrices.
+- A property test for the CSR → CSC → CSR round-trip, alongside the existing COO → CSR → COO
+  one, now lives in `tests/property/convert.rs`.
 - Edge-case tests for sparse matrices with unusual shapes/densities: `nnz = 0`, fully dense,
   and diagonal-only, checking that `add`, `multiply` (`spmm`/`matvec`), and `prune` all behave
   correctly.
