@@ -84,7 +84,7 @@ fn csr_csc_roundtrip() {
     let expected_col = csr.col_indices().to_vec();
     let expected_val = csr.values().to_vec();
     let csc = csr_to_csc(csr).unwrap();
-    let back = csc_to_csr(csc).unwrap();
+    let back = csc_to_csr(csc.into()).unwrap();
     assert_eq!(back.row_ptr(), expected_row_ptr.as_slice());
     assert_eq!(back.col_indices(), expected_col.as_slice());
     assert_eq!(back.values(), expected_val.as_slice());

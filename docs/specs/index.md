@@ -46,3 +46,7 @@ operations built on it.
 - [Sparse Matrix Public API Shape](sparse-matrix-api-shape.md)
 - [SortedCsrMatrix — Type-Level Column-Sort Invariant](sorted-csr-matrix.md)
 - [Sparse Entry Pruning and Explicit Zero Semantics](sparse-entry-pruning.md)
+
+## Krylov subspace methods
+
+- [Krylov Basis-Size Const-Generic Convention](krylov-basis-size-const-generics.md)

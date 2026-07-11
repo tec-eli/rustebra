@@ -28,10 +28,11 @@ result that happens to be sorted needs no changes. A consuming conversion lets a
 discard the sorted guarantee explicitly when they need to pass the value to code that only
 accepts the plain format.
 
-Operations that already produce sorted output by construction — COO-to-CSR conversion and
-sparse matrix-matrix multiplication among them — return the sorted wrapper type directly,
-communicating the guarantee to their callers at the type level rather than by convention or
-documentation alone.
+Operations that already produce sorted output by construction return the sorted wrapper type
+directly, communicating the guarantee to their callers at the type level rather than by
+convention or documentation alone. Ordered COO → CSR → CSC by format/flow rather than by
+release history (all six ship together, so no chronological ordering applies), these are:
+`coo_to_csr`, `csr_to_csc`, `csc_to_csr`, `spmm`, `add_csr`, and `add_csc`.
 
 ## Constraints
 
@@ -45,6 +46,7 @@ documentation alone.
 
 ## Status
 
-Implemented. The wrapper type is used as the return type of the two operations that produce
-sorted output as a natural consequence of their algorithm; a public, verifying constructor
-is available for wrapping an arbitrary CSR matrix from any other source.
+Implemented. The wrapper type is used as the return type of the six operations that produce
+sorted output as a natural consequence of their algorithm — `coo_to_csr`, `csr_to_csc`,
+`csc_to_csr`, `spmm`, `add_csr`, and `add_csc` — and a public, verifying constructor is
+available for wrapping an arbitrary CSR or CSC matrix from any other source.

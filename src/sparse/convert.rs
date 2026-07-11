@@ -3,6 +3,7 @@ use alloc::vec::Vec;
 
 use crate::scalar::Scalar;
 
+use super::sorted_csc::SortedCscMatrix;
 use super::sorted_csr::SortedCsrMatrix;
 use super::{CooMatrix, CscError, CscMatrix, CsrError, CsrMatrix};
 
@@ -142,7 +143,8 @@ pub fn csr_to_coo<T>(csr: CsrMatrix<T>) -> Result<CooMatrix<T>, CsrError> {
 
 /// Converts a CSR sparse matrix to CSC format.
 ///
-/// All entries are preserved; the output is sorted by column (then row within each column).
+/// All entries are preserved; the output is sorted by column (then row within each column),
+/// which is why this function returns a [`SortedCscMatrix`] rather than a plain `CscMatrix`.
 /// The `values` order in the output reflects column-major traversal order.
 ///
 /// # Errors
@@ -154,7 +156,7 @@ pub fn csr_to_coo<T>(csr: CsrMatrix<T>) -> Result<CooMatrix<T>, CsrError> {
 /// # Examples
 ///
 /// ```
-/// use rustebra::sparse::{CsrMatrix, csr_to_csc};
+/// use rustebra::sparse::{CsrMatrix, SortedCscMatrix, csr_to_csc};
 ///
 /// // 3×3 identity in CSR → CSC.
 /// let csr = CsrMatrix::new(
@@ -165,12 +167,12 @@ pub fn csr_to_coo<T>(csr: CsrMatrix<T>) -> Result<CooMatrix<T>, CsrError> {
 /// )
 /// .unwrap();
 ///
-/// let csc = csr_to_csc(csr).unwrap();
+/// let csc: SortedCscMatrix<f64> = csr_to_csc(csr).unwrap();
 /// assert_eq!(csc.col_ptr(),     &[0, 1, 2, 3]);
 /// assert_eq!(csc.row_indices(), &[0, 1, 2]);
 /// assert_eq!(csc.values(),      &[1.0, 1.0, 1.0]);
 /// ```
-pub fn csr_to_csc<T: Scalar>(m: CsrMatrix<T>) -> Result<CscMatrix<T>, CscError> {
+pub fn csr_to_csc<T: Scalar>(m: CsrMatrix<T>) -> Result<SortedCscMatrix<T>, CscError> {
     let (rows, cols, row_ptr, col_indices, values) = m.into_raw_parts();
     let nnz = values.len();
 
@@ -204,12 +206,15 @@ pub fn csr_to_csc<T: Scalar>(m: CsrMatrix<T>) -> Result<CscMatrix<T>, CscError> 
         out_val.push(v);
     }
 
-    Ok(CscMatrix::new_raw(rows, cols, col_ptr, out_row, out_val))
+    Ok(SortedCscMatrix::from_sorted_unchecked(CscMatrix::new_raw(
+        rows, cols, col_ptr, out_row, out_val,
+    )))
 }
 
 /// Converts a CSC sparse matrix to CSR format.
 ///
-/// All entries are preserved; the output is sorted by row (then column within each row).
+/// All entries are preserved; the output is sorted by row (then column within each row),
+/// which is why this function returns a [`SortedCsrMatrix`] rather than a plain `CsrMatrix`.
 ///
 /// # Errors
 ///
@@ -220,7 +225,7 @@ pub fn csr_to_csc<T: Scalar>(m: CsrMatrix<T>) -> Result<CscMatrix<T>, CscError> 
 /// # Examples
 ///
 /// ```
-/// use rustebra::sparse::{CscMatrix, csc_to_csr};
+/// use rustebra::sparse::{CscMatrix, SortedCsrMatrix, csc_to_csr};
 ///
 /// // 3×3 identity in CSC → CSR.
 /// let csc = CscMatrix::new(
@@ -231,12 +236,12 @@ pub fn csr_to_csc<T: Scalar>(m: CsrMatrix<T>) -> Result<CscMatrix<T>, CscError> 
 /// )
 /// .unwrap();
 ///
-/// let csr = csc_to_csr(csc).unwrap();
+/// let csr: SortedCsrMatrix<f64> = csc_to_csr(csc).unwrap();
 /// assert_eq!(csr.row_ptr(),     &[0, 1, 2, 3]);
 /// assert_eq!(csr.col_indices(), &[0, 1, 2]);
 /// assert_eq!(csr.values(),      &[1.0, 1.0, 1.0]);
 /// ```
-pub fn csc_to_csr<T: Scalar>(m: CscMatrix<T>) -> Result<CsrMatrix<T>, CsrError> {
+pub fn csc_to_csr<T: Scalar>(m: CscMatrix<T>) -> Result<SortedCsrMatrix<T>, CsrError> {
     let (rows, cols, col_ptr, row_indices, values) = m.into_raw_parts();
     let nnz = values.len();
 
@@ -270,7 +275,9 @@ pub fn csc_to_csr<T: Scalar>(m: CscMatrix<T>) -> Result<CsrMatrix<T>, CsrError> 
         out_val.push(v);
     }
 
-    Ok(CsrMatrix::new_raw(rows, cols, row_ptr, out_col, out_val))
+    Ok(SortedCsrMatrix::from_sorted_unchecked(CsrMatrix::new_raw(
+        rows, cols, row_ptr, out_col, out_val,
+    )))
 }
 
 #[cfg(test)]
