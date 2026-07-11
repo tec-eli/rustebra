@@ -18,6 +18,7 @@ Each record explains the context, the decision, and the rationale.
 | [0010](0010-sparse-matrix-public-api.md) | Sparse Matrix Public API Shape | Accepted |
 | [0011](0011-sorted-csr-matrix.md) | SortedCsrMatrix — Type-Level Column-Sort Invariant | Accepted |
 | [0012](0012-sparse-entry-pruning.md) | Sparse Entry Pruning and Explicit Zero Semantics | Accepted |
+| [0013](0013-numerical-stability-and-error-bounds-policy.md) | Numerical Stability and Error-Bounds Policy | Accepted |
 
 ---
 

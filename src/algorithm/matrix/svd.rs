@@ -63,7 +63,8 @@ impl<T> Storage for StridedColumn<'_, T> {
 ///
 /// This is the general-user entry point: it delegates to [`svd_qr_iteration`] with an
 /// automatically-computed tolerance, so callers don't need to pick one themselves. The
-/// default is `n * QR_ITERATIONS * epsilon()`, where `n` is `cols` — [`svd_qr_iteration`]
+/// default is `n * QR_ITERATIONS * epsilon()`, where `n` is `rows.max(cols)` —
+/// [`svd_qr_iteration`]
 /// already compares a singular value against `tolerance * sigma_max`, so the default only
 /// needs to supply that dimensionless factor, not a separate scale. The extra
 /// `QR_ITERATIONS` accounts for this implementation's own fixed-iteration eigendecomposition

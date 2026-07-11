@@ -3,9 +3,9 @@ Read `CONTEXT.md` before writing any code.
 
 ## Non-negotiable rules
 
-- No `unwrap()`/`expect()`/`panic!()` in library code — use `Result` (ADR 0004).
+- No `unwrap()`/`expect()`/`panic!()` in library code — use `Result`.
 - No `.clone()` to escape a borrow error — fix the signature.
-- No `Box<dyn Trait>` by default — `no_std`-first means generics/`impl Trait` (ADR 0001).
+- No `Box<dyn Trait>` by default — `no_std`-first means generics/`impl Trait`.
 - No new dependency without confirming `no_std` support.
 - No speculative code — only what the current task requires.
 - Lines ≤ 120 characters.

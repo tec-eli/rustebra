@@ -50,3 +50,4 @@ operations built on it.
 ## Krylov subspace methods
 
 - [Krylov Basis-Size Const-Generic Convention](krylov-basis-size-const-generics.md)
+- [Krylov Tolerance and Convergence Criteria](krylov-tolerance-and-convergence.md)
