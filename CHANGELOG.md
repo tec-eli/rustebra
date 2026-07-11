@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   matrix, since their output was already sorted — this makes that guarantee visible in the
   type instead of just the docs. Comes with a new `SortedCscMatrix` type to match the
   `SortedCsrMatrix` that already existed.
+- A differential property test checking `svd`'s singular values against nalgebra's
+  independently computed SVD on well-conditioned random matrices.
 
 ### Fixed
 
