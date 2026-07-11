@@ -6,7 +6,7 @@
 
 A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
 
-[API Reference](../book/rustdoc/rustebra/index.html) · [GitHub](https://github.com/tec-eli/rustebra)
+[API Reference](rustdoc/rustebra/index.html) · [GitHub](https://github.com/tec-eli/rustebra)
 
 </div>
 
@@ -77,7 +77,7 @@ cargo test --features alloc
 
 ## Explore the docs
 
-- **[API Reference](../book/rustdoc/rustebra/index.html)** — generated from `cargo doc`
+- **[API Reference](rustdoc/rustebra/index.html)** — generated from `cargo doc`
 - **[Algorithms](algorithms/index.md)** — mathematical reference for every algorithm
 - **[Contributing Guide](https://github.com/tec-eli/rustebra/blob/main/CONTRIBUTING.md)** — how to get involved
 

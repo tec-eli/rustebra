@@ -33,7 +33,7 @@
       '<div class="rb-topnav-links">' +
         '<a href="' + root + 'index.html">Home</a>' +
         '<a href="' + root + 'algorithms/index.html">Algorithms</a>' +
-        '<a href="' + root + 'adr/index.html">Architecture Decisions</a>' +
+        '<a href="' + root + 'book/index.html">Book</a>' +
         '<a href="https://github.com/tec-eli/rustebra" target="_blank" rel="noopener noreferrer">GitHub</a>' +
         '<a class="rb-cta" href="' + root + 'rustdoc/rustebra/index.html">API Reference</a>' +
       "</div>" +
