@@ -1,7 +1,7 @@
 # Numerical Stability and Precision
 
 This document records the *measured* precision and stability characteristics of rustebra,
-as a companion to the policy decision in [ADR 0013](adr/0013-numerical-stability-and-error-bounds-policy.md).
+as a companion to the policy decision in [ADR 0013](archived/adr/0013-numerical-stability-and-error-bounds-policy.md).
 That ADR states the target bounds and the NaN/Inf policy; this document records what was
 actually verified, how, and where the measured behavior falls short of the stated target.
 
@@ -84,7 +84,7 @@ this verification task.
 
 No dedicated accuracy fixture exists yet for `algorithm::matrix` decompositions (LU, QR,
 Cholesky, SVD). The only precision-relevant behavior currently encoded in the library is the
-tolerance system from [ADR 0009](adr/0009-numerical-tolerance-for-approximate-zero.md):
+tolerance system from [ADR 0009](archived/adr/0009-numerical-tolerance-for-approximate-zero.md):
 
 - `svd`/`condition_number` (auto-tolerance entry points) default their negligibility
   threshold to `n * QR_ITERATIONS * epsilon()`, where `n = max(rows, cols)` and

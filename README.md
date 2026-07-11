@@ -16,7 +16,7 @@
 **Linear algebra for embedded systems, microcontrollers, and real-time applications.**  
 A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
 
-[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/api/rustebra/) · [Architecture Decisions](docs/adr/) · [Contributing](CONTRIBUTING.md)
+[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html) · [Architecture Decisions](docs/archived/adr/) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -25,7 +25,7 @@ A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matr
 ## Status
 
 Early development (v0.3.0). Core features implemented: static/dynamic vectors and matrices, matrix decompositions (LU, QR, SVD, Cholesky), sparse matrix support (COO, CSR, CSC). See
-[`docs/adr/`](docs/adr/) for architecture decisions. Krylov subspace solvers (v0.4.0) planned.
+[`docs/adr/`](docs/archived/adr/) for architecture decisions. Krylov subspace solvers (v0.4.0) planned.
 
 ## Why this exists
 
@@ -165,8 +165,8 @@ The firmware workspace includes:
 
 ## Documentation
 
-- **[API reference](https://tec-eli.github.io/rustebra/api/rustebra/)** — generated from `cargo doc`, hosted on GitHub Pages.
-- **[Architecture decisions](docs/adr/)** — records of the key design choices made during development.
+- **[API reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html)** — generated from `cargo doc`, hosted on GitHub Pages.
+- **[Architecture decisions](docs/archived/adr/)** — records of the key design choices made during development.
 - **[GitHub Pages site](https://tec-eli.github.io/rustebra)** — full project documentation.
 
 To generate and browse the API docs locally:
