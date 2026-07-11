@@ -3,11 +3,23 @@ use crate::storage::Storage;
 
 /// Error returned by vector operations in this module when operand lengths don't agree.
 ///
-/// `Storage` (see ADR 0003) exposes only read access and a length; it has no way to
+/// `Storage` exposes only read access and a length; it has no way to
 /// construct a new instance generically, so these functions write their result into a
 /// caller-provided output slice instead of returning a new `Storage`. That slice's length
 /// is one more thing that must agree with the operands', alongside the operands' lengths
 /// agreeing with each other.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::algorithm::vector::{LengthMismatch, add};
+/// use rustebra::storage::StaticStorage;
+///
+/// let a = StaticStorage::new([1.0_f64, 2.0, 3.0]);
+/// let b = StaticStorage::new([1.0_f64, 2.0]);
+/// let mut out = [0.0; 3];
+/// assert_eq!(add(&a, &b, &mut out), Err(LengthMismatch));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LengthMismatch;
 

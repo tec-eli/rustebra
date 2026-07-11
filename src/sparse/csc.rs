@@ -3,6 +3,16 @@ use core::fmt;
 use core::ops::Range;
 
 /// Error returned by [`CscMatrix::new`] when the supplied arrays are invalid.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::sparse::{CscMatrix, CscError};
+///
+/// // col_ptr must have cols + 1 = 4 entries for a 3-column matrix.
+/// let err = CscMatrix::<f64>::new(3, 3, vec![0, 1], vec![], vec![]);
+/// assert_eq!(err, Err(CscError::ColPtrLengthMismatch));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CscError {
     /// `row_indices` and `values` have different lengths.

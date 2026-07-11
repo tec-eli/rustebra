@@ -18,8 +18,7 @@ use crate::storage::Storage;
 /// # Errors
 ///
 /// Returns `Err(DimensionMismatch)` if `a` is not square (`rows != cols`), or if `a`,
-/// `out_l`, or `out_u` doesn't have exactly `rows * cols` elements, rather than panicking,
-/// per ADR 0004.
+/// `out_l`, or `out_u` doesn't have exactly `rows * cols` elements, rather than panicking.
 ///
 /// # Examples
 ///
@@ -77,8 +76,7 @@ where
 /// # Errors
 ///
 /// Returns `Err(DimensionMismatch)` if `a` is not square (`rows != cols`), or if `a`,
-/// `out_l`, or `out_u` doesn't have exactly `rows * cols` elements, rather than panicking,
-/// per ADR 0004.
+/// `out_l`, or `out_u` doesn't have exactly `rows * cols` elements, rather than panicking.
 ///
 /// # Examples
 ///
@@ -119,7 +117,7 @@ where
 
     for (i, slot) in out_u.iter_mut().enumerate() {
         // `i < len == a.len()`, so `get` below is always `Some`; handled explicitly rather
-        // than panicking, per ADR 0004.
+        // than panicking.
         let Some(&x) = a.get(i) else {
             return Err(DimensionMismatch);
         };

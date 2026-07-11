@@ -2,6 +2,16 @@ use alloc::vec::Vec;
 use core::fmt;
 
 /// Error returned by [`CooMatrix::new`] when the supplied triplets are invalid.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::sparse::{CooMatrix, CooError};
+///
+/// // Column index 5 is out of bounds for a 3x3 matrix.
+/// let err = CooMatrix::<f64>::new(3, 3, vec![0], vec![5], vec![1.0]);
+/// assert_eq!(err, Err(CooError::ColIndexOutOfBounds));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CooError {
     /// The three component slices (`row_indices`, `col_indices`, `values`) don't all have

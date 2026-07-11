@@ -9,8 +9,8 @@ use crate::storage::{DynamicStorage, Storage};
 
 /// A heap-allocated vector of runtime-determined length. Requires the `alloc` feature.
 ///
-/// This is the public API layer (ADR 0006, layer 4) for vectors backed by dynamic storage:
-/// it wires [`DynamicStorage`] together with the generic functions in
+/// This is the top-level, ergonomic API for vectors backed by dynamic storage: it wires
+/// [`DynamicStorage`] together with the generic functions in
 /// [`crate::algorithm::vector`] into a concrete, ergonomic type, so callers don't need to
 /// work with `Storage`/`Scalar` generics directly.
 ///
@@ -64,7 +64,7 @@ impl<T: Scalar> DynamicVector<T> {
     /// # Errors
     ///
     /// Returns `Err(LengthMismatch)` if `self` and `other` don't have the same length,
-    /// rather than panicking, per ADR 0004.
+    /// rather than panicking.
     ///
     /// # Examples
     ///
@@ -86,7 +86,7 @@ impl<T: Scalar> DynamicVector<T> {
     /// # Errors
     ///
     /// Returns `Err(LengthMismatch)` if `self` and `other` don't have the same length,
-    /// rather than panicking, per ADR 0004.
+    /// rather than panicking.
     ///
     /// # Examples
     ///
@@ -128,7 +128,7 @@ impl<T: Scalar> DynamicVector<T> {
     /// # Errors
     ///
     /// Returns `Err(LengthMismatch)` if `self` and `other` don't have the same length,
-    /// rather than panicking, per ADR 0004.
+    /// rather than panicking.
     ///
     /// # Examples
     ///

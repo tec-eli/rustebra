@@ -66,7 +66,7 @@ fn cofactor_expansion<T: Scalar>(a: &dyn Storage<Item = T>, n: usize) -> T {
     let mut sum = T::zero();
     for col in 0..n {
         // `col < n == a.len() / n`, the length of row 0, so `get` is always `Some`; handled
-        // explicitly rather than panicking, per ADR 0004.
+        // explicitly rather than panicking.
         let Some(&entry) = a.get(col) else {
             return sum;
         };
@@ -184,6 +184,17 @@ where
 /// The explicit algorithm functions [`determinant_cofactor`] and [`determinant_lu`] return
 /// [`DimensionMismatch`] directly; `determinant` wraps that and adds one extra variant for
 /// the `no_std` (no-`alloc`) size constraint.
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::algorithm::matrix::{DeterminantError, determinant};
+/// use rustebra::storage::StaticStorage;
+///
+/// // 2 rows x 3 cols is not square.
+/// let a = StaticStorage::new([1.0_f64, 2.0, 3.0, 4.0, 5.0, 6.0]);
+/// assert_eq!(determinant(&a, 2, 3), Err(DeterminantError::DimensionMismatch));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DeterminantError {
     /// `a` is not square (`rows != cols`), or it doesn't have exactly `rows * cols` elements.

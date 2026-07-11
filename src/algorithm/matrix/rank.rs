@@ -224,9 +224,9 @@ mod tests {
 
     #[test]
     fn rank_explicit_tolerance_of_zero_is_not_robust_to_the_same_rounding_noise() {
-        // Same matrix as above, but with an explicit tolerance of exactly 0 (the old,
-        // pre-ADR-0009 behavior) instead of the scale-aware default: the rounding residual
-        // is no longer absorbed, so the row is (wrongly) counted as independent.
+        // Same matrix as above, but with an explicit tolerance of exactly 0 instead of the
+        // scale-aware default: the rounding residual is no longer absorbed, so the row is
+        // (wrongly) counted as independent.
         let perturbed = 3.0 * 0.1 * 10.0;
         let a = StaticStorage::new([1.0, 2.0, 3.0, 1.0, 2.0, perturbed]);
         let mut scratch = [0.0; 6];

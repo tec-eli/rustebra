@@ -41,11 +41,24 @@ pub(super) fn n_as_scalar<T: Scalar>(n: usize) -> T {
 
 /// Error returned by matrix operations in this module when operand dimensions don't agree.
 ///
-/// `Storage` (see ADR 0003) only knows about a flat element count, not rows and columns —
+/// `Storage` only knows about a flat element count, not rows and columns —
 /// matrices are stored row-major in a flat `Storage`, with their shape (`rows`, `cols`)
 /// passed alongside each operand rather than queried from it. This error covers both that
 /// shape disagreeing between operands, and a flat length not actually matching its claimed
 /// `rows * cols` (the same role [`crate::algorithm::vector::LengthMismatch`] plays for
 /// vectors, generalized to two dimensions).
+///
+/// # Examples
+///
+/// ```
+/// use rustebra::algorithm::matrix::{DimensionMismatch, add};
+/// use rustebra::storage::StaticStorage;
+///
+/// // 2x2 vs 3x2: row counts disagree.
+/// let a = StaticStorage::new([1.0_f64, 2.0, 3.0, 4.0]);
+/// let b = StaticStorage::new([1.0_f64, 2.0, 3.0, 4.0, 5.0, 6.0]);
+/// let mut out = [0.0; 4];
+/// assert_eq!(add(&a, 2, 2, &b, 3, 2, &mut out), Err(DimensionMismatch));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DimensionMismatch;

@@ -12,8 +12,8 @@ use crate::vector::DynamicVector;
 /// A heap-allocated matrix of runtime-determined shape, stored row-major. Requires the
 /// `alloc` feature.
 ///
-/// This is the public API layer (ADR 0006, layer 4) for matrices backed by dynamic storage:
-/// it wires [`DynamicStorage`] together with the generic functions in
+/// This is the top-level, ergonomic API for matrices backed by dynamic storage: it wires
+/// [`DynamicStorage`] together with the generic functions in
 /// [`crate::algorithm::matrix`] into a concrete, ergonomic type, so callers don't need to
 /// work with `Storage`/`Scalar` generics or row/column index arithmetic directly.
 ///
@@ -43,7 +43,7 @@ impl<T: Scalar> DynamicMatrix<T> {
     /// # Errors
     ///
     /// Returns `Err(DimensionMismatch)` if `data.len() != rows * cols`, rather than
-    /// panicking, per ADR 0004.
+    /// panicking.
     ///
     /// # Examples
     ///
@@ -100,7 +100,7 @@ impl<T: Scalar> DynamicMatrix<T> {
     /// # Errors
     ///
     /// Returns `Err(DimensionMismatch)` if `self` and `other` don't have the same shape,
-    /// rather than panicking, per ADR 0004.
+    /// rather than panicking.
     ///
     /// # Examples
     ///
@@ -135,7 +135,7 @@ impl<T: Scalar> DynamicMatrix<T> {
     /// # Errors
     ///
     /// Returns `Err(DimensionMismatch)` if `self` and `other` don't have the same shape,
-    /// rather than panicking, per ADR 0004.
+    /// rather than panicking.
     ///
     /// # Examples
     ///
@@ -191,8 +191,7 @@ impl<T: Scalar> DynamicMatrix<T> {
     /// # Errors
     ///
     /// Returns `Err(DimensionMismatch)` if `v`'s length doesn't match `self.cols()` (the
-    /// "inner dimension" matrix-vector multiplication requires), rather than panicking, per
-    /// ADR 0004.
+    /// "inner dimension" matrix-vector multiplication requires), rather than panicking.
     ///
     /// # Examples
     ///
@@ -215,7 +214,7 @@ impl<T: Scalar> DynamicMatrix<T> {
     /// # Errors
     ///
     /// Returns `Err(DimensionMismatch)` if `self.cols() != other.rows()` (the "inner
-    /// dimension" matrix multiplication requires), rather than panicking, per ADR 0004.
+    /// dimension" matrix multiplication requires), rather than panicking.
     ///
     /// # Examples
     ///
@@ -320,7 +319,7 @@ impl<T: Scalar> DynamicMatrix<T> {
     /// # Errors
     ///
     /// Returns `Err(DimensionMismatch)` if `self.rows() != self.cols()`, rather than
-    /// panicking, per ADR 0004.
+    /// panicking.
     ///
     /// # Examples
     ///
@@ -355,8 +354,7 @@ impl<T: Scalar> DynamicMatrix<T> {
     ///
     /// # Errors
     ///
-    /// Returns `Err(DimensionMismatch)` if `self.rows() < self.cols()`, rather than panicking,
-    /// per ADR 0004.
+    /// Returns `Err(DimensionMismatch)` if `self.rows() < self.cols()`, rather than panicking.
     ///
     /// # Examples
     ///
