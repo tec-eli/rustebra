@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `SortedCsrMatrix` that already existed.
 - A differential property test checking `qr_householder`'s reconstruction and `R` diagonal
   magnitudes against nalgebra's independently computed QR on random matrices.
+- Edge-case tests for sparse matrices with unusual shapes/densities: `nnz = 0`, fully dense,
+  and diagonal-only, checking that `add`, `multiply` (`spmm`/`matvec`), and `prune` all behave
+  correctly.
 
 ### Fixed
 
