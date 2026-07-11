@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   matrix, since their output was already sorted — this makes that guarantee visible in the
   type instead of just the docs. Comes with a new `SortedCscMatrix` type to match the
   `SortedCsrMatrix` that already existed.
+- Edge-case tests for sparse matrices with unusual shapes/densities: `nnz = 0`, fully dense,
+  and diagonal-only, checking that `add`, `multiply` (`spmm`/`matvec`), and `prune` all behave
+  correctly.
 
 ### Fixed
 
