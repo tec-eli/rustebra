@@ -6,3 +6,4 @@ mod common;
 
 mod krylov;
 mod nan_inf;
+mod sparse;

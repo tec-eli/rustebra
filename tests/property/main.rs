@@ -1,3 +1,4 @@
+mod diff;
 mod inverse_power_iteration;
 mod krylov;
 mod power_iteration;

@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   erroring or panicking, plus a test documenting that `prune_csr` with a `NaN` tolerance
   prunes nothing (every comparison against `NaN` is false, so not even exact zeros are
   removed).
+- Edge-case tests for sparse matrices with unusual shapes/densities: `nnz = 0`, fully dense,
+  and diagonal-only, checking that `add`, `multiply` (`spmm`/`matvec`), and `prune` all behave
+  correctly.
 
 ### Fixed
 
