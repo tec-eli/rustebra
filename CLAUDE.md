@@ -12,7 +12,7 @@ Read `CONTEXT.md` before writing any code.
 - Public items get a `///` doc-comment with a compiling `# Examples` block.
 - New code gets its own module. Split into a folder when a module mixes distinct
   responsibilities (trait def / per-type impl / algorithm = three files).
-- Never mention ADR numbers or content in source code, comments, or commit messages.
+- Never mention md docs or in source code, comments, rust docs, or commit messages. Is ok to reference between md files.
 - Match existing naming — check existing code first.
 - Do not commit anything unless asked to do so.
 - Do not write features that are not requested.
