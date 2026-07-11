@@ -35,9 +35,10 @@ additional guarantee that indices *within* each row/column are in ascending orde
 enables `O(log(nnz/rows))` binary-search lookup of a specific entry, and is a precondition
 some algorithms (sparse triangular solves, certain preconditioners) require. Both types
 implement `Deref` to their unsorted counterpart, so every read-only accessor is available
-without unwrapping. Construct one directly with `SortedCsrMatrix::from_csr` (which sorts,
-paying the cost up front), or get one as the output of `coo_to_csr`/`spmm_csr`, which
-produce sorted results as a side effect of their algorithm.
+without unwrapping. Construct one directly with `SortedCsrMatrix::from_csr`/
+`SortedCscMatrix::from_csc` (which sorts, paying the cost up front), or get one as the output
+of any operation that produces sorted results as a side effect of its own algorithm —
+`coo_to_csr`, `csr_to_csc`, `csc_to_csr`, `spmm_csr`, `add_csr`, and `add_csc`.
 
 ## Gotchas
 

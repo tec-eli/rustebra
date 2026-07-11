@@ -147,7 +147,7 @@ where
     // the achievable precision floor empirically sits well above a plain `n * epsilon()`
     // once that accumulation is accounted for, so the default needs the extra factor to
     // ever actually classify a singular value as negligible on this algorithm's own output.
-    let tolerance = n_as_scalar::<T>(cols * QR_ITERATIONS).mul(T::epsilon());
+    let tolerance = n_as_scalar::<T>(rows.max(cols) * QR_ITERATIONS).mul(T::epsilon());
     svd_qr_iteration(a, rows, cols, out_u, out_sigma, out_v, scratch, tolerance)
 }
 

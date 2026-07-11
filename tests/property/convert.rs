@@ -128,7 +128,8 @@ proptest! {
 
         // Convert CSR → CSC → CSR
         let csc = csr_to_csc(csr).expect("dimensions fit within test-generated bounds");
-        let csr_roundtrip = csc_to_csr(csc).expect("dimensions fit within test-generated bounds");
+        let csr_roundtrip =
+            csc_to_csr(csc.into()).expect("dimensions fit within test-generated bounds");
 
         prop_assert_eq!(csr_roundtrip.rows(), expected_rows);
         prop_assert_eq!(csr_roundtrip.cols(), expected_cols);
