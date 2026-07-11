@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   erroring or panicking, plus a test documenting that `prune_csr` with a `NaN` tolerance
   prunes nothing (every comparison against `NaN` is false, so not even exact zeros are
   removed).
+- A differential property test checking `svd`'s singular values against nalgebra's
+  independently computed SVD on well-conditioned random matrices.
 - A property test for the CSR → CSC → CSR round-trip, alongside the existing COO → CSR → COO
   one, now lives in `tests/property/convert.rs`.
 - Edge-case tests for sparse matrices with unusual shapes/densities: `nnz = 0`, fully dense,
