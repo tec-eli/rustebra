@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   matrix, since their output was already sorted — this makes that guarantee visible in the
   type instead of just the docs. Comes with a new `SortedCscMatrix` type to match the
   `SortedCsrMatrix` that already existed.
+- Edge-case tests confirming dense matrix operations (`add`, `sub`, `mul_scalar`,
+  `mul_vector`, `mul_matrix`, `transpose`) propagate `NaN`/`Infinity` per IEEE 754 instead of
+  erroring or panicking, plus a test documenting that `prune_csr` with a `NaN` tolerance
+  prunes nothing (every comparison against `NaN` is false, so not even exact zeros are
+  removed).
 
 ### Fixed
 
