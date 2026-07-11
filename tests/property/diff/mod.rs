@@ -4,6 +4,7 @@
 
 mod cholesky;
 mod qr;
+mod svd;
 
 /// Whether `a` and `b` differ by no more than `tol` in absolute value.
 pub(crate) fn approx_eq(a: f64, b: f64, tol: f64) -> bool {
