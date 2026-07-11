@@ -5,7 +5,7 @@ Thank you for your interest in contributing! This document explains how to get s
 ## Before you open a PR
 
 - Check the [open issues](https://github.com/tec-eli/rustebra/issues) to see if your idea is already being tracked.
-- For significant changes, open an issue first to discuss the approach. Architecture decisions are recorded in [`docs/adr/`](docs/adr/).
+- For significant changes, open an issue first to discuss the approach. Architecture decisions are recorded in [`docs/adr/`](docs/archived/adr/).
 - All contributions must be compatible with `#![no_std]` unless explicitly gated behind the `alloc` feature.
 
 ## Development setup
