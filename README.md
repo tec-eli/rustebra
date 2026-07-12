@@ -16,7 +16,7 @@
 **Linear algebra for embedded systems, microcontrollers, and real-time applications.**  
 A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
 
-[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html) · [Architecture Decisions](docs/archived/adr/) · [Contributing](CONTRIBUTING.md)
+[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html) · [Design Decisions](docs/specs/) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -24,8 +24,8 @@ A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matr
 
 ## Status
 
-Early development (v0.3.0). Core features implemented: static/dynamic vectors and matrices, matrix decompositions (LU, QR, SVD, Cholesky), sparse matrix support (COO, CSR, CSC). See
-[`docs/adr/`](docs/archived/adr/) for architecture decisions. Krylov subspace solvers (v0.4.0) planned.
+Early development (v0.4.0). Core features implemented: static/dynamic vectors and matrices, matrix decompositions (LU, QR, SVD, Cholesky), sparse matrix support (COO, CSR, CSC), and Krylov eigenvalue solvers (power iteration, inverse power iteration). See
+[design decisions](docs/specs/) for architecture details.
 
 ## Why this exists
 
@@ -71,10 +71,10 @@ constrained environments. rustebra aims to close that gap.
 | **Stack-only (no heap required)** | ✅ Default                 | ❌ No | ✅ For fixed-size |
 | **Sparse matrices** | ✅ v0.3.0+ (COO, CSR, CSC) | ❌ Separate `sprs` crate | ⚠️ Limited (optional feature) |
 | **GPU/SIMD acceleration** | ❌ Not planned             | ⚠️ Limited SIMD | ⚠️ SIMD support available |
-| **Krylov solvers** | 🔄 v0.4.0 (planned)       | ⚠️ Via `ndarray-linalg` | ❌ Not in core |
+| **Krylov solvers** | ✅ v0.4.0+ (power iteration, inverse power iteration) | ⚠️ Via `ndarray-linalg` | ❌ Not in core |
 | **3D math/graphics primitives** | ❌ Not focused             | ❌ Not provided | ✅ Excellent (Isometry, Rotation, etc.) |
 | **BLAS/LAPACK integration** | ❌ No                      | ✅ Excellent bindings | ❌ Pure Rust |
-| **Maturity & stability** | 🟡 Early (v0.3.2)         | ✅ Mature & stable | ✅ Mature & stable |
+| **Maturity & stability** | 🟡 Early (v0.4.0)         | ✅ Mature & stable | ✅ Mature & stable |
 | **Large matrices (100k+)** | ⚠️ With sparse            | ✅ Optimized | ⚠️ Fixed-size limits |
 | **Embedded systems** | ✅ Best choice             | ❌ Poor fit | ⚠️ For fixed-size only |
 
@@ -102,10 +102,10 @@ constrained environments. rustebra aims to close that gap.
 
 ```toml
 [dependencies]
-rustebra = "0.3.2"
+rustebra = "0.4.0"
 
 # Optional: heap-backed structures and Krylov solvers
-rustebra = { version = "0.3.2", features = ["alloc"] }
+rustebra = { version = "0.4.0", features = ["alloc"] }
 ```
 
 Build and test locally:
@@ -166,7 +166,7 @@ The firmware workspace includes:
 ## Documentation
 
 - **[API reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html)** — generated from `cargo doc`, hosted on GitHub Pages.
-- **[Architecture decisions](docs/archived/adr/)** — records of the key design choices made during development.
+- **[Design decisions](docs/specs/)** — records of the key design choices made during development.
 - **[GitHub Pages site](https://tec-eli.github.io/rustebra)** — full project documentation.
 
 To generate and browse the API docs locally:

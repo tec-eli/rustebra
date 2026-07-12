@@ -5,56 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [Released]
+
+## [0.4.0] - 2026-07-11
 
 ### Added
 
-- **Eigenvalue solvers.** A new `krylov` module can now find a matrix's dominant eigenvalue (`power_iteration`) or its
-  smallest-magnitude eigenvalue (`inverse_power_iteration`), each returning the eigenvalue together with its
-  eigenvector. Both work with sparse or dense matrices and let you configure how many iterations to try and how precise
-  the answer needs to be.
-- A new error case, `ConvergenceError::NonFinite`, is reported if a solver's numbers blow up (e.g. hit infinity or NaN)
-  partway through, instead of burning through the rest of its iteration budget on garbage.
-- A validation helper (`sparse::validate`) for checking that a sparse matrix implementation is wired up correctly.
-- **Breaking change:** `add_csr`/`add_csc` now return a `SortedCsrMatrix`/`SortedCscMatrix` instead of a plain matrix, since their output was
-  already sorted — this makes that guarantee visible in the type instead of just the docs. Comes with a new
-  `SortedCscMatrix` type to match the `SortedCsrMatrix` that already existed.
-- **Breaking change:** `csr_to_csc`/`csc_to_csr` now also return a `SortedCsrMatrix`/`SortedCscMatrix` for the same reason as
-  `add_csr`/`add_csc` above: both already sort their output internally, and that guarantee is now visible in the type
-  instead of just the docs.
-- A differential property test checking `qr_householder`'s reconstruction and `R` diagonal magnitudes against nalgebra's
-  independently computed QR on random matrices.
-- Edge-case tests confirming dense matrix operations (`add`, `sub`, `mul_scalar`, `mul_vector`, `mul_matrix`,
-  `transpose`) propagate `NaN`/`Infinity` per IEEE 754 instead of erroring or panicking, plus a test documenting that
-  `prune_csr` with a `NaN` tolerance prunes nothing (every comparison against `NaN` is false, so not even exact zeros
-  are removed).
-- A differential property test checking `svd`'s singular values against nalgebra's independently computed SVD on
-  well-conditioned random matrices.
-- A differential property test checking `cholesky_decompose`'s `L` factor, entry by entry, against nalgebra's
-  independently computed Cholesky decomposition on random symmetric positive-definite matrices.
-- A property test for the CSR → CSC → CSR round-trip, alongside the existing COO → CSR → COO one, now lives in
-  `tests/property/convert.rs`.
-- Edge-case tests for sparse matrices with unusual shapes/densities: `nnz = 0`, fully dense, and diagonal-only, checking
-  that `add`, `multiply` (`spmm`/`matvec`), and `prune` all behave correctly.
-- `# Examples` blocks for every public error enum/struct that was still missing one (`CholeskyError`,
-  `ConditionNumberError`, `DeterminantError`, the dense and sparse `DimensionMismatch` types, `LengthMismatch`,
-  `CooError`, `CscError`, `CsrError`, and `ValidateError`), matching the pattern already used by
-  `krylov::ConvergenceError`.
-
-### Fixed
-
-- `sin`/`cos` could be noticeably inaccurate for inputs far from zero (close to `2*pi`, or near their own zero
-  crossings) — a test catching this now passes, thanks to a more careful reduction of the input angle before computing.
-- A test name/expectation was out of sync with the `NonFinite` error case above; updated to match.
-- `svd`'s tolerance for classifying a singular value as negligible was scaled by `cols` only; for tall matrices (more
-  rows than columns) this could be too tight, since forming `aᵗ * a` accumulates rounding error proportional to the row
-  count, not just the column count. Now scaled by `rows.max(cols)`.
+- **Eigenvalue solvers.** A new `krylov` module finds a matrix's dominant eigenvalue (`power_iteration`) or its
+  smallest-magnitude eigenvalue (`inverse_power_iteration`), returning the eigenvalue with its eigenvector. Works with
+  sparse or dense matrices, with configurable iteration budget and precision.
+- `ConvergenceError::NonFinite`, reported when a solver's numbers blow up (infinity or NaN) instead of quietly burning
+  through the rest of its iteration budget.
+- `sparse::validate`, a helper for checking that a sparse matrix implementation is wired up correctly.
+- `SortedCscMatrix`, matching the existing `SortedCsrMatrix`.
+- Differential property tests checking `qr_householder`, `svd`, and `cholesky_decompose` against nalgebra's
+  independently computed results.
+- Edge-case tests for NaN/Infinity propagation in dense matrix ops, unusual sparse matrix shapes (empty, fully dense,
+  diagonal-only), and CSR↔CSC round-trips.
+- `# Examples` docs for the public error types that were still missing one.
+- Specs with Architecture decision.
+- `book` section with the mathematics of the library.
 
 ### Changed
 
-- **Breaking:** matrix-vector multiplication via `SparseLinearOp::apply` no longer allocates a new result each call — it
-  writes into a buffer you provide instead. This lets iterative solvers reuse the same buffer across many iterations
-  instead of allocating on every one. If you want a plain `Vec` back, use `matvec_csr`/`matvec_csc` instead.
+- **Breaking:** `add_csr`/`add_csc` and `csr_to_csc`/`csc_to_csr` now return `SortedCsrMatrix`/`SortedCscMatrix`
+  instead of a plain matrix, making their already-sorted output visible in the type instead of just the docs.
+- **Breaking:** `SparseLinearOp::apply` now writes into a caller-provided buffer instead of allocating on every call,
+  so iterative solvers can reuse it across iterations. Use `matvec_csr`/`matvec_csc` if you want a plain `Vec` back.
+- Archived ADRs.
+
+### Fixed
+
+- `sin`/`cos` could be noticeably inaccurate for inputs far from zero (close to `2π`, or near their own zero
+  crossings).
+- `svd`'s tolerance for negligible singular values was scaled by `cols` only, which was too tight for tall matrices;
+  now scaled by `max(rows, cols)`.
 
 ## [Released]
 
