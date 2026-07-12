@@ -1,10 +1,12 @@
 [package]
 name = "rustebra"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2024"
+rust-version = "1.85"
 license = "Apache-2.0"
 description = "A hybrid no_std/alloc linear algebra crate for Rust, scaling from embedded targets to dynamic Krylov subspace solvers."
 repository = "https://github.com/tec-eli/rustebra"
+homepage = "https://tec-eli.github.io/rustebra"
 keywords = ["linear-algebra", "matrix", "vector", "no-std", "numerical"]
 categories = ["algorithms", "mathematics", "no-std"]
 documentation = "https://docs.rs/rustebra"
