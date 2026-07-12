@@ -49,6 +49,6 @@ Krylov and other generic numerical code.
 
 ## Status
 
-Not yet implemented. Lanczos, Arnoldi, and GMRES(m) do not exist in the crate yet; this
-convention is decided ahead of their implementation so the first one written establishes the
-pattern correctly rather than needing a later rename.
+Partially implemented. Lanczos now exists and exposes its basis size as `const K: usize`,
+establishing the pattern this convention describes. Arnoldi and GMRES(m) do not exist in the
+crate yet.

@@ -1,3 +1,6 @@
+mod basis;
+pub use self::basis::Basis;
+
 mod r#static;
 pub use self::r#static::StaticStorage;
 

@@ -8,8 +8,8 @@
 #[allow(dead_code)]
 mod common;
 
-use rustebra::krylov::{ConvergenceError, inverse_power_iteration, power_iteration};
-use rustebra::storage::StaticStorage;
+use rustebra::krylov::{ConvergenceError, inverse_power_iteration, lanczos, power_iteration};
+use rustebra::storage::{Basis, StaticStorage};
 
 use common::{
     ALGORITHM_TOL, ASSERTION_TOL, SINGULAR_TOL, approx_eq_eigenvector, fixed_eigenvector_3,
@@ -291,4 +291,49 @@ fn inverse_power_iteration_handles_entries_at_the_magnitude_boundary() {
         &[1.0, 1.0],
         ASSERTION_TOL
     ));
+}
+
+#[test]
+fn lanczos_recovers_the_full_spectrum_of_an_ill_conditioned_matrix() {
+    // Same 1e8-condition matrix as the power-iteration cases above: a full-dimension basis
+    // (K == n) must still recover all three eigenvalues, including the tiny 1e-6 one that
+    // makes the matrix ill-conditioned, not just the well-separated dominant one.
+    let a = fixed_similarity_3([100.0, 1e-6, -50.0]);
+    let v0 = StaticStorage::new([1.0, 1.0, 1.0]);
+    let mut buffer = [0.0; 9];
+    let mut basis = Basis::<f64, 3>::new(&mut buffer, 3).unwrap();
+    let mut scratch = [0.0; 3];
+
+    let t = lanczos(
+        &StaticStorage::new(a),
+        3,
+        &v0,
+        ALGORITHM_TOL,
+        &mut basis,
+        &mut scratch,
+    )
+    .unwrap();
+
+    let mut dense = nalgebra::Matrix3::zeros();
+    for j in 0..3 {
+        dense[(j, j)] = t.diagonal()[j];
+    }
+    for (j, &beta) in t.off_diagonal().iter().enumerate() {
+        dense[(j, j + 1)] = beta;
+        dense[(j + 1, j)] = beta;
+    }
+    let mut actual: [f64; 3] = dense.symmetric_eigen().eigenvalues.into();
+    actual.sort_by(|x, y| x.total_cmp(y));
+
+    let mut expected: [f64; 3] = [100.0, 1e-6, -50.0];
+    expected.sort_by(|x, y| x.total_cmp(y));
+
+    // Absolute tolerance: relative to the spectral radius 100 the bound would be vacuous for
+    // the 1e-6 eigenvalue.
+    for (got, want) in actual.iter().zip(expected.iter()) {
+        assert!(
+            (got - want).abs() <= ASSERTION_TOL,
+            "got {actual:?}, want {expected:?}"
+        );
+    }
 }

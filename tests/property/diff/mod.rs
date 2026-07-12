@@ -3,6 +3,7 @@
 //! examples.
 
 mod cholesky;
+mod lanczos;
 mod qr;
 mod svd;
 

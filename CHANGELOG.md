@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Lanczos iteration.** `krylov::lanczos` tridiagonalizes a real symmetric matrix over a compile-time-sized Krylov
+  subspace, returning the projection as a new `TridiagonalMatrix<T, K>` and filling an orthonormal basis. Uses full
+  reorthogonalization, so the basis stays orthonormal to working precision.
+- `storage::Basis<T, K>`, a const-generic view over caller-provided memory holding the `K` basis vectors a Krylov
+  method builds up — the storage-layer piece Arnoldi and GMRES(m) will reuse.
+- `ConvergenceError::Breakdown`, reported when the Krylov subspace turns out to be invariant before reaching the
+  requested dimension (e.g. a repeated eigenvalue, or a starting vector inside a small invariant subspace).
+
 ## [Released]
 
 ## [0.4.0] - 2026-07-11

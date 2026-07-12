@@ -1,9 +1,9 @@
-//! Curated, fixed-matrix edge cases for `power_iteration` and `inverse_power_iteration`:
-//! degenerate spectra, singular shifts, non-finite inputs, dimension mismatches, and the
-//! zero vector — cases the property harness deliberately never generates.
+//! Curated, fixed-matrix edge cases for `power_iteration`, `inverse_power_iteration`, and
+//! `lanczos`: degenerate spectra, singular shifts, non-finite inputs, dimension mismatches,
+//! and the zero vector — cases the property harness deliberately never generates.
 
-use rustebra::krylov::{ConvergenceError, inverse_power_iteration, power_iteration};
-use rustebra::storage::StaticStorage;
+use rustebra::krylov::{ConvergenceError, inverse_power_iteration, lanczos, power_iteration};
+use rustebra::storage::{Basis, StaticStorage};
 
 use crate::common::{
     ALGORITHM_TOL, ASSERTION_TOL, SINGULAR_TOL, approx_eq_eigenvector, fixed_similarity_3,
@@ -379,4 +379,41 @@ fn dimension_mismatches_are_an_error_for_both_iterations() {
         &mut scratch2,
     );
     assert_eq!(result, Err(ConvergenceError::DimensionMismatch));
+}
+
+#[test]
+fn lanczos_on_a_1x1_matrix() {
+    let a = StaticStorage::new([-7.5]);
+    let v0 = StaticStorage::new([3.0]);
+    let mut buffer = [0.0; 1];
+    let mut basis = Basis::<f64, 1>::new(&mut buffer, 1).unwrap();
+    let mut scratch = [0.0; 1];
+
+    let t = lanczos(&a, 1, &v0, ALGORITHM_TOL, &mut basis, &mut scratch).unwrap();
+
+    assert!((t.diagonal()[0] + 7.5).abs() <= ASSERTION_TOL * 7.5);
+    assert!(t.off_diagonal().is_empty());
+}
+
+#[test]
+fn lanczos_on_a_repeated_eigenvalue_breaks_down_before_reaching_the_requested_basis_size() {
+    // H diag(5, 5, 2) Hᵀ: only two *distinct* eigenvalues, so a Krylov basis built from any
+    // v0 can hold at most two vectors — the property harness's `spectrum_with_gap` forces
+    // distinct eigenvalues by construction and never generates this case.
+    let a = fixed_similarity_3([5.0, 5.0, 2.0]);
+    let v0 = StaticStorage::new([1.0, 0.4, -0.3]);
+    let mut buffer = [0.0; 9];
+    let mut basis = Basis::<f64, 3>::new(&mut buffer, 3).unwrap();
+    let mut scratch = [0.0; 3];
+
+    let result = lanczos(
+        &StaticStorage::new(a),
+        3,
+        &v0,
+        ALGORITHM_TOL,
+        &mut basis,
+        &mut scratch,
+    );
+
+    assert_eq!(result, Err(ConvergenceError::Breakdown));
 }
