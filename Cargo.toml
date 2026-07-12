@@ -22,7 +22,7 @@ name = "sparse"
 required-features = ["alloc"]
 
 [dev-dependencies]
-nalgebra = "0.33"
+nalgebra = { version = "0.33", features = ["alloc"] }
 proptest = "1"
 
 [profile.release]

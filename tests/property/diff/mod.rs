@@ -4,6 +4,7 @@
 
 mod cholesky;
 mod lanczos;
+mod lu;
 mod qr;
 mod svd;
 
