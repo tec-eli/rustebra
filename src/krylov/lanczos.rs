@@ -102,25 +102,30 @@ where
         return Err(ConvergenceError::DimensionMismatch);
     }
 
+    // q_0 = v0 / ‖v0‖, staged through `scratch` and validated before the `K == 0` fast path
+    // below: the documented `ZeroVector`/`NonFinite` contract on `v0` holds even when `K == 0`
+    // means no basis vector is ever written.
+    for (i, slot) in scratch.iter_mut().enumerate() {
+        let Some(&x) = v0.get(i) else {
+            return Err(ConvergenceError::DimensionMismatch);
+        };
+        *slot = x;
+    }
+    normalize(scratch)?;
+
     let mut diagonal = [T::zero(); K];
     let mut off_diagonal = [T::zero(); K];
     if K == 0 {
         return Ok(TridiagonalMatrix::new(diagonal, off_diagonal));
     }
 
-    // q_0 = v0 / ‖v0‖. `K >= 1` here, so `vector_mut(0)` is always `Some`; handled explicitly
-    // rather than panicking, like every other validated access below.
+    // `K >= 1` here, so `vector_mut(0)` is always `Some`; handled explicitly rather than
+    // panicking, like every other validated access below.
     {
         let Some(q_0) = basis.vector_mut(0) else {
             return Err(ConvergenceError::DimensionMismatch);
         };
-        for (i, slot) in q_0.iter_mut().enumerate() {
-            let Some(&x) = v0.get(i) else {
-                return Err(ConvergenceError::DimensionMismatch);
-            };
-            *slot = x;
-        }
-        normalize(q_0)?;
+        q_0.copy_from_slice(scratch);
     }
 
     for j in 0..K {
@@ -396,6 +401,21 @@ mod tests {
         let v0 = StaticStorage::new([0.0, 0.0]);
         let mut buffer = [0.0; 4];
         let mut basis = Basis::<f64, 2>::new(&mut buffer, 2).unwrap();
+        let mut scratch = [0.0; 2];
+
+        let result = lanczos(&a, 2, &v0, 1e-12, &mut basis, &mut scratch);
+
+        assert_eq!(result, Err(ConvergenceError::ZeroVector));
+    }
+
+    #[test]
+    fn zero_initial_vector_is_an_error_even_when_k_is_zero() {
+        // K == 0 never writes a basis vector, but v0 is still validated: it must not
+        // silently succeed with an empty projection just because there's nothing to write.
+        let a = StaticStorage::new([2.0, 0.0, 0.0, 1.0]);
+        let v0 = StaticStorage::new([0.0, 0.0]);
+        let mut buffer: [f64; 0] = [];
+        let mut basis = Basis::<f64, 0>::new(&mut buffer, 2).unwrap();
         let mut scratch = [0.0; 2];
 
         let result = lanczos(&a, 2, &v0, 1e-12, &mut basis, &mut scratch);

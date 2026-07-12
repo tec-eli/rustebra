@@ -9,8 +9,8 @@ stabilization and eigenvector-residual stabilization — both fall within `tol`.
 
 ## Scope
 
-Applies to `power_iteration` and `inverse_power_iteration`, and to any future Krylov solver
-(CG, Lanczos, Arnoldi, GMRES(m)) that shares the same iterative-refinement shape. Does not
+Applies to `power_iteration`, `inverse_power_iteration`, and `lanczos`, and to any future
+Krylov solver (CG, Arnoldi, GMRES(m)) that shares the same iterative-refinement shape. Does not
 apply to the `algorithm::matrix` tolerance-taking functions (rank, SVD, condition-number
 estimation, Cholesky decomposition), which are covered by [[approximate-zero-tolerance]] and
 get an auto-computed default under [[auto-tolerance-defaults]] instead.
@@ -63,4 +63,7 @@ how much precision loss to expect.
 
 Implemented. `power_iteration` requires `tol`; `inverse_power_iteration` requires both `tol`
 and `singular_tol`. Both check eigenvalue and residual stabilization before declaring
-convergence, and neither exposes an auto-computed default.
+convergence, and neither exposes an auto-computed default. `lanczos` also requires `tol`,
+with no default, but as a basis-breakdown threshold rather than an eigenvalue/residual
+convergence check: it has no eigenvalue estimate to stabilize against, only a candidate basis
+vector's norm to compare against the local matrix-vector scale.

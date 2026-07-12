@@ -30,6 +30,7 @@
     - [SVD](book/06-decompositions/svd.md)
   - [Krylov Methods](book/08-krylov/README.md)
     - [Power Iteration](book/08-krylov/power-iteration.md)
+    - [Lanczos Iteration](book/08-krylov/lanczos.md)
   - [Eigenvalues & Eigenvectors](book/09-eigenvalues.md)
   - [Numerical Stability](book/12-numerical-stability/README.md)
     - [NaN/Inf Policy](book/12-numerical-stability/nan-inf-policy.md)
