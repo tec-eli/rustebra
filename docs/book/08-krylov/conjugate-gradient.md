@@ -1,3 +1,0 @@
-# Conjugate Gradient
-
-<!-- TODO -->
