@@ -265,7 +265,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::{DeterminantError, determinant};
-    use crate::algorithm::matrix::determinant_lu;
     use crate::storage::StaticStorage;
 
     #[test]
@@ -305,6 +304,7 @@ mod tests {
     #[cfg(feature = "alloc")]
     #[test]
     fn determinant_of_5x5_matrix_matches_determinant_lu_directly() {
+        use crate::algorithm::matrix::determinant_lu;
         // Diagonally dominant 5x5 matrix, so it's invertible.
         let a = StaticStorage::new([
             5.0_f64, 1.0, 0.0, 0.0, 0.0, 0.0, 5.0, 1.0, 0.0, 0.0, 0.0, 0.0, 5.0, 1.0, 0.0, 0.0,

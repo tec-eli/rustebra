@@ -1,3 +1,0 @@
-# Views & Slicing
-
-<!-- TODO -->
