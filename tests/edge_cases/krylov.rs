@@ -1,11 +1,15 @@
 //! Curated, fixed-matrix edge cases for `power_iteration`, `inverse_power_iteration`,
-//! `lanczos`, and `arnoldi`: degenerate spectra, singular shifts, non-finite inputs,
+//! `lanczos`, `arnoldi`, and `gmres`: degenerate spectra, singular shifts, non-finite inputs,
 //! dimension mismatches, and the zero vector — cases the property harness deliberately never
 //! generates.
 
 use rustebra::krylov::{
     ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration,
 };
+#[cfg(feature = "alloc")]
+use rustebra::krylov::gmres;
+#[cfg(feature = "alloc")]
+use rustebra::sparse::CsrMatrix;
 use rustebra::storage::{Basis, StaticStorage};
 
 use crate::common::{
@@ -507,6 +511,60 @@ fn arnoldi_zero_initial_vector_is_a_zero_vector_error() {
     let result = arnoldi(&a, 2, &v0, ALGORITHM_TOL, &mut basis, &mut scratch);
 
     assert_eq!(result, Err(ConvergenceError::ZeroVector));
+}
+
+/// Dense row-major `a` as a `CsrMatrix`, storing every entry (including exact zeros).
+#[cfg(feature = "alloc")]
+fn csr_from_dense(a: &[f64], n: usize) -> CsrMatrix<f64> {
+    let mut row_ptr = vec![0_u32];
+    let mut col_indices = vec![];
+    let mut values = vec![];
+    for r in 0..n {
+        for c in 0..n {
+            col_indices.push(c as u32);
+            values.push(a[r * n + c]);
+        }
+        row_ptr.push(col_indices.len() as u32);
+    }
+    CsrMatrix::new(n, n, row_ptr, col_indices, values).unwrap()
+}
+
+#[test]
+#[cfg(feature = "alloc")]
+fn gmres_overflowing_residual_is_non_finite_not_a_spurious_breakdown() {
+    // b's entries are individually finite, but `‖r‖²` (an unscaled sum of squares) overflows
+    // f64 before the sqrt: a naive `r_norm > 0.0` check accepts `+Infinity`, silently
+    // normalizes it down to a zero vector, and mislabels the resulting degenerate Arnoldi
+    // step as `Breakdown` instead of reporting the real cause, `NonFinite`.
+    let a = csr_from_dense(&[1.0, 0.0, 0.0, 1.0], 2);
+    let b = [1e200, 1e200];
+    let x0 = [0.0, 0.0];
+    let mut out_x = [0.0; 2];
+    let mut buffer = [0.0; 4];
+    let mut basis = Basis::<f64, 2>::new(&mut buffer, 2).unwrap();
+    let mut scratch = [0.0; 2];
+
+    let result = gmres(&a, &b, &x0, 10, 1e-10, &mut out_x, &mut basis, &mut scratch);
+
+    assert_eq!(result, Err(ConvergenceError::NonFinite));
+}
+
+#[test]
+#[cfg(feature = "alloc")]
+fn gmres_non_finite_matrix_entry_is_an_error_not_a_panic() {
+    for poison in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        let a = csr_from_dense(&[2.0, poison, 0.0, 1.0], 2);
+        let b = [1.0, 1.0];
+        let x0 = [0.0, 0.0];
+        let mut out_x = [0.0; 2];
+        let mut buffer = [0.0; 4];
+        let mut basis = Basis::<f64, 2>::new(&mut buffer, 2).unwrap();
+        let mut scratch = [0.0; 2];
+
+        let result = gmres(&a, &b, &x0, 10, 1e-10, &mut out_x, &mut basis, &mut scratch);
+
+        assert!(result.is_err(), "gmres accepted a {poison} entry: {result:?}");
+    }
 }
 
 #[test]

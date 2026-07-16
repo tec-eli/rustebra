@@ -13,7 +13,7 @@ fn subtract_scaled<T: Scalar>(y: &mut [T], coefficient: T, x: &[T]) {
 }
 
 /// Computes `r = b - a * x` into `scratch` and returns `‖r‖`, or `NonFinite` if that norm is
-/// neither positive nor zero (the only way a norm can fail both comparisons).
+/// `NaN` or infinite.
 fn residual_norm<T: Scalar + PartialOrd>(
     a: &impl SparseLinearOp<T>,
     b: &[T],
@@ -26,10 +26,15 @@ fn residual_norm<T: Scalar + PartialOrd>(
         *slot = b_i.sub(*slot);
     }
     let r_norm = norm(&Slice { data: &*scratch });
-    if r_norm > T::zero() || r_norm == T::zero() {
-        Ok(r_norm)
-    } else {
+    // `x - x` is `0` for every finite `x` and `NaN` for `NaN`/±infinity — the only values
+    // unequal to themselves. `r_norm > T::zero()` alone would accept `+Infinity`.
+    let probe = r_norm.sub(r_norm);
+    #[allow(clippy::eq_op)]
+    let non_finite = probe != probe;
+    if non_finite {
         Err(ConvergenceError::NonFinite)
+    } else {
+        Ok(r_norm)
     }
 }
 

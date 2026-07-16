@@ -189,22 +189,26 @@ where
 /// Scales `v` in place to unit Euclidean length.
 ///
 /// Errors with `ZeroVector` when `‖v‖` is exactly zero — that covers the zero vector and the
-/// empty (`n == 0`) vector. Errors with `NonFinite` when `‖v‖` is neither strictly positive
-/// nor exactly zero, which is only possible when it's `NaN`: a norm poisoned by non-finite
-/// input compares false against every ordinary value, including `0`, so it fails both checks
-/// rather than being divided by.
+/// empty (`n == 0`) vector. Errors with `NonFinite` when `‖v‖` is `NaN` or infinite: `x - x` is
+/// `0` for every finite `x` and `NaN` for `NaN`/±infinity, the only values unequal to
+/// themselves, so that self-subtraction is checked before the ordinary comparisons below —
+/// `+Infinity > 0` is `true`, so a naive `length > T::zero()` check would silently divide by
+/// an infinite length and zero out an overflowed (not actually zero) vector instead of erroring.
 pub(super) fn normalize<T: Scalar + PartialOrd>(v: &mut [T]) -> Result<(), ConvergenceError> {
     let length = norm(&Slice { data: &*v });
-    if length > T::zero() {
+    let probe = length.sub(length);
+    #[allow(clippy::eq_op)]
+    let non_finite = probe != probe;
+    if non_finite {
+        Err(ConvergenceError::NonFinite)
+    } else if length == T::zero() {
+        Err(ConvergenceError::ZeroVector)
+    } else {
         let inv = T::one().div(length);
         for slot in v.iter_mut() {
             *slot = slot.mul(inv);
         }
         Ok(())
-    } else if length == T::zero() {
-        Err(ConvergenceError::ZeroVector)
-    } else {
-        Err(ConvergenceError::NonFinite)
     }
 }
 
