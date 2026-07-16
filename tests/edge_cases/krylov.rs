@@ -1,8 +1,9 @@
-//! Curated, fixed-matrix edge cases for `power_iteration`, `inverse_power_iteration`, and
-//! `lanczos`: degenerate spectra, singular shifts, non-finite inputs, dimension mismatches,
-//! and the zero vector — cases the property harness deliberately never generates.
+//! Curated, fixed-matrix edge cases for `power_iteration`, `inverse_power_iteration`,
+//! `lanczos`, and `arnoldi`: degenerate spectra, singular shifts, non-finite inputs,
+//! dimension mismatches, and the zero vector — cases the property harness deliberately never
+//! generates.
 
-use rustebra::krylov::{ConvergenceError, inverse_power_iteration, lanczos, power_iteration};
+use rustebra::krylov::{ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration};
 use rustebra::storage::{Basis, StaticStorage};
 
 use crate::common::{
@@ -416,4 +417,106 @@ fn lanczos_on_a_repeated_eigenvalue_breaks_down_before_reaching_the_requested_ba
     );
 
     assert_eq!(result, Err(ConvergenceError::Breakdown));
+}
+
+#[test]
+fn arnoldi_on_a_1x1_matrix() {
+    let a = StaticStorage::new([-7.5]);
+    let v0 = StaticStorage::new([3.0]);
+    let mut buffer = [0.0; 1];
+    let mut basis = Basis::<f64, 1>::new(&mut buffer, 1).unwrap();
+    let mut scratch = [0.0; 1];
+
+    let (h, reached) = arnoldi(&a, 1, &v0, ALGORITHM_TOL, &mut basis, &mut scratch).unwrap();
+
+    assert_eq!(reached, 1);
+    assert!((h.entry(0, 0).unwrap() + 7.5).abs() <= ASSERTION_TOL * 7.5);
+}
+
+#[test]
+fn arnoldi_on_a_non_symmetric_matrix_produces_a_genuinely_upper_hessenberg_projection() {
+    // Companion-style matrix: strongly non-symmetric, so a bug that silently assumed
+    // symmetry (e.g. treating h[i][j] and h[j][i] as equal) would be caught here.
+    let a = StaticStorage::new([
+        0.0, 1.0, 0.0, //
+        0.0, 0.0, 1.0, //
+        -6.0, -11.0, -6.0,
+    ]);
+    let v0 = StaticStorage::new([1.0, 0.0, 0.0]);
+    let mut buffer = [0.0; 9];
+    let mut basis = Basis::<f64, 3>::new(&mut buffer, 3).unwrap();
+    let mut scratch = [0.0; 3];
+
+    let (h, reached) = arnoldi(&a, 3, &v0, ALGORITHM_TOL, &mut basis, &mut scratch).unwrap();
+
+    assert_eq!(reached, 3);
+    // Upper Hessenberg: nothing below the first subdiagonal.
+    assert!(h.entry(2, 0).unwrap().abs() <= ASSERTION_TOL);
+}
+
+#[test]
+fn arnoldi_on_a_repeated_eigenvalue_breaks_down_as_success_before_reaching_the_requested_basis_size()
+ {
+    // H diag(5, 5, 2) Hᵀ: only two *distinct* eigenvalues, so a Krylov basis built from any v0
+    // can hold at most two vectors. Unlike Lanczos, this is `Ok`, not `Err(Breakdown)` — the
+    // whole point of the distinction the Arnoldi issue calls for.
+    let a = fixed_similarity_3([5.0, 5.0, 2.0]);
+    let v0 = StaticStorage::new([1.0, 0.4, -0.3]);
+    let mut buffer = [0.0; 9];
+    let mut basis = Basis::<f64, 3>::new(&mut buffer, 3).unwrap();
+    let mut scratch = [0.0; 3];
+
+    let (_, reached) = arnoldi(
+        &StaticStorage::new(a),
+        3,
+        &v0,
+        ALGORITHM_TOL,
+        &mut basis,
+        &mut scratch,
+    )
+    .unwrap();
+
+    assert_eq!(reached, 2);
+}
+
+#[test]
+fn arnoldi_non_finite_matrix_entry_is_an_error_not_a_spurious_breakdown() {
+    for poison in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        let a = StaticStorage::new([2.0, poison, 0.0, 1.0]);
+        let v0 = StaticStorage::new([1.0, 1.0]);
+        let mut buffer = [0.0; 4];
+        let mut basis = Basis::<f64, 2>::new(&mut buffer, 2).unwrap();
+        let mut scratch = [0.0; 2];
+
+        let result = arnoldi(&a, 2, &v0, ALGORITHM_TOL, &mut basis, &mut scratch);
+
+        assert_eq!(result, Err(ConvergenceError::NonFinite), "poison {poison}");
+    }
+}
+
+#[test]
+fn arnoldi_zero_initial_vector_is_a_zero_vector_error() {
+    let a = StaticStorage::new([2.0, 0.0, 0.0, 1.0]);
+    let v0 = StaticStorage::new([0.0, 0.0]);
+    let mut buffer = [0.0; 4];
+    let mut basis = Basis::<f64, 2>::new(&mut buffer, 2).unwrap();
+    let mut scratch = [0.0; 2];
+
+    let result = arnoldi(&a, 2, &v0, ALGORITHM_TOL, &mut basis, &mut scratch);
+
+    assert_eq!(result, Err(ConvergenceError::ZeroVector));
+}
+
+#[test]
+fn arnoldi_dimension_mismatch_is_an_error() {
+    // 4 entries can't be a 3x3 matrix.
+    let a = StaticStorage::new([2.0, 0.0, 0.0, 1.0]);
+    let v0 = StaticStorage::new([1.0, 0.0, 0.0]);
+    let mut buffer = [0.0; 9];
+    let mut basis = Basis::<f64, 3>::new(&mut buffer, 3).unwrap();
+    let mut scratch = [0.0; 3];
+
+    let result = arnoldi(&a, 3, &v0, ALGORITHM_TOL, &mut basis, &mut scratch);
+
+    assert_eq!(result, Err(ConvergenceError::DimensionMismatch));
 }

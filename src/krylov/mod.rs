@@ -1,10 +1,14 @@
+mod arnoldi;
 mod conjugate_gradient;
+mod hessenberg;
 mod inverse_power_iteration;
 mod lanczos;
 mod power_iteration;
 mod tridiagonal;
 
+pub use self::arnoldi::arnoldi;
 pub use self::conjugate_gradient::conjugate_gradient;
+pub use self::hessenberg::HessenbergMatrix;
 pub use self::inverse_power_iteration::inverse_power_iteration;
 pub use self::lanczos::lanczos;
 pub use self::power_iteration::power_iteration;

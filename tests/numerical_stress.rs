@@ -8,7 +8,7 @@
 #[allow(dead_code)]
 mod common;
 
-use rustebra::krylov::{ConvergenceError, inverse_power_iteration, lanczos, power_iteration};
+use rustebra::krylov::{ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration};
 use rustebra::storage::{Basis, StaticStorage};
 
 use common::{
@@ -323,6 +323,52 @@ fn lanczos_recovers_the_full_spectrum_of_an_ill_conditioned_matrix() {
         dense[(j + 1, j)] = beta;
     }
     let mut actual: [f64; 3] = dense.symmetric_eigen().eigenvalues.into();
+    actual.sort_by(|x, y| x.total_cmp(y));
+
+    let mut expected: [f64; 3] = [100.0, 1e-6, -50.0];
+    expected.sort_by(|x, y| x.total_cmp(y));
+
+    // Absolute tolerance: relative to the spectral radius 100 the bound would be vacuous for
+    // the 1e-6 eigenvalue.
+    for (got, want) in actual.iter().zip(expected.iter()) {
+        assert!(
+            (got - want).abs() <= ASSERTION_TOL,
+            "got {actual:?}, want {expected:?}"
+        );
+    }
+}
+
+#[test]
+fn arnoldi_recovers_the_full_spectrum_of_an_ill_conditioned_non_symmetric_matrix() {
+    // The companion matrix of the monic cubic with roots 100, 1e-6, -50 — the same 1e8-
+    // condition spectrum as the Lanczos stress case above, but via a genuinely non-symmetric
+    // matrix (companion matrices are never symmetric except in trivial cases) — the case
+    // Arnoldi exists to handle and Lanczos cannot. Coefficients are derived from the roots
+    // (rather than hand-expanded) to keep the -0.005/4999.9999.../50.000001 arithmetic exact.
+    let roots = [100.0_f64, 1e-6, -50.0];
+    let sum = roots[0] + roots[1] + roots[2];
+    let pair_sum = roots[0] * roots[1] + roots[0] * roots[2] + roots[1] * roots[2];
+    let product = roots[0] * roots[1] * roots[2];
+    let a = StaticStorage::new([
+        0.0, 1.0, 0.0, //
+        0.0, 0.0, 1.0, //
+        product, -pair_sum, sum,
+    ]);
+    let v0 = StaticStorage::new([1.0, 1.0, 1.0]);
+    let mut buffer = [0.0; 9];
+    let mut basis = Basis::<f64, 3>::new(&mut buffer, 3).unwrap();
+    let mut scratch = [0.0; 3];
+
+    let (h, reached) = arnoldi(&a, 3, &v0, ALGORITHM_TOL, &mut basis, &mut scratch).unwrap();
+    assert_eq!(reached, 3);
+
+    let mut dense = nalgebra::Matrix3::zeros();
+    for r in 0..3 {
+        for c in 0..3 {
+            dense[(r, c)] = h.entry(r, c).unwrap();
+        }
+    }
+    let mut actual: [f64; 3] = dense.complex_eigenvalues().map(|z| z.re).into();
     actual.sort_by(|x, y| x.total_cmp(y));
 
     let mut expected: [f64; 3] = [100.0, 1e-6, -50.0];

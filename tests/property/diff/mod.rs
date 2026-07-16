@@ -2,6 +2,7 @@
 //! implemented ones from `nalgebra` on random inputs, rather than against hand-worked
 //! examples.
 
+mod arnoldi;
 mod cholesky;
 mod lanczos;
 mod lu;

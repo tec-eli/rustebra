@@ -2,6 +2,8 @@
 // are unused in this one.
 #[allow(dead_code)]
 mod common;
+mod arnoldi;
 mod inverse_power_iteration;
 mod lanczos;
 mod power_iteration;
+
