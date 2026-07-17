@@ -7,6 +7,7 @@
 [![Crates.io](https://img.shields.io/crates/v/rustebra?style=flat-square&color=fc8d62)](https://crates.io/crates/rustebra)
 [![docs.rs](https://img.shields.io/docsrs/rustebra?style=flat-square&label=docs.rs)](https://docs.rs/rustebra)
 [![CI](https://img.shields.io/github/actions/workflow/status/tec-eli/rustebra/ci.yml?style=flat-square&label=CI)](https://github.com/tec-eli/rustebra/actions/workflows/ci.yml)
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=tec-eli_rustebra)](https://sonarcloud.io/summary/new_code?id=tec-eli_rustebra)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![no_std](https://img.shields.io/badge/no__std-compatible-success?style=flat-square)](https://docs.rust-embedded.org/book/)
 [![MSRV](https://img.shields.io/badge/MSRV-1.85-orange?style=flat-square)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)

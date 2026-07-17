@@ -7,7 +7,9 @@ use proptest::prelude::*;
 use rustebra::krylov::arnoldi;
 use rustebra::storage::{Basis, StaticStorage};
 
-use super::common::{ALGORITHM_TOL, ASSERTION_TOL, N, nonsymmetric_with_spectrum, spectrum_with_gap};
+use super::common::{
+    ALGORITHM_TOL, ASSERTION_TOL, N, nonsymmetric_with_spectrum, spectrum_with_gap,
+};
 
 /// `Qᵗ * A * Q` entry `(r, c)` from the basis, against the row-major `N x N` matrix `a`.
 fn projection_entry(a: &[f64; N * N], basis: &Basis<'_, f64, N>, r: usize, c: usize) -> f64 {

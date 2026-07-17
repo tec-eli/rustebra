@@ -3,7 +3,9 @@
 //! dimension mismatches, and the zero vector — cases the property harness deliberately never
 //! generates.
 
-use rustebra::krylov::{ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration};
+use rustebra::krylov::{
+    ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration,
+};
 use rustebra::storage::{Basis, StaticStorage};
 
 use crate::common::{

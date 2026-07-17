@@ -8,7 +8,9 @@
 #[allow(dead_code)]
 mod common;
 
-use rustebra::krylov::{ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration};
+use rustebra::krylov::{
+    ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration,
+};
 use rustebra::storage::{Basis, StaticStorage};
 
 use common::{
