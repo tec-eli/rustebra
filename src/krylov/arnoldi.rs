@@ -282,9 +282,21 @@ mod tests {
         // Upper Hessenberg: zero strictly below the first subdiagonal.
         assert_close(h.entry(2, 0).unwrap(), 0.0, 1e-10);
 
-        assert_close(projection_entry(&a, 3, &basis, 0, 0), h.entry(0, 0).unwrap(), 1e-10);
-        assert_close(projection_entry(&a, 3, &basis, 1, 0), h.entry(1, 0).unwrap(), 1e-10);
-        assert_close(projection_entry(&a, 3, &basis, 2, 1), h.entry(2, 1).unwrap(), 1e-10);
+        assert_close(
+            projection_entry(&a, 3, &basis, 0, 0),
+            h.entry(0, 0).unwrap(),
+            1e-10,
+        );
+        assert_close(
+            projection_entry(&a, 3, &basis, 1, 0),
+            h.entry(1, 0).unwrap(),
+            1e-10,
+        );
+        assert_close(
+            projection_entry(&a, 3, &basis, 2, 1),
+            h.entry(2, 1).unwrap(),
+            1e-10,
+        );
     }
 
     #[test]
@@ -313,10 +325,26 @@ mod tests {
         let inner: f64 = q_0.iter().zip(q_1.iter()).map(|(x, y)| x * y).sum();
         assert_close(inner, 0.0, 1e-12);
 
-        assert_close(projection_entry(&a, 3, &basis, 0, 0), h.entry(0, 0).unwrap(), 1e-10);
-        assert_close(projection_entry(&a, 3, &basis, 0, 1), h.entry(0, 1).unwrap(), 1e-10);
-        assert_close(projection_entry(&a, 3, &basis, 1, 0), h.entry(1, 0).unwrap(), 1e-10);
-        assert_close(projection_entry(&a, 3, &basis, 1, 1), h.entry(1, 1).unwrap(), 1e-10);
+        assert_close(
+            projection_entry(&a, 3, &basis, 0, 0),
+            h.entry(0, 0).unwrap(),
+            1e-10,
+        );
+        assert_close(
+            projection_entry(&a, 3, &basis, 0, 1),
+            h.entry(0, 1).unwrap(),
+            1e-10,
+        );
+        assert_close(
+            projection_entry(&a, 3, &basis, 1, 0),
+            h.entry(1, 0).unwrap(),
+            1e-10,
+        );
+        assert_close(
+            projection_entry(&a, 3, &basis, 1, 1),
+            h.entry(1, 1).unwrap(),
+            1e-10,
+        );
     }
 
     #[test]
