@@ -3,6 +3,7 @@
 mod arnoldi;
 #[allow(dead_code)]
 mod common;
+mod gmres;
 mod inverse_power_iteration;
 mod lanczos;
 mod power_iteration;

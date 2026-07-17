@@ -32,6 +32,8 @@
     - [Power Iteration](book/08-krylov/power-iteration.md)
     - [Conjugate Gradient](book/08-krylov/conjugate-gradient.md)
     - [Lanczos Iteration](book/08-krylov/lanczos.md)
+    - [Arnoldi Iteration](book/08-krylov/arnoldi.md)
+    - [GMRES(m)](book/08-krylov/gmres.md)
   - [Eigenvalues & Eigenvectors](book/09-eigenvalues.md)
   - [Numerical Stability](book/12-numerical-stability/README.md)
     - [NaN/Inf Policy](book/12-numerical-stability/nan-inf-policy.md)

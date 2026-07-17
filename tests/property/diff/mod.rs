@@ -4,6 +4,7 @@
 
 mod arnoldi;
 mod cholesky;
+mod gmres;
 mod lanczos;
 mod lu;
 mod qr;
