@@ -3,11 +3,11 @@
 //! dimension mismatches, and the zero vector — cases the property harness deliberately never
 //! generates.
 
+#[cfg(feature = "alloc")]
+use rustebra::krylov::gmres;
 use rustebra::krylov::{
     ConvergenceError, arnoldi, inverse_power_iteration, lanczos, power_iteration,
 };
-#[cfg(feature = "alloc")]
-use rustebra::krylov::gmres;
 #[cfg(feature = "alloc")]
 use rustebra::sparse::CsrMatrix;
 use rustebra::storage::{Basis, StaticStorage};
@@ -563,7 +563,10 @@ fn gmres_non_finite_matrix_entry_is_an_error_not_a_panic() {
 
         let result = gmres(&a, &b, &x0, 10, 1e-10, &mut out_x, &mut basis, &mut scratch);
 
-        assert!(result.is_err(), "gmres accepted a {poison} entry: {result:?}");
+        assert!(
+            result.is_err(),
+            "gmres accepted a {poison} entry: {result:?}"
+        );
     }
 }
 
