@@ -7,17 +7,20 @@
 [![Crates.io](https://img.shields.io/crates/v/rustebra?style=flat-square&color=fc8d62)](https://crates.io/crates/rustebra)
 [![docs.rs](https://img.shields.io/docsrs/rustebra?style=flat-square&label=docs.rs)](https://docs.rs/rustebra)
 [![CI](https://img.shields.io/github/actions/workflow/status/tec-eli/rustebra/ci.yml?style=flat-square&label=CI)](https://github.com/tec-eli/rustebra/actions/workflows/ci.yml)
-[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=tec-eli_rustebra)](https://sonarcloud.io/summary/new_code?id=tec-eli_rustebra)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![no_std](https://img.shields.io/badge/no__std-compatible-success?style=flat-square)](https://docs.rust-embedded.org/book/)
 [![MSRV](https://img.shields.io/badge/MSRV-1.85-orange?style=flat-square)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html)
+
+
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=tec-eli_rustebra)](https://sonarcloud.io/summary/new_code?id=tec-eli_rustebra)
 
 # rustebra
 
 **Linear algebra for embedded systems, microcontrollers, and real-time applications.**  
 A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matrices and Krylov subspace solvers when a heap is available.
 
-[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html) · [Design Decisions](docs/specs/) · [Contributing](CONTRIBUTING.md)
+[Documentation](https://tec-eli.github.io/rustebra) · [API Reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html) · [Specs](docs/specs/) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -26,7 +29,7 @@ A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matr
 ## Status
 
 Early development (v0.4.0). Core features implemented: static/dynamic vectors and matrices, matrix decompositions (LU, QR, SVD, Cholesky), sparse matrix support (COO, CSR, CSC), and Krylov eigenvalue solvers (power iteration, inverse power iteration). See
-[design decisions](docs/specs/) for architecture details.
+[specs](docs/specs/) for architecture details.
 
 ## Why this exists
 
@@ -167,7 +170,7 @@ The firmware workspace includes:
 ## Documentation
 
 - **[API reference](https://tec-eli.github.io/rustebra/rustdoc/rustebra/index.html)** — generated from `cargo doc`, hosted on GitHub Pages.
-- **[Design decisions](docs/specs/)** — records of the key design choices made during development.
+- **[Specs](docs/specs/)** — records of the key design choices made during development.
 - **[GitHub Pages site](https://tec-eli.github.io/rustebra)** — full project documentation.
 
 To generate and browse the API docs locally:
