@@ -4,6 +4,7 @@
 #[allow(dead_code)]
 mod common;
 
+mod dimensions;
 mod krylov;
 mod nan_inf;
 mod sparse;
