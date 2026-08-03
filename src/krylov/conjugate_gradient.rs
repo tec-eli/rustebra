@@ -472,15 +472,15 @@ mod tests {
 
         // Verify: A x should be close to b
         let mut ax = [0.0; 3];
-        for i in 0..3 {
-            ax[i] = 0.0;
-            for j in 0..3 {
-                ax[i] = ax[i] + a.get(i * 3 + j).unwrap_or(&0.0) * x[j];
+        for (i, ax_i) in ax.iter_mut().enumerate() {
+            *ax_i = 0.0;
+            for (j, x_j) in x.iter().enumerate() {
+                *ax_i += a.get(i * 3 + j).unwrap_or(&0.0) * x_j;
             }
         }
 
-        for i in 0..3 {
-            assert_close(ax[i], b[i], 1e-8);
+        for (ax_i, b_i) in ax.iter().zip(b.iter()) {
+            assert_close(*ax_i, *b_i, 1e-8);
         }
     }
 
