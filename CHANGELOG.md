@@ -5,17 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [Released]
+
+## [0.5.0] - 2026-08-03
 
 ### Added
 
 - **Lanczos iteration.** `krylov::lanczos` tridiagonalizes a real symmetric matrix over a compile-time-sized Krylov
   subspace, returning the projection as a new `TridiagonalMatrix<T, K>` and filling an orthonormal basis. Uses full
   reorthogonalization, so the basis stays orthonormal to working precision.
+- **Arnoldi iteration.** `krylov::arnoldi` reduces a general, possibly non-symmetric matrix to upper Hessenberg form
+  over a compile-time-sized Krylov subspace, returning the projection as a new `HessenbergMatrix<T, K>` and filling an
+  orthonormal basis. Unlike Lanczos, there's no three-term recurrence to exploit, so every step orthogonalizes
+  (via modified Gram-Schmidt) against the entire basis built so far, not just the two previous vectors.
+- **Conjugate Gradient.** `krylov::conjugate_gradient` solves a symmetric positive-definite (SPD) linear system
+  `A x = b` iteratively, without factorizing `A`, converging in at most `n` steps in exact arithmetic. Detects
+  non-SPD input operationally — a search direction whose curvature `p · (A p)` isn't positive — rather than assuming
+  the caller already validated it.
+- **GMRES(m), restarted.** `krylov::gmres`, gated behind the `alloc` feature, solves a general (possibly
+  non-symmetric) linear system `A x = b`: Arnoldi builds an `M`-dimensional Krylov basis from the current residual,
+  the resulting least-squares problem is solved via Givens rotations, and the cycle restarts from the improved
+  iterate until the residual meets tolerance or the restart budget runs out. Takes `A` as a `SparseLinearOp` so
+  restart cycles reuse the same workspace instead of allocating on every application.
 - `storage::Basis<T, K>`, a const-generic view over caller-provided memory holding the `K` basis vectors a Krylov
-  method builds up — the storage-layer piece Arnoldi and GMRES(m) will reuse.
+  method builds up — the storage-layer piece Arnoldi and GMRES(m) reuse.
 - `ConvergenceError::Breakdown`, reported when the Krylov subspace turns out to be invariant before reaching the
-  requested dimension (e.g. a repeated eigenvalue, or a starting vector inside a small invariant subspace).
+  requested dimension (e.g. a repeated eigenvalue, or a starting vector inside a small invariant subspace). For
+  Arnoldi and GMRES specifically, this is instead reported as a successful, smaller-than-requested basis, since the
+  invariant subspace found is still exact and useful.
+- Property tests for `qr`, `cholesky_decompose`, and `svd` that check each decomposition's defining mathematical
+  invariants directly (orthogonality, triangularity, reconstruction, positive-definiteness) instead of comparing
+  against nalgebra, so they also cover shapes nalgebra wouldn't be a fair oracle for.
+- Edge-case tests for dimension extremes — degenerate `0xn`/`nx0`/`0x0` shapes, the smallest nontrivial shape
+  (`1x1`), and very rectangular shapes — across the dense decompositions and sparse matrix construction.
 
 ## [Released]
 
