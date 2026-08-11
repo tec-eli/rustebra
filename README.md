@@ -28,7 +28,7 @@ A hybrid `no_std`/`alloc` library. Stack-first by default. Scales to sparse matr
 
 ## Status
 
-Early development (v0.4.0). Core features implemented: static/dynamic vectors and matrices, matrix decompositions (LU, QR, SVD, Cholesky), sparse matrix support (COO, CSR, CSC), and Krylov eigenvalue solvers (power iteration, inverse power iteration). See
+Early development (v0.5.0). Core features implemented: static/dynamic vectors and matrices, matrix decompositions (LU, QR, SVD, Cholesky), sparse matrix support (COO, CSR, CSC), Krylov eigenvalue solvers (power iteration, inverse power iteration, Lanczos, Arnoldi), and Krylov linear solvers (Conjugate Gradient, GMRES(m)). See
 [specs](docs/specs/) for architecture details.
 
 ## Why this exists
@@ -75,10 +75,10 @@ constrained environments. rustebra aims to close that gap.
 | **Stack-only (no heap required)** | ✅ Default                 | ❌ No | ✅ For fixed-size |
 | **Sparse matrices** | ✅ v0.3.0+ (COO, CSR, CSC) | ❌ Separate `sprs` crate | ⚠️ Limited (optional feature) |
 | **GPU/SIMD acceleration** | ❌ Not planned             | ⚠️ Limited SIMD | ⚠️ SIMD support available |
-| **Krylov solvers** | ✅ v0.4.0+ (power iteration, inverse power iteration) | ⚠️ Via `ndarray-linalg` | ❌ Not in core |
+| **Krylov solvers** | ✅ v0.5.0+ (power iteration, inverse power iteration, Lanczos, Arnoldi, CG, GMRES(m)) | ⚠️ Via `ndarray-linalg` | ❌ Not in core |
 | **3D math/graphics primitives** | ❌ Not focused             | ❌ Not provided | ✅ Excellent (Isometry, Rotation, etc.) |
 | **BLAS/LAPACK integration** | ❌ No                      | ✅ Excellent bindings | ❌ Pure Rust |
-| **Maturity & stability** | 🟡 Early (v0.4.0)         | ✅ Mature & stable | ✅ Mature & stable |
+| **Maturity & stability** | 🟡 Early (v0.5.0)         | ✅ Mature & stable | ✅ Mature & stable |
 | **Large matrices (100k+)** | ⚠️ With sparse            | ✅ Optimized | ⚠️ Fixed-size limits |
 | **Embedded systems** | ✅ Best choice             | ❌ Poor fit | ⚠️ For fixed-size only |
 
@@ -106,10 +106,10 @@ constrained environments. rustebra aims to close that gap.
 
 ```toml
 [dependencies]
-rustebra = "0.4.0"
+rustebra = "0.5.0"
 
 # Optional: heap-backed structures and Krylov solvers
-rustebra = { version = "0.4.0", features = ["alloc"] }
+rustebra = { version = "0.5.0", features = ["alloc"] }
 ```
 
 Build and test locally:

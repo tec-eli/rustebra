@@ -1,6 +1,6 @@
 [package]
 name = "rustebra"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
@@ -11,6 +11,17 @@ keywords = ["linear-algebra", "matrix", "vector", "no-std", "numerical"]
 categories = ["algorithms", "mathematics", "no-std"]
 documentation = "https://docs.rs/rustebra"
 readme = "README.md"
+exclude = [
+    ".all-contributorsrc",
+    ".claudeignore",
+    ".github/",
+    "CLAUDE.md",
+    "CONTEXT.md",
+    "book.toml",
+    "docs/",
+    "sonar-project.properties",
+    "theme/",
+]
 
 [dependencies]
 
